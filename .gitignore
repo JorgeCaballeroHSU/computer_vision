@@ -1,0 +1,24 @@
+# VS Code
+.vscode/
+.vscode-server/
+.vscode-remote-containers/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environment
+.venv/
+env/
+
+#others
+.cache/
+.copilot/
+.landscape/
+
+# Optional: data & outputs
+# data/
+# outputs/
+# models/

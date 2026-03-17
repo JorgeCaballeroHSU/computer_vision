@@ -85,3 +85,6 @@ python3 -c "import tensorflow as tf; print(tf.config.list_physical_devices('GPU'
 pip install keras
 export TF_CPP_MIN_LOG_LEVEL=2
  source /home/computer_vision/.venv/bin/activate
+ source /home/computer_vision/.venv/bin/activate
+git config pull.rebase false
+ source /home/computer_vision/.venv/bin/activate

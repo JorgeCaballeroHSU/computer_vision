@@ -88,3 +88,7 @@ export TF_CPP_MIN_LOG_LEVEL=2
  source /home/computer_vision/.venv/bin/activate
 git config pull.rebase false
  source /home/computer_vision/.venv/bin/activate
+ source /home/computer_vision/.venv/bin/activate
+ source /home/computer_vision/.venv/bin/activate
+ source /home/computer_vision/.venv/bin/activate
+ source /home/computer_vision/.venv/bin/activate

@@ -17,6 +17,7 @@ env/
 .cache/
 .copilot/
 .landscape/
+.bash_history/
 
 # Optional: data & outputs
 # data/

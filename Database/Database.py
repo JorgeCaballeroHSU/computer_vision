@@ -7,20 +7,25 @@ import datetime
 
 class Database:
     
+    # Class' properties
+    __filePath:str=''
     
     def __init__(self, dbFile: str)->None:
         """ create a database connection to the SQLite database specified by db_file
         :param db_file: database file
         :return: Connection object or None
         """
-
         # initialize the connection variable to None
         self.conn = None
+        self.__filePath=dbFile
 
         # attempt to connect to the database using the provided file name and print a success message if the connection is successful
         try:
-            self.conn = sqlite3.connect(dbFile)
-            print(f"Connected to database {dbFile} successfully.")
+            self.conn = sqlite3.connect(self.__filePath)
+            print(f"Connected to database {self.__filePath} successfully.")
+
+            self.__createTable()
+            print("Tables were created successfully.")
         
         # catch any errors that occur during the connection process and print the error message
         except Error as e:
@@ -29,7 +34,7 @@ class Database:
         #return nothing
         return None
 
-    def createTable(self)->None:
+    def __createTable(self)->None:
         """ create a table from the create_table_sql statement
         :return:
         """
@@ -93,11 +98,17 @@ trainingStatus TEXT, MSE FLOAT, R2 FLOAT, hyperparameters TEXT, modelweight BLOB
         # commits statement
         self.conn.commit()
 
+        # closes connection
+        self.__closeConnection()
+
         # return None
         return None
     
     # module to add a new item to table TFRecording
     def addItemTFRecording(self,label:str, TFRecoding: bytearray,tableName:str='TFRecording')->None:
+
+        # opens connection to the db
+        self.__openConnection()
 
         # insert table statement
         insertStatement='''INSERT INTO {}({}, {})'''.format(tableName,label,TFRecoding)
@@ -108,12 +119,18 @@ trainingStatus TEXT, MSE FLOAT, R2 FLOAT, hyperparameters TEXT, modelweight BLOB
         #commits to statement
         self.conn.commit()
 
+        #closes connection
+        self.__closeConnection
+
         #returns None
         return None
     
     # module to add a new item to table ModelTable
     def addItemModelTable(self,modelName:str,trainingStatus:str,MSE:float,r2:float,hyperparameters:str, modelWeights:bytearray,
                           tableName:str='ModelTable')-> None:
+
+        # opens connection to the db
+        self.__openConnection()
 
         # insert table statement
         insertStatement='''INSERT INTO {}({}, {}, {}, {}, {}, {})'''.format(tableName,modelName,trainingStatus,MSE,r2,hyperparameters,modelWeights)
@@ -123,11 +140,64 @@ trainingStatus TEXT, MSE FLOAT, R2 FLOAT, hyperparameters TEXT, modelweight BLOB
 
         # commits to statement
         self.conn.commit()
-        
+
+        #closes connection
+        self.__closeConnection
+
         # returns nothing
         return None
 
-    def close_connection(self)->None:
+    # module to fetch information from the database
+    def fetchInfo(self,statement:str)-> tuple:
+
+        # opens connection to the db
+        self.__openConnection()
+
+        # fetches the elements indicated by the statement
+        fetchedElement=self.conn.cursor().execute(statement).fetchall()
+
+        #closes connection
+        self.__closeConnection
+
+        # returns nothing
+        return  fetchedElement
+
+
+    # module to update an existing element
+    def updateItem(self, updateStatement:str, Values:tuple)->None:
+
+        # opens connection to the db
+        self.__openConnection()
+
+        # executes the given statement
+        self.conn.cursor().execute(updateStatement,Values)
+
+        # commits executed statement
+        self.conn.commit()
+
+        #closes connection
+        self.__closeConnection
+
+        # returns nothing
+        return None
+
+    # module to open connection to the database
+    def __openConnection(self)->None:
+
+        # attempt to connect to the database using the provided file name and print a success message if the connection is successful
+        try:
+            self.conn = sqlite3.connect(self.__filePath)
+            print(f"Connected to database {self.__filePath} successfully.")
+        
+        # catch any errors that occur during the connection process and print the error message
+        except Error as e:
+            print(e)
+
+        # returns none
+        return None
+
+    # module to close connections to the database
+    def __closeConnection(self)->None:
         """ close the database connection
         """
         if self.conn:

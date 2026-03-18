@@ -92,3 +92,7 @@ git config pull.rebase false
  source /home/computer_vision/.venv/bin/activate
  source /home/computer_vision/.venv/bin/activate
  source /home/computer_vision/.venv/bin/activate
+ source /home/computer_vision/.venv/bin/activate
+pip install SQLAlchemy
+pip install sqlalchemy-utils
+ source /home/computer_vision/.venv/bin/activate

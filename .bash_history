@@ -96,3 +96,58 @@ git config pull.rebase false
 pip install SQLAlchemy
 pip install sqlalchemy-utils
  source /home/computer_vision/.venv/bin/activate
+ source /home/computer_vision/.venv/bin/activate
+ source /home/computer_vision/.venv/bin/activate
+ source /home/computer_vision/.venv/bin/activate
+ source /home/computer_vision/.venv/bin/activate
+ source /home/computer_vision/.venv/bin/activate
+ source /home/computer_vision/.venv/bin/activate
+ source /home/computer_vision/.venv/bin/activate
+ /usr/bin/env /home/computer_vision/.venv/bin/python /home/computer_vision/.vscode-server/extensions/ms-python.debugpy-2025.18.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher 43323 -- /home/computer_vision/Sockets/SocketServer.py 
+ cd /home/computer_vision ; /usr/bin/env /home/computer_vision/.venv/bin/python /home/computer_vision/.vscode-server/extensions/ms-python.debugpy-2025.18.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher 49419 -- /home/computer_vision/Sockets/SocketServer.py 
+ cd /home/computer_vision ; /usr/bin/env /home/computer_vision/.venv/bin/python /home/computer_vision/.vscode-server/extensions/ms-python.debugpy-2025.18.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher 42107 -- /home/computer_vision/Sockets/SocketServer.py 
+ cd /home/computer_vision ; /usr/bin/env /home/computer_vision/.venv/bin/python /home/computer_vision/.vscode-server/extensions/ms-python.debugpy-2025.18.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher 54949 -- /home/computer_vision/Sockets/SocketServer.py 
+ cd /home/computer_vision ; /usr/bin/env /home/computer_vision/.venv/bin/python /home/computer_vision/.vscode-server/extensions/ms-python.debugpy-2025.18.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher 60689 -- /home/computer_vision/Sockets/SocketServer.py 
+ cd /home/computer_vision ; /usr/bin/env /home/computer_vision/.venv/bin/python /home/computer_vision/.vscode-server/extensions/ms-python.debugpy-2025.18.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher 35979 -- /home/computer_vision/Sockets/SocketServer.py 
+ cd /home/computer_vision ; /usr/bin/env /home/computer_vision/.venv/bin/python /home/computer_vision/.vscode-server/extensions/ms-python.debugpy-2025.18.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher 37115 -- /home/computer_vision/Sockets/SocketServer.py 
+ cd /home/computer_vision ; /usr/bin/env /home/computer_vision/.venv/bin/python /home/computer_vision/.vscode-server/extensions/ms-python.debugpy-2025.18.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher 39361 -- /home/computer_vision/Sockets/SocketServer.py 
+ cd /home/computer_vision ; /usr/bin/env /home/computer_vision/.venv/bin/python /home/computer_vision/.vscode-server/extensions/ms-python.debugpy-2025.18.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher 40553 -- /home/computer_vision/Sockets/SocketServer.py 
+ cd /home/computer_vision ; /usr/bin/env /home/computer_vision/.venv/bin/python /home/computer_vision/.vscode-server/extensions/ms-python.debugpy-2025.18.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher 47501 -- /home/computer_vision/Sockets/SocketServer.py 
+ cd /home/computer_vision ; /usr/bin/env /home/computer_vision/.venv/bin/python /home/computer_vision/.vscode-server/extensions/ms-python.debugpy-2025.18.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher 39105 -- /home/computer_vision/Sockets/SocketServer.py 
+ cd /home/computer_vision ; /usr/bin/env /home/computer_vision/.venv/bin/python /home/computer_vision/.vscode-server/extensions/ms-python.debugpy-2025.18.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher 44457 -- /home/computer_vision/Sockets/SocketServer.py 
+ cd /home/computer_vision ; /usr/bin/env /home/computer_vision/.venv/bin/python /home/computer_vision/.vscode-server/extensions/ms-python.debugpy-2025.18.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher 57459 -- /home/computer_vision/Sockets/SocketServer.py 
+ cd /home/computer_vision ; /usr/bin/env /home/computer_vision/.venv/bin/python /home/computer_vision/.vscode-server/extensions/ms-python.debugpy-2025.18.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher 42607 -- /home/computer_vision/Sockets/SocketServer.py 
+ cd /home/computer_vision ; /usr/bin/env /home/computer_vision/.venv/bin/python /home/computer_vision/.vscode-server/extensions/ms-python.debugpy-2025.18.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher 45069 -- /home/computer_vision/Sockets/SocketServer.py 
+ cd /home/computer_vision ; /usr/bin/env /home/computer_vision/.venv/bin/python /home/computer_vision/.vscode-server/extensions/ms-python.debugpy-2025.18.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher 55673 -- /home/computer_vision/Sockets/SocketServer.py 
+ cd /home/computer_vision ; /usr/bin/env /home/computer_vision/.venv/bin/python /home/computer_vision/.vscode-server/extensions/ms-python.debugpy-2025.18.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher 47879 -- /home/computer_vision/Sockets/SocketServer.py 
+ cd /home/computer_vision ; /usr/bin/env /home/computer_vision/.venv/bin/python /home/computer_vision/.vscode-server/extensions/ms-python.debugpy-2025.18.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher 55427 -- /home/computer_vision/Sockets/SocketServer.py 
+ cd /home/computer_vision ; /usr/bin/env /home/computer_vision/.venv/bin/python /home/computer_vision/.vscode-server/extensions/ms-python.debugpy-2025.18.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher 47833 -- /home/computer_vision/Sockets/SocketServer.py 
+ cd /home/computer_vision ; /usr/bin/env /home/computer_vision/.venv/bin/python /home/computer_vision/.vscode-server/extensions/ms-python.debugpy-2025.18.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher 57613 -- /home/computer_vision/Sockets/SocketServer.py 
+ cd /home/computer_vision ; /usr/bin/env /home/computer_vision/.venv/bin/python /home/computer_vision/.vscode-server/extensions/ms-python.debugpy-2025.18.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher 47781 -- /home/computer_vision/Sockets/SocketServer.py 
+ cd /home/computer_vision ; /usr/bin/env /home/computer_vision/.venv/bin/python /home/computer_vision/.vscode-server/extensions/ms-python.debugpy-2025.18.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher 48075 -- /home/computer_vision/Sockets/SocketServer.py 
+ cd /home/computer_vision ; /usr/bin/env /home/computer_vision/.venv/bin/python /home/computer_vision/.vscode-server/extensions/ms-python.debugpy-2025.18.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher 35121 -- /home/computer_vision/Sockets/SocketServer.py 
+ cd /home/computer_vision ; /usr/bin/env /home/computer_vision/.venv/bin/python /home/computer_vision/.vscode-server/extensions/ms-python.debugpy-2025.18.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher 46879 -- /home/computer_vision/Sockets/SocketServer.py 
+ cd /home/computer_vision ; /usr/bin/env /home/computer_vision/.venv/bin/python /home/computer_vision/.vscode-server/extensions/ms-python.debugpy-2025.18.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher 55721 -- /home/computer_vision/Sockets/SocketServer.py 
+ cd /home/computer_vision ; /usr/bin/env /home/computer_vision/.venv/bin/python /home/computer_vision/.vscode-server/extensions/ms-python.debugpy-2025.18.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher 32923 -- /home/computer_vision/Sockets/SocketServer.py 
+ cd /home/computer_vision ; /usr/bin/env /home/computer_vision/.venv/bin/python /home/computer_vision/.vscode-server/extensions/ms-python.debugpy-2025.18.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher 46071 -- /home/computer_vision/Sockets/SocketServer.py 
+ cd /home/computer_vision ; /usr/bin/env /home/computer_vision/.venv/bin/python /home/computer_vision/.vscode-server/extensions/ms-python.debugpy-2025.18.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher 42639 -- /home/computer_vision/Sockets/SocketServer.py 
+ cd /home/computer_vision ; /usr/bin/env /home/computer_vision/.venv/bin/python /home/computer_vision/.vscode-server/extensions/ms-python.debugpy-2025.18.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher 57633 -- /home/computer_vision/Sockets/SocketServer.py 
+ cd /home/computer_vision ; /usr/bin/env /home/computer_vision/.venv/bin/python /home/computer_vision/.vscode-server/extensions/ms-python.debugpy-2025.18.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher 45809 -- /home/computer_vision/Sockets/SocketServer.py 
+ cd /home/computer_vision ; /usr/bin/env /home/computer_vision/.venv/bin/python /home/computer_vision/.vscode-server/extensions/ms-python.debugpy-2025.18.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher 58429 -- /home/computer_vision/Sockets/SocketServer.py 
+ cd /home/computer_vision ; /usr/bin/env /home/computer_vision/.venv/bin/python /home/computer_vision/.vscode-server/extensions/ms-python.debugpy-2025.18.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher 54993 -- /home/computer_vision/Sockets/SocketServer.py 
+ cd /home/computer_vision ; /usr/bin/env /home/computer_vision/.venv/bin/python /home/computer_vision/.vscode-server/extensions/ms-python.debugpy-2025.18.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher 39667 -- /home/computer_vision/Sockets/SocketServer.py 
+ cd /home/computer_vision ; /usr/bin/env /home/computer_vision/.venv/bin/python /home/computer_vision/.vscode-server/extensions/ms-python.debugpy-2025.18.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher 46819 -- /home/computer_vision/Sockets/SocketServer.py 
+ cd /home/computer_vision ; /usr/bin/env /home/computer_vision/.venv/bin/python /home/computer_vision/.vscode-server/extensions/ms-python.debugpy-2025.18.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher 39915 -- /home/computer_vision/Sockets/SocketServer.py 
+ cd /home/computer_vision ; /usr/bin/env /home/computer_vision/.venv/bin/python /home/computer_vision/.vscode-server/extensions/ms-python.debugpy-2025.18.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher 51897 -- /home/computer_vision/Sockets/SocketServer.py 
+ cd /home/computer_vision ; /usr/bin/env /home/computer_vision/.venv/bin/python /home/computer_vision/.vscode-server/extensions/ms-python.debugpy-2025.18.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher 46207 -- /home/computer_vision/Sockets/SocketServer.py 
+ source /home/computer_vision/.venv/bin/activate
+ source /home/computer_vision/.venv/bin/activate
+ source /home/computer_vision/.venv/bin/activate
+ source /home/computer_vision/.venv/bin/activate
+ /usr/bin/env /home/computer_vision/.venv/bin/python /home/computer_vision/.vscode-server/extensions/ms-python.debugpy-2025.18.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher 35427 -- /home/computer_vision/Sockets/SocketServer.py 
+ cd /home/computer_vision ; /usr/bin/env /home/computer_vision/.venv/bin/python /home/computer_vision/.vscode-server/extensions/ms-python.debugpy-2025.18.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher 44307 -- /home/computer_vision/Sockets/SocketServer.py 
+ source /home/computer_vision/.venv/bin/activate
+/home/computer_vision/.venv/bin/python /home/computer_vision/Sockets/SocketClient.py
+ source /home/computer_vision/.venv/bin/activate
+ source /home/computer_vision/.venv/bin/activate
+/home/computer_vision/.venv/bin/python /home/computer_vision/Sockets/SocketClient.py

@@ -4,9 +4,11 @@
 import socket
 
 # defines the class SocketServer, which is used to create a socket server
-class SocketServer:
+class SocketServer():
 
     # properties of the class SocketServer
+    __conn:socket
+    __addr:None
 
     # constructor of the class SocketServer, it initializes the socket object
     def __init__(self, sock=None):
@@ -50,19 +52,21 @@ class SocketServer:
         return None
     
     # method to accept an incoming connection
-    def accept(self)->tuple:
+    def accept(self)->None:
         '''accepts an incoming connection
 
         Returns:
-            Socket: a new Socket object representing the accepted connection
-            tuple: the address of the client that made the connection
+            None
         '''
 
-        # accepts an incoming connection and returns a new Socket object and the client's address
-        return SocketServer(self.sock.accept()[0]), self.sock.accept()[1]
+        # accepts an incoming connection. Gets the connection and address
+        self.__conn, self.__addr=self.sock.accept()
+        
+        #returns None
+        return None
 
     # method to send data through the socket
-    def send(self, data)->None:
+    def send(self,toSend:str)->None:
         '''sends data through the socket
         Args:
             data (str): the data to be sent
@@ -72,8 +76,23 @@ class SocketServer:
         '''
 
         # sends the data through the socket
-        self.sock.sendall(data.encode())
+        #with self.__conn:
 
+            # informs about the address of the connection
+        print("Connected by {}".format(self.__addr))
+
+            #while opp for sending the data through the socket
+            #while True:
+
+                #data=self.__conn.recv(1024)
+
+                #print(data)
+                # if not data:
+                #     break
+                
+        self.__conn.sendall(toSend.encode())
+
+        #    data
         # returns None
         return None
     
@@ -86,9 +105,22 @@ class SocketServer:
         Returns:
             str: the data received from the socket
         '''
+        # while loop to receive the information
+        while True:
 
-        # receives data from the socket
-        data = self.sock.recv(bufferSize).decode()
+            # receives data from the socket
+            data = self.__conn.recv(bufferSize).decode()
+            
+            # prints the results
+            print(data)
+
+            # check if there is new data coming
+            if not self.__conn.recv(bufferSize).decode():
+                
+                # breaks the loop
+                break
+            
+            
 
         # returns the received data
         return data
@@ -107,3 +139,17 @@ class SocketServer:
         # returns None
         return None
     
+
+server=SocketServer()
+
+server.bind(
+    host='0.0.0.0',
+    port=5000
+)
+
+server.listen()
+server.accept()
+
+server.send(toSend='Hola')
+# a=server.receive()
+

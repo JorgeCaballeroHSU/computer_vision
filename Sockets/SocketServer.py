@@ -1,5 +1,5 @@
 # this class is used for the definition of the socket in the server-side
-
+######### maybe change this to webSockets
 # imports required libraries
 import socket
 
@@ -140,16 +140,16 @@ class SocketServer():
         return None
     
 
-server=SocketServer()
+# server=SocketServer()
 
-server.bind(
-    host='0.0.0.0',
-    port=5000
-)
+# server.bind(
+#     host='0.0.0.0',
+#     port=5000
+# )
 
-server.listen()
-server.accept()
+# server.listen()
+# server.accept()
 
-server.send(toSend='Hola')
-# a=server.receive()
+# server.send(toSend='Hola')
+# # a=server.receive()
 

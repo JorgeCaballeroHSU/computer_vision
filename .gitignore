@@ -18,6 +18,9 @@ env/
 .copilot/
 .landscape/
 .bash_history/
+wg0.conf
+privatekey
+publickey
 
 # Optional: data & outputs
 # data/

@@ -99,3 +99,24 @@ class TFRecorder:
 
         # returns the image, label, and labelInit
         return image, label, labelInit
+    
+    # saves the TFRecord in the indicated location
+    def saveTFRecord(self,fileName:str,filePath:str, TFRecord:bytes)->None:
+
+        # creates the file location where the TF record is to be saved
+        storeLocation=r'/'.join(filePath,fileName)
+
+        # saves file in the indicated location
+        with open(file=storeLocation, mode='w') as file:
+            
+            # creates and writes the file in the indicated location
+            file.write(TFRecord)
+
+            # closes the file 
+            file.close()
+
+
+        
+
+    
+

@@ -2,6 +2,7 @@
 
 # imports required libraries
 import tensorflow as tf
+import random
 
 # defines the flipping class for the flipping of images
 class Flipping:
@@ -9,8 +10,13 @@ class Flipping:
     #space for the properties of the class
 
     # module for the initialization of the class
-    def __init__(self, flipType: str):
+    def __init__(self, flipType: str | None=None) ->None:
+
+        # defines the content of the property flipType, None by default
         self.flipType = flipType
+
+        # returns None
+        return None
 
     # module for the flipping of images
     def flip(self, image: tf.Tensor)-> tf.Tensor:
@@ -20,12 +26,32 @@ class Flipping:
         Returns:
             the flipped image
         '''
+        # applies horizontal flip
         if self.flipType == 'horizontal':
+
+            # changes flipType back to None
+            self.flipType=None
+
+            # returns results
             return tf.image.flip_left_right(image)
+        
+        # applies vertical flip
         elif self.flipType == 'vertical':
+
+            # changes flipType back to None
+            self.flipType=None
+
+            # returns results
             return tf.image.flip_up_down(image)
+        
+        # applies a random flip
         else:
-            raise ValueError('Invalid flip type. Must be "horizontal" or "vertical".')
+
+            # choises randonly the type of flip
+            self.flipType=random.choice(['horizontal','vertical'])
+
+            # calls itself again and return results
+            return self.flip(image=image)
         
 # defines the ColorDistortion class for the distortion of the colors of images
 class ColorDistortion:
@@ -33,11 +59,17 @@ class ColorDistortion:
     # space for the properties of the class
 
     # module for the initialization of the class
-    def __init__(self, brightness: float, contrast: float, saturation: float, hue: float):
+    def __init__(self, brightness: float |None=0.1, contrast: float|None=0.5, 
+                 saturation: float|None=0.25, hue: float|None=0.1)->None:
+        
+        # defines the value of the properties of this class
         self.brightness = brightness
         self.contrast = contrast
         self.saturation = saturation
         self.hue = hue
+
+        # returns None
+        return None
 
     # module for the distortion of the colors of images
     def distortColors(self, image: tf.Tensor)-> tf.Tensor:
@@ -47,8 +79,11 @@ class ColorDistortion:
         Returns:
             the distorted image
         '''
+
         image = tf.image.random_brightness(image, max_delta=self.brightness)
         image = tf.image.random_contrast(image, lower=1-self.contrast, upper=1+self.contrast)
         image = tf.image.random_saturation(image, lower=1-self.saturation, upper=1+self.saturation)
         image = tf.image.random_hue(image, max_delta=self.hue)
+
+        # returns results
         return image

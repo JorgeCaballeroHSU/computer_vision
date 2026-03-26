@@ -11,6 +11,7 @@ class Label:
     __projectName: str = ""
     __sampleNumber: str = ""
     __typeMaterial: str = ""
+    __AugmentedNumber:str = ""
 
     # methods of the class
     def __init__(self) ->None:
@@ -106,12 +107,22 @@ class Label:
         # returns nothing
         return None
 
-    # generates the label for the photograph
-    def generateLabel(self) ->str:
+    # generates the label for the photograph.
+    def generateSampleLabel(self) ->str:
         '''This method generates the label for the photograph. It is used to label the photographs with the name of the person and the date of the photograph.'''
 
         # generates the label for the photograph
-        label = self.__projectName + "_" + self.__typeMaterial + "_" + self.__sampleNumber
+        label ='_'.join( self.__projectName , self.__typeMaterial , self.__sampleNumber)
 
         # returns the label for the photograph
+        return label
+    
+    # genererates label for the augmented data
+    def generateAugmentedLabel(self)->str:
+        '''this method generates the label for the augmented photographs. It uses the sample label as basis'''
+
+        # generates the label for the augmented data
+        label='_'.join( self.__projectName , self.__typeMaterial , self.__sampleNumber,self.__AugmentedNumber)
+
+        # returns the label
         return label

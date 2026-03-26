@@ -184,3 +184,7 @@ sudo apt install wireguard
 wg genkey | tee privatekey | wg pubkey > publickey
 sudo apt remove wireguard wireguard-tools
  source /home/computer_vision/.venv/bin/activate
+ source /home/computer_vision/.venv/bin/activate
+ source /home/computer_vision/.venv/bin/activate
+ source /home/computer_vision/.venv/bin/activate
+ source /home/computer_vision/.venv/bin/activate

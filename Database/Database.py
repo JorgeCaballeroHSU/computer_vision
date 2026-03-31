@@ -34,10 +34,47 @@ class Database:
         #return nothing
         return None
 
+    # creates all the tables necessary for running this project. The database table relations can be seen in the document
+    # Datenbak - Class Diagram.png
     def __createTable(self)->None:
         """ create a table from the create_table_sql statement
         :return:
         """
+        
+        # defines the sql-command to create the table named label if this does not exists
+        label= "CREATE TABLE IF NOT EXISTS Label (LabelID INTEGER PRIMARY KEY, \
+Name TEXT NOT NULL, LabelType TEXT NOT NULL)"
+
+        # defines sthe sql-command for the creation of the table SampleLabel
+        sampleLabel="CREATE TABLE IF NOT EXISTS SampleLabel (ID INTEGER PRIMARY KEY, SampleID INTEGER NOT NULL, LabelID INTEGER NOT NULL)"
+
+        # defines the table for the creation of the table Sample
+        sample="CREATE TABLE IF NOT EXISTS Sample (SampleID INTEGER PRIMARY KEY, filePath TEXT NOT NULL," \
+        "captureTime DATE NOT NULL, isProcessed BOOL NOT NULL, cameraID INTEGER NOT NULL," \
+        "DatasetID INTEGER NOT NULL, MaterialID INTEGER NOT NULL, IDTFL: INTEGER NOT NULL)"
+
+        # defines the sql-command for the creation of the table Augmentation
+        augmentation=" CREATE TABLE IF NOT EXISTS Augmentation (AugmentationID INTEGER PRIMARY KEY, method TEXT NOT NULL, SampleID INTEGER NOT NULL)"
+
+        # defines the sql-command for the creation of the table CameraInfo
+        cameraInfo= "CREATE TABLE IF NOT EXISTS CameraInfo (CameraID INTEGER PRIMARY KEY, manufacturer STRING NOT NULL," \
+        "CameraModel TEXT NOT NULL, ISO TEXT NOT NULL, focus TEXT NOT NULL, ExposureTime TEXT NOT NULL, flashMode TEXT NOT NULL,"\
+        "focalLength INTEGER NOT NULL, objective TEXT NOT NULL, extension TEXT NOT NULL)"
+
+        # defines the sql-command for the creatiof the table Dataset
+        dataset="CREATE TABLE IF NOT EXISTS Dataset (datasetID INTEGER PRIMARY KEY, name TEXT NOT NULL, projectName TEXT NOT NULL,"\
+        "created DATE, description TEXT NOT NULL)"
+
+        # defines the sql-command for the creation of the table TFRLabel
+        TFRLabel="CREATE TABLE IF NOT EXISTS TFRLabel (IDTFL INTEGER PRIMARY KEY, sampleID INTEGER, IDTFR INTEGER)"
+
+        # defines the sql-command for the creation of the table TFRecording
+        TFRecording="CREATE TABLE IF NOT EXISTS TFRecording (IDTFR INTEGER PRIMARY KEY, TFRecording BLOB)"
+
+        # defines the sql-command for the creation of the table MaterialType
+        materialType=""
+
+        
         # define the SQL command to create a table named ImageMetadata with various columns 
         # to store metadata about images, including id, label, date, length, width, size, 
         # manufacturer, cameramodel, ISO, focus, exposuretime, flashmode, focallength, 

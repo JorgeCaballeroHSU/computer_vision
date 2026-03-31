@@ -188,3 +188,7 @@ sudo apt remove wireguard wireguard-tools
  source /home/computer_vision/.venv/bin/activate
  source /home/computer_vision/.venv/bin/activate
  source /home/computer_vision/.venv/bin/activate
+ source /home/computer_vision/.venv/bin/activate
+ source /home/computer_vision/.venv/bin/activate
+ source /home/computer_vision/.venv/bin/activate
+ source /home/computer_vision/.venv/bin/activate

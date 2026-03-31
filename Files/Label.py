@@ -1,6 +1,7 @@
 # This python code is in charge of the labelling of the fotographs according to the conventions of the project. It is used to label the photographs with the name of the person and the date of the photograph.
 
 # imports the necessary libraries
+from Database.Database import Database
 
 # creates class for the labelling of the photographs
 class Label:

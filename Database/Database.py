@@ -3,7 +3,6 @@
 # import required libraries
 import sqlite3
 from sqlite3 import Error
-import datetime
 
 class Database:
     
@@ -16,16 +15,12 @@ class Database:
         :return: Connection object or None
         """
         # initialize the connection variable to None
-        self.conn = None
         self.__filePath=dbFile
 
         # attempt to connect to the database using the provided file name and print a success message if the connection is successful
         try:
-            self.conn = sqlite3.connect(self.__filePath)
-            print(f"Connected to database {self.__filePath} successfully.")
-
+            
             self.__createTable()
-            print("Tables were created successfully.")
         
         # catch any errors that occur during the connection process and print the error message
         except Error as e:
@@ -42,71 +37,95 @@ class Database:
         """
         
         # defines the sql-command to create the table named label if this does not exists
-        label= "CREATE TABLE IF NOT EXISTS Label (LabelID INTEGER PRIMARY KEY, \
-Name TEXT NOT NULL, LabelType TEXT NOT NULL)"
+        label= "CREATE TABLE IF NOT EXISTS Label (LabelID INTEGER PRIMARY KEY," \
+        "Name TEXT NOT NULL, LabelType TEXT NOT NULL);"
 
         # defines sthe sql-command for the creation of the table SampleLabel
-        sampleLabel="CREATE TABLE IF NOT EXISTS SampleLabel (ID INTEGER PRIMARY KEY, SampleID INTEGER NOT NULL, LabelID INTEGER NOT NULL)"
+        sampleLabel="CREATE TABLE IF NOT EXISTS SampleLabel (ID INTEGER PRIMARY KEY, " \
+        "SampleID INTEGER NOT NULL, " \
+        "LabelID INTEGER NOT NULL," \
+        "FOREIGN KEY(SampleID) REFERENCES Sample(SampleID)," \
+        "FOREIGN KEY(LabelID) REFERENCES Label(LabelID));"
 
         # defines the table for the creation of the table Sample
         sample="CREATE TABLE IF NOT EXISTS Sample (SampleID INTEGER PRIMARY KEY, filePath TEXT NOT NULL," \
-        "captureTime DATE NOT NULL, isProcessed BOOL NOT NULL, cameraID INTEGER NOT NULL," \
-        "DatasetID INTEGER NOT NULL, MaterialID INTEGER NOT NULL, IDTFL: INTEGER NOT NULL)"
+        "captureTime DATE NOT NULL, isProcessed INTEGER NOT NULL, cameraID INTEGER NOT NULL," \
+        "DatasetID INTEGER NOT NULL, MaterialID INTEGER NOT NULL, IDTFL INTEGER NOT NULL," \
+        "AugmentationID INTEGER," \
+        "FOREIGN KEY(cameraID) REFERENCES CameraInfo(CameraID)," \
+        "FOREIGN KEY(DatasetID) REFERENCES Dataset(datasetID)," \
+        "FOREIGN KEY(MaterialID) REFERENCES MaterialType(IDMT) ON DELETE CASCADE ON UPDATE CASCADE," \
+        "FOREIGN KEY(IDTFL) REFERENCES TRFLabel(IDTFL)," \
+        "FOREIGN KEY (AugmentationID) REFERENCES Augmentation(AugmentationID) ON DELETE CASCADE ON UPDATE CASCADE);"
 
         # defines the sql-command for the creation of the table Augmentation
-        augmentation=" CREATE TABLE IF NOT EXISTS Augmentation (AugmentationID INTEGER PRIMARY KEY, method TEXT NOT NULL, SampleID INTEGER NOT NULL)"
+        augmentation=" CREATE TABLE IF NOT EXISTS Augmentation (AugmentationID INTEGER PRIMARY KEY, method TEXT NOT NULL, " \
+        "SampleID INTEGER NOT NULL," \
+        "FOREIGN KEY(SampleID) REFERENCES Sample(SampleID));"
 
         # defines the sql-command for the creation of the table CameraInfo
-        cameraInfo= "CREATE TABLE IF NOT EXISTS CameraInfo (CameraID INTEGER PRIMARY KEY, manufacturer STRING NOT NULL," \
+        cameraInfo= "CREATE TABLE IF NOT EXISTS CameraInfo (CameraID INTEGER PRIMARY KEY, manufacturer TEXT NOT NULL," \
         "CameraModel TEXT NOT NULL, ISO TEXT NOT NULL, focus TEXT NOT NULL, ExposureTime TEXT NOT NULL, flashMode TEXT NOT NULL,"\
-        "focalLength INTEGER NOT NULL, objective TEXT NOT NULL, extension TEXT NOT NULL)"
+        "focalLength INTEGER NOT NULL, objective TEXT NOT NULL, extension TEXT NOT NULL);"
 
-        # defines the sql-command for the creatiof the table Dataset
+        # defines the sql-command for the creation of the table Dataset
         dataset="CREATE TABLE IF NOT EXISTS Dataset (datasetID INTEGER PRIMARY KEY, name TEXT NOT NULL, projectName TEXT NOT NULL,"\
-        "created DATE, description TEXT NOT NULL)"
+        "created DATE, description TEXT NOT NULL);"
 
         # defines the sql-command for the creation of the table TFRLabel
-        TFRLabel="CREATE TABLE IF NOT EXISTS TFRLabel (IDTFL INTEGER PRIMARY KEY, sampleID INTEGER, IDTFR INTEGER)"
+        TFRLabel="CREATE TABLE IF NOT EXISTS TFRLabel (IDTFL INTEGER PRIMARY KEY, sampleID INTEGER, IDTFR INTEGER," \
+        "FOREIGN KEY(sampleID) REFERENCES Sample(SampleID) ON DELETE CASCADE ON UPDATE CASCADE," \
+        "FOREIGN KEY(IDTFR) REFERENCES TFRecording(IDTFR) ON DELETE CASCADE ON UPDATE CASCADE);"
 
         # defines the sql-command for the creation of the table TFRecording
-        TFRecording="CREATE TABLE IF NOT EXISTS TFRecording (IDTFR INTEGER PRIMARY KEY, TFRecording BLOB)"
+        TFRecording="CREATE TABLE IF NOT EXISTS TFRecording (IDTFR INTEGER PRIMARY KEY, TFRecording BLOB, IDTFL INTEGER," \
+        "FOREIGN KEY(IDTFL) REFERENCES TFRLabel(IDTFL) ON DELETE CASCADE ON UPDATE CASCADE);"
 
         # defines the sql-command for the creation of the table MaterialType
-        materialType=""
+        materialType="CREATE TABLE IF NOT EXISTS MaterialType (IDMT INTEGER PRIMARY KEY, mm0063 REAL, " \
+        "mm0125 REAL, mm0400 REAL, mm0500 REAL, mm1000 REAL, mm2000 REAL, mm4000 REAL," \
+        "mm8000 REAL, mm1600 REAL, mm3200 REAL, SampleID INTEGER);"
 
-        
-        # define the SQL command to create a table named ImageMetadata with various columns 
-        # to store metadata about images, including id, label, date, length, width, size, 
-        # manufacturer, cameramodel, ISO, focus, exposuretime, flashmode, focallength, 
-        # objectiv, extension and preprocessed
-        imageMetadata = "CREATE TABLE IF NOT EXISTS ImageMetadata (id INTEGER PRIMARY KEY,\
-label TEXT NOT NULL, date DATETIME, length INTEGER, width INTEGER, size INTEGER, \
-manufacturer TEXT, cameramodel TEXT, ISO INTEGER, focus TEXT, exposuretime TEXT, \
-flashmode TEXT, focallength INTEGER, objectiv TEXT, extension TEXT, preprocessed BOOLEAN,\
-auth TEXT, Copyright TEXT, location TEXT, IDTF INTEGER);"
+        # defines the sql-command for the creation of the table ModelMetric
+        modelMetric="CREATE TABLE IF NOT EXISTS modelMetric (MetricID INTEGER PRIMARY KEY, MSE REAL, r2 REAL, " \
+        "loss REAL);"
 
-        # define the SQL command to create a table named TFRecording with various columns to 
-        # store information about TFRecord files, including IDTF, label and TFRecording (which is a BLOB to store the actual TFRecord data)
-        tfRecording = "CREATE TABLE IF NOT EXISTS TFRecording (IDTF INTEGER PRIMARY KEY, label TEXT NOT NULL, TFRecording BLOB);"
+        # defines the sql-command for the creation of the table Hyperparameter
+        Hyperparameter= "CREATE TABLE IF NOT EXISTS Hyperparameter (HPID INTEGER PRIMARY KEY, hyperparameter TEXT);"
 
-        # defines the SQL command to create a table for the models that will be used for the training and evaluation 
-        # of the machine learning models, with columns for the model ID, name, training status, mean squared error (MSE), 
-        # R-squared (R2) value, hyperparameters and model weights (stored as a BLOB)
-        modelTable = "CREATE TABLE IF NOT EXISTS ModelTable (modelID INTEGER PRIMARY KEY, modelname TEXT NOT NULL, \
-trainingStatus TEXT, MSE FLOAT, R2 FLOAT, hyperparameters TEXT, modelweight BLOB);"
+        # defines the sql-command for the creation of the table ModelWeights
+        modelWeights= "CREATE TABLE IF NOT EXISTS ModelWeights(MWID INTEGER PRIMARY KEY, modelWeights BLOB);"
+
+        # defines the sql-command for the creation of the table Model
+        model= "CREATE TABLE IF NOT EXISTS Model (ModelID INTEGER PRIMARY KEY, modelName TEXT, architecture TEXT, " \
+        "trainingStatus TEXT, createdAt DATE, MetricID INTEGER, HPID INTEGER, Weights INTEGER," \
+        "FOREIGN KEY (MetricID) REFERENCES modelMetric(MetricID) ON DELETE CASCADE ON UPDATE CASCADE," \
+        "FOREIGN KEY (HPID) REFERENCES Hyperparameter(HPID) ON DELETE CASCADE ON UPDATE CASCADE," \
+        "FOREIGN KEY (Weights) REFERENCES ModelWeights(MWID) ON DELETE CASCADE ON UPDATE CASCADE);"
+
+        # gets all the variables in one place to execute them
+        tables = [
+            label, sampleLabel, sample, augmentation, cameraInfo,
+            dataset, TFRLabel, TFRecording, materialType,
+            modelMetric, Hyperparameter, modelWeights, model]
 
         # execute the SQL commands to create the tables in the database, and print a success message if the tables are created successfully. If any errors occur during the execution of the SQL commands, catch the error and print the error message.
         try:
+            
+            # opens connection
+            self.__openConnection()
+
+            # calls the cursor function
             c = self.conn.cursor()
-            c.execute(imageMetadata)
-            c.execute(tfRecording)
-            c.execute(modelTable)
+
+            # loops throught the variables to execute the sql-commands
+            for table in tables:
+                  
+                # executes the commands to create the tables
+                c.execute(table)
 
             # commit the changes to the database to ensure that the tables are created and any changes are saved
             self.conn.commit()
-
-            # print a success message to indicate that the tables were created successfully
-            print("Table created successfully.")
         
         # catch any errors that occur during the execution of the SQL commands and print the error message
         except Error as e:
@@ -114,109 +133,129 @@ trainingStatus TEXT, MSE FLOAT, R2 FLOAT, hyperparameters TEXT, modelweight BLOB
             # if an error occurs, print the error message to help diagnose the issue
             print(e)
 
+            # rolls back
+            self.conn.rollback()
+
+        # closes the connection at the end of the session+
+        finally:
+
+            # closes connection
+            self.__closeConnection()
+
         # return nothing
         return None
 
-    # module to add a new item to table ImageMetadata
-    def addItemImagMeta(self,label:str, date:datetime.datetime, length:int, width:int, size:int,
-                        manuf:str, cameraMode:str, ISO:str, focus:str, exposureTime: str,
-                        flashMode:str, focalLength:int, objective: str, extension:str, preprocessed:bool,
-                        author:str, copyright:str, location:str, IDTF:int, tableName:str='ImageMetadata')->None:
+    # inserts new items in a table
+    def insertItemsTable(self, query: str, values: tuple = ()) -> tuple:
+        """ Safely insert data into a table using parameterized queries.
 
-        # insert table statement
-        insertStatement='''INSERT INTO {}({},{},{},{},{},{},{},{},{},\
-{},{},{},{},{},{},{},{},{},{})'''.format(tableName, label,date,length,width,size,manuf,cameraMode,ISO,focus,
-                                         exposureTime,flashMode,focalLength,objective,extension,preprocessed,author,
-                                         copyright,location,IDTF)
+        :param query: SQL INSERT statement with placeholders (?)
+        :param values: tuple of values to insert """ 
 
-        # executes the statement
-        self.conn.execute(insertStatement)
+        try:
+            # open connection
+            self.__openConnection()
 
-        # commits statement
-        self.conn.commit()
+            cursor=self.conn.cursor()
 
-        # closes connection
-        self.__closeConnection()
+            # execute parameterized query
+            cursor.execute(query, values)
 
-        # return None
-        return None
+            # commit changes
+            self.conn.commit()
+
+            # gets the last rowID and the row count
+            return (cursor.lastrowid, cursor.rowcount)
+
+
+        # catches errors during execution
+        except Error as e:
+
+            # prints errors
+            print(f"Error inserting data: {e}")
+
+            # rolls back to previous state
+            self.conn.rollback()
+
+            # gets the last rowID and the row count
+            return (-1,-1)
+
+        finally:
+
+            # always close connection
+            self.__closeConnection()
     
-    # module to add a new item to table TFRecording
-    def addItemTFRecording(self,label:str, TFRecoding: bytearray,tableName:str='TFRecording')->None:
-
-        # opens connection to the db
-        self.__openConnection()
-
-        # insert table statement
-        insertStatement='''INSERT INTO {}({}, {})'''.format(tableName,label,TFRecoding)
-
-        # executes statemtent
-        self.conn.execute(insertStatement)
-
-        #commits to statement
-        self.conn.commit()
-
-        #closes connection
-        self.__closeConnection
-
-        #returns None
-        return None
-    
-    # module to add a new item to table ModelTable
-    def addItemModelTable(self,modelName:str,trainingStatus:str,MSE:float,r2:float,hyperparameters:str, modelWeights:bytearray,
-                          tableName:str='ModelTable')-> None:
-
-        # opens connection to the db
-        self.__openConnection()
-
-        # insert table statement
-        insertStatement='''INSERT INTO {}({}, {}, {}, {}, {}, {})'''.format(tableName,modelName,trainingStatus,MSE,r2,hyperparameters,modelWeights)
-
-        # executes statement
-        self.conn.execute(insertStatement)
-
-        # commits to statement
-        self.conn.commit()
-
-        #closes connection
-        self.__closeConnection
-
-        # returns nothing
-        return None
-
     # module to fetch information from the database
     def fetchInfo(self,statement:str)-> tuple:
 
-        # opens connection to the db
-        self.__openConnection()
+        # initializes the variable
+        fetchedElement=()
 
-        # fetches the elements indicated by the statement
-        fetchedElement=self.conn.cursor().execute(statement).fetchall()
+        # opens a try block to cath errors
+        try:
+            # opens connection to the db
+            self.__openConnection()
 
-        #closes connection
-        self.__closeConnection
+            # fetches the elements indicated by the statement
+            fetchedElement=self.conn.cursor().execute(statement).fetchall()
+            
+            # returns fetched elements
+            return  fetchedElement
 
-        # returns nothing
-        return  fetchedElement
+        # catches errors during execution
+        except Error as e:
 
+            # prints the error found
+            print(f'Error fetching data: {e}')
+
+            # returns empty tuple
+            return ()
+        
+        # closes the connection after everything is done
+        finally:
+            
+            #closes connection
+            self.__closeConnection()
+
+        
 
     # module to update an existing element
-    def updateItem(self, updateStatement:str, Values:tuple)->None:
+    def updateItem(self, updateStatement:str, Values:tuple)->tuple:
 
-        # opens connection to the db
-        self.__openConnection()
+        # opens try block to catch errors
+        try:
 
-        # executes the given statement
-        self.conn.cursor().execute(updateStatement,Values)
+            # opens connection to the db
+            self.__openConnection()
 
-        # commits executed statement
-        self.conn.commit()
+            cursor=self.conn.cursor()
 
-        #closes connection
-        self.__closeConnection
+            # executes the given statement
+            cursor.execute(updateStatement,Values)
 
-        # returns nothing
-        return None
+            # commits executed statement
+            self.conn.commit()
+
+            # gets the last rowID and the row count
+            return(-1, cursor.rowcount)
+
+        # catches errors during execution
+        except Error as e:
+
+            # prints the error found
+            print(f'Error updating data: {e}')
+
+            # rolls back to previous state
+            self.conn.rollback()
+
+            # gets the last rowID and the row count
+            return (-1,-1)
+
+        # closes the connection when everything is done
+        finally:
+
+            #closes connection
+            self.__closeConnection()
 
     # module to open connection to the database
     def __openConnection(self)->None:
@@ -224,9 +263,9 @@ trainingStatus TEXT, MSE FLOAT, R2 FLOAT, hyperparameters TEXT, modelweight BLOB
         # attempt to connect to the database using the provided file name and print a success message if the connection is successful
         try:
             self.conn = sqlite3.connect(self.__filePath)
-            print(f"Connected to database {self.__filePath} successfully.")
-        
-        # catch any errors that occur during the connection process and print the error message
+            self.conn.execute("PRAGMA foreign_keys = ON;")
+
+        # catches any errors that occur during the connection process and print the error message
         except Error as e:
             print(e)
 
@@ -239,7 +278,6 @@ trainingStatus TEXT, MSE FLOAT, R2 FLOAT, hyperparameters TEXT, modelweight BLOB
         """
         if self.conn:
             self.conn.close()
-            print("Database connection closed.")
 
         # return nothing
         return None

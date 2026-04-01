@@ -13,6 +13,8 @@ class Label:
     __sampleNumber: str = ""
     __typeMaterial: str = ""
     __AugmentedNumber:str = ""
+    __labelDatabase=Database(dbFile='ComputerVision.db'
+                           )
 
     # methods of the class
     def __init__(self) ->None:
@@ -31,15 +33,40 @@ class Label:
                 pass
 
     # downloads properties of the class from the database
-    def downloadProperties(self) ->bool:
+    def downloadProperties(self, labelType:str='Sand') ->bool:
 
         '''This method downloads the properties of the class from the database. It is used to label the photographs with the name of the person and the date of the photograph.'''
 
-        # downloads the properties of the class from the database
-        # code to download the properties of the class from the database goes here
+        # labelType can be Sand, Gravel, Silt, Mix.
 
-        # returns nothing
-        return False
+        # creates the statement to fetch the available information
+        statement="SELECT * FROM Label WHERE labelType ={}".format(labelType)
+
+        # downloads the properties of the class from the database
+        labelTable=self.__labelDatabase.fetchInfo(statement=statement)
+
+        # checks if the table is empty
+        if not all(labelTable):
+            
+            # if the table is empty returns False, indicating no information
+            return False
+
+        # if the table is not emply, fills up the required variables
+        else:
+
+            # sets up the variable __projectName
+            self.__projectName=labelTable[1].split('_')[0]
+
+            # sets up the variable __typeMaterial
+            self.__typeMaterial=labelTable[1].split('_')[1]
+
+            # sets up the variable __sampleNumber
+
+
+
+            # returns True if the table contains information that can be used to fill up the variables
+            return True
+        
 
     # uploads properties of the class to the database
     def uploadProperties(self) ->None:

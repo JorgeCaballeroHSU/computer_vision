@@ -1,156 +1,91 @@
-# This python code is in charge of the labelling of the fotographs according to the conventions of the project. It is used to label the photographs with the name of the person and the date of the photograph.
+# # This python code is in charge of the labelling of the fotographs according to the conventions of the project. 
+# It is used to label the files that reside in a separated folder
 
-# imports the necessary libraries
+# import the necessary libraries
+import re # regular expression library to check for the label convertions of the project
 from Database.Database import Database
 
-# creates class for the labelling of the photographs
+# # creates class for the labelling of the photographs
 class Label:
 
     '''This class is in charge of the labelling of the photographs according to the conventions of the project. It is used to label the photographs with the name of the person and the date of the photograph.'''
 
     # properties of the class
-    __projectName: str = ""
-    __sampleNumber: str = ""
-    __typeMaterial: str = ""
-    __AugmentedNumber:str = ""
-    __labelDatabase=Database(dbFile='ComputerVision.db'
-                           )
+    _name:str='HSU_HH_CVP_' # that is the label name or the project name
+    _labelType:str='' # type of material. It can be S(sand), K (kies), T (ton), M (gemischt)
+    _sampleNumber:int=0 # last sample number in the database
+    
 
     # methods of the class
     def __init__(self) ->None:
-       
-       # checks if the properties of the class are empty
-        if self.__projectName == "" or self.__sampleNumber == "" or self.__typeMaterial == "":
+       self._labelDatabase=Database(dbFile='ComputerVision.db')
+        
+    
+    # sets the label type
+    def setLabelType(self, labelType:str) ->bool:
+
+        # checks if the labelType provided is according the label conventions of the project
+        if labelType not in ['S', 'K', 'T', 'M']:
             
-            # if the properties of the class are empty, tries to download the properties of the class from the database
-            boolValue = self.downloadProperties()
+            # if the labelType provided is not according the label conventions of the project, then informs about it and returns False
+            print('The label type {} is not valid. Please check the label type and try again.'.format(labelType))
 
-            #if self.downloadProperties() == False, then the properties are still empty
-            if boolValue == False:
-                pass
-            else:
-                # if the properties of the class are not empty, then the properties of the class are downloaded from the database
-                pass
-
-    # downloads properties of the class from the database
-    def downloadProperties(self, labelType:str='Sand') ->bool:
-
-        '''This method downloads the properties of the class from the database. It is used to label the photographs with the name of the person and the date of the photograph.'''
-
-        # labelType can be Sand, Gravel, Silt, Mix.
-
-        # creates the statement to fetch the available information
-        statement="SELECT * FROM Label WHERE labelType ={}".format(labelType)
-
-        # downloads the properties of the class from the database
-        labelTable=self.__labelDatabase.fetchInfo(statement=statement)
-
-        # checks if the table is empty
-        if not all(labelTable):
-            
-            # if the table is empty returns False, indicating no information
+            # returns False to indicate that the label type is not valid
             return False
-
-        # if the table is not emply, fills up the required variables
+        
+        # if labelType is provided according the label convetions, then set the variable _labelType with the value of labelType
         else:
 
-            # sets up the variable __projectName
-            self.__projectName=labelTable[1].split('_')[0]
+            # sets the variable
+            self._labelType=labelType
 
-            # sets up the variable __typeMaterial
-            self.__typeMaterial=labelTable[1].split('_')[1]
-
-            # sets up the variable __sampleNumber
-
-
-
-            # returns True if the table contains information that can be used to fill up the variables
+            # if everything went smoothly, then indicate return True.
             return True
         
-
-    # uploads properties of the class to the database
-    def uploadProperties(self) ->None:
-
-        '''This method uploads the properties of the class to the database. It is used to label the photographs with the name of the person and the date of the photograph.'''
-
-        # uploads the properties of the class to the database
-        # code to upload the properties of the class to the database goes here
-
-        # returns nothing
-        return None
     
-
-    # sets the project name
-    def setProjectName(self, projectName: str) ->None:
-
-        '''This method sets the project name. It is used to label the photographs with the name of the person and the date of the photograph.'''
-        
-        # sets the project name
-        self.__projectName = projectName
-
-        # returns nothing
-        return None
-
-    # gets the project name
-    def getProjectName(self) ->str:
-
-        '''This method gets the project name. It is used to label the photographs with the name of the person and the date of the photograph.'''
-
-        # returns the project name
-        return self.__projectName
-
-    # sets the sample number
-    def setSampleNumber(self, sampleNumber: str) ->None:
-
-        '''This method sets the sample number. It is used to label the photographs with the name of the person and the date of the photograph.'''
-
-        # sets the sample number
-        self.__sampleNumber = sampleNumber
-
-        # returns nothing
-        return None
-
     # gets the sample number
-    def getSampleNumber(self) ->str:
-
+    def __getSampleNumber(self) ->int:
+        
         '''This method gets the sample number. It is used to label the photographs with the name of the person and the date of the photograph.'''
 
-        # returns the sample number
-        return self.__sampleNumber
+        # creates a new statement to download the sample ID
+        statement="SELECT * FROM SampleLabel ORDER BY SampleID DESC LIMIT 1"
 
-    # gets the type of material
-    def getTypeOfMaterial(self) ->str:
+        # downloads the properties for the variable _sampleNumber
+        sampleLabelTable=self._labelDatabase.fetchInfo(statement=statement)
 
-        '''This method gets the type of material. It is used to label the photographs with the name of the person and the date of the photograph.'''
-    
-        # returns the type of material
-        return self.__typeMaterial
+        # checks if the table is empty
+        if not sampleLabelTable:
 
-    # sets the type of material
-    def setTypeOfMaterial(self,typeMaterial: str) ->str:
+            # if the table is empty returns 0, indicating no available information
+            return 0
+        
+        # if the table is not empty, fills up the required variables
+        else:
 
-        '''This method sets the type of material. It is used to label the photographs with the name of the person and the date of the photograph.'''
-        self.__typeMaterial = typeMaterial
+            # returns the sample number
+            return int(sampleLabelTable[0]['SampleID'])
+        
+    # sets sampleNumber
+    def setSampleNumber(self) ->bool:
+        '''This method sets the sample number. It is used to label the photographs with the name of the person and the date of the photograph.'''
+        
+        # gets the actual latest sample number in the database
+        dbSampleNumber=self.__getSampleNumber()
 
-        # returns nothing
-        return None
+        # sets the sample number
+        self._sampleNumber=dbSampleNumber+1
+
+        # returns True to indicate that the sample number was set successfully
+        return True
 
     # generates the label for the photograph.
     def generateSampleLabel(self) ->str:
+        
         '''This method generates the label for the photograph. It is used to label the photographs with the name of the person and the date of the photograph.'''
 
         # generates the label for the photograph
-        label ='_'.join( self.__projectName , self.__typeMaterial , self.__sampleNumber)
+        label ='_'.join( [self._name , self._labelType , str(self._sampleNumber).zfill(3)])
 
         # returns the label for the photograph
-        return label
-    
-    # genererates label for the augmented data
-    def generateAugmentedLabel(self)->str:
-        '''this method generates the label for the augmented photographs. It uses the sample label as basis'''
-
-        # generates the label for the augmented data
-        label='_'.join( self.__projectName , self.__typeMaterial , self.__sampleNumber,self.__AugmentedNumber)
-
-        # returns the label
         return label

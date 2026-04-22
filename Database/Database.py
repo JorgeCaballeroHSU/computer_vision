@@ -48,7 +48,7 @@ class Database:
         "FOREIGN KEY(LabelID) REFERENCES Label(LabelID));"
 
         # defines the table for the creation of the table Sample
-        sample="CREATE TABLE IF NOT EXISTS Sample (SampleID INTEGER PRIMARY KEY, filePath TEXT NOT NULL," \
+        sample="CREATE TABLE IF NOT EXISTS Sample (SampleID INTEGER PRIMARY KEY, " \
         "captureTime DATE NOT NULL, isProcessed INTEGER NOT NULL, cameraID INTEGER NOT NULL," \
         "DatasetID INTEGER NOT NULL, MaterialID INTEGER NOT NULL, IDTFL INTEGER NOT NULL," \
         "AugmentationID INTEGER," \
@@ -200,7 +200,7 @@ class Database:
             fetchedElement=self.conn.cursor().execute(statement).fetchall()
             
             # returns fetched elements
-            return  fetchedElement
+            return  [dict(row) for row in fetchedElement] # returns the fetched elements as a list of dictionaries
 
         # catches errors during execution
         except Error as e:

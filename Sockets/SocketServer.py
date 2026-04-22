@@ -106,24 +106,10 @@ class SocketServer():
             str: the data received from the socket
         '''
         # while loop to receive the information
-        while True:
-
-            # receives data from the socket
-            data = self.__conn.recv(bufferSize).decode()
-            
-            # prints the results
-            print(data)
-
-            # check if there is new data coming
-            if not self.__conn.recv(bufferSize).decode():
-                
-                # breaks the loop
-                break
-            
-            
-
-        # returns the received data
+        data = self.__conn.recv(bufferSize).decode()
+        print(data)
         return data
+                    
     
     # method to close the socket
     def close(self)->None:
@@ -140,16 +126,24 @@ class SocketServer():
         return None
     
 
-# server=SocketServer()
 
-# server.bind(
-#     host='0.0.0.0',
-#     port=5000
-# )
+HOST = "0.0.0.0"   # listen on all interfaces
+PORT = 5000
 
-# server.listen()
-# server.accept()
+server = SocketServer()
 
-# server.send(toSend='Hola')
-# # a=server.receive()
+server.bind(HOST, PORT)
+server.listen()
 
+print(f"Server listening on {HOST}:{PORT}...")
+
+server.accept()  # wait for client
+
+# receive message from client
+msg = server.receive()
+print(f"Client says: {msg}")
+
+# send response
+server.send("Hello from server!")
+
+server.close()

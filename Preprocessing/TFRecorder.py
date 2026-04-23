@@ -107,13 +107,16 @@ class TFRecorder:
         storeLocation=r'/'.join(filePath,fileName)
 
         # saves file in the indicated location
-        with open(file=storeLocation, mode='w') as file:
+        with open(file=storeLocation, mode='a') as file:
             
             # creates and writes the file in the indicated location
             file.write(TFRecord)
 
             # closes the file 
             file.close()
+
+        # returns None
+        return None
 
 
         

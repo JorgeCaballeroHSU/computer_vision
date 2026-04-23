@@ -1,4 +1,6 @@
 #imports required libraries
+from importlib.resources import path
+
 from Sockets.SocketServer import SocketServer
 from Tools.ChangePath import ChangePath
 from Tools.Format import addDataType
@@ -46,8 +48,6 @@ def dataBaseFill(socketServer:SocketServer, label:Label,path:Path, database:Data
 
         # closes the file when is over
         f.close()
-
-
 
     # updates the database's table with the metadata and image location
     # updates table label
@@ -103,6 +103,39 @@ def dataBaseFill(socketServer:SocketServer, label:Label,path:Path, database:Data
     # returns the answer of the client with the rest of information to be added to the database
     return clientAnswer    
 
+# gets the pcitures into a TensorFlow record format for later use in the training of the model
+def generateTensorFlowRecords(path:Path, database:Database, tfRecorder:TFRecorder, labelFile:str)->None:
+
+    #creates a TensorFlow record
+
+    # gets the file path of the file
+    filePath=''.join(path.getPath(),addDataType(fileName=labelFile,dataType='jpeg'))
+
+    # creates the TF record with the file path, the label and the labelInit
+    record=tfRecorder.createTFRecord(
+        fileName=filePath,
+        label=labelFile,
+        labelInit=database.fetchInfo(query='''SELECT LabelID FROM label WHERE name=?''', values=(labelFile, 
+        ))[0]['LabelID'])
+    
+    # saves the TF record in the indicated location
+    tfRecorder.saveTFRecord(
+        fileName=''.join(labelFile,'tfrec'),
+        filePath=path.getPath(),
+        TFRecord=record
+    )
+
+    # updates the table TFrecording the binary of the TF record.
+    database.insertItemsTable(
+        query='''INSERT INTO TFRecording (name, label, labelInit, filePath) VALUES (?, ?, ?, ?) ''',
+        values=(labelFile, labelFile, database.fetchInfo(query='''SELECT LabelID FROM label WHERE name=?''', values=(labelFile, 
+        ))[0]['LabelID'], ''.join(path.getPath(),addDataType(fileName=labelFile,dataType='tfrec')))
+    )
+
+
+
+
+
 # imports more required libraries
 from Preprocessing.DataAugmentation import Flipping, ColorDistortion
 
@@ -145,6 +178,3 @@ def transformImages(path:Path,flip:Flipping, colDis:ColorDistortion,datenBank:Da
 
     # returns None
     return None
-
-
-# makes the TFrecord

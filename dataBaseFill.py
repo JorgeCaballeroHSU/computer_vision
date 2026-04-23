@@ -7,6 +7,8 @@ from Files.Label import Label
 from Database.Database import Database
 from Preprocessing.TFRecorder import TFRecorder
 import os
+from PIL import Image
+from PIL.ExifTags import TAGS
 
 # windows-formatted address to store the pictures
 windowsAddress=r'C:\Users\Admin\OneDrive - Helmut-Schmidt-Universität\Dokumente\Computer Vision Project\01 Pictures'
@@ -15,43 +17,23 @@ windowsAddress=r'C:\Users\Admin\OneDrive - Helmut-Schmidt-Universität\Dokumente
 pathFormat=ChangePath()
 
 # defines the function databaseFill to fill up date database of images for later training
-def dataBaseFill(socketServer:SocketServer, label:Label,path:Path, database:Database)->str:
+def dataBaseFill(socketServer:SocketServer, label:Label,path:Path, database:Database)->dict:
     
-    # asks the client to send the image 
-    socketServer.send(
-        toSend='send photos'
-    )
+    # gets the image from the client
+    # It assumes that the client will send the image as chucks that will be put together at the socket class
+    # it assumes that the picture will be received as binary that will be decoded at the socket class
+    # it assumes that the pciture will be received as a part of a dictionary with some other metadata.
+    # this medatadata will be used to fill up the database
+    clientAnswer:dict=socketServer.receive() # it assumes that the chucks of the image will be 
+    # addended together in the socker class and that the chunks of the image will be added together
 
-    # loops check if the client is ready to send images
-    while True:
-        
-        # gets the answer of the client. It indicates whether it is ready to send the images
-        clientAnswer=socketServer.receive().decode()
-
-        # if the answer of the client is True, then start downloading the images
-        if clientAnswer==True:
-            
-            # receives image from client
-            clientAnswer=socketServer.receive().decode()
-
-            # breaks the loop and continues with the next process
-            break
-
-        elif clientAnswer==False:
-
-            #stays in the loop
-            continue
-    
-
-    # stores original image in predefined location
+    # stores the image in the defined path
     # sets the path to save the files
     path.setPath(path=pathFormat.changePathWindowsToWsl(path=windowsAddress))
 
-    # saves the path in the database
-    path.savePath()
-
-    # generates label
-    labelFile=label.generateLabel()
+    # generates label for the picture
+    label.setLabelType(labelType=clientAnswer.pop('labelType')) # sets the label type
+    labelFile=label.generateSampleLabel()
 
     # creates a file where the image is going to be saved
     with open(
@@ -60,42 +42,66 @@ def dataBaseFill(socketServer:SocketServer, label:Label,path:Path, database:Data
         ) as f:
 
         # saves the file
-        f.write(clientAnswer) #-> client answer contains the image as binary
+        f.write(clientAnswer.pop('image')) #-> client answer contains the image as binary
 
         # closes the file when is over
         f.close()
 
-    # asks client about the metadata the latest file
-    socketServer.send('send metadata')
 
-    # gets metadata from the image
-    imageMetadata:dict=socketServer.receive().decode() #---> files comes as a dictionary
 
-    # adds information to database
-    # adds metadata & image
-    database.addItemImagMeta(
-        label= labelFile,
-        date= imageMetadata.date,
-        length=imageMetadata.length,
-        width=imageMetadata.width,
-        size=imageMetadata.size,
-        manuf=imageMetadata.manuf,
-        cameraMode=imageMetadata.cameraMode,
-        ISO=imageMetadata.ISO,
-        focus=imageMetadata.focus,
-        exposureTime=imageMetadata.exposureTime,
-        flashMode=imageMetadata.flashMode,
-        focalLength=imageMetadata.focalLength,
-        objective=imageMetadata.objective,
-        extension=imageMetadata.extension,
-        preprocessed=imageMetadata.preprocessed,
-        author=imageMetadata.author,
-        copyright=imageMetadata.copyright,
-        location=imageMetadata.location,
-        IDTF=1, ###-----> to be corrected
+    # updates the database's table with the metadata and image location
+    # updates table label
+    database.insertItemsTable( # this has to check if the label type already exists in the database, if it already exists, there is no need to add a thing.
+        query='''INSERT INTO label (name, labelType) VALUES (?, ?) ''',
+        values=(labelFile,                      # labelfile is the label of the picture.
+                clientAnswer.pop('labelType'))      # LabelType corresponds to the type of label. S, K, T or M
     )
 
-    return None    
+    # updates the cameraInfo table. It has to be tested if the inf to be added is already there. If that is the case, no change is needed.
+    database.insertItemsTable(# correct<<<-------
+        query='''INSERT INTO cameraInfo (Manufacturer, CameraModel, ISO, Focus, Exposuretime, FlashMode, FocalLength, Objective, Extension) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) ''',
+        values=(clientAnswer.pop('Manufacturer'),       # Manufacturer corresponds to the manufacturer of the camera used to take the picture. It is obtained from the exif data of the picture.
+                clientAnswer.pop('CameraModel'),        # CameraModel corresponds to the model of the camera used to take the picture. It is obtained from the exif data of the picture.
+                clientAnswer.pop('ISO'),                # ISO corresponds to the ISO used to take the picture. It is obtained from the exif data of the picture.
+                clientAnswer.pop('Focus'),              # Focus corresponds to the focus used to take the picture. It is obtained from the exif data of the picture.
+                clientAnswer.pop('Exposuretime'),       # Exposuretime corresponds to the exposure time used to take the picture. It is obtained from the exif data of the picture.
+                clientAnswer.pop('FlashMode'),          # FlashMode corresponds to the flash mode used to take the picture. It is obtained from the exif data of the picture.
+                clientAnswer.pop('FocalLength'),        # FocalLength corresponds to the focal length used to take the picture. It is obtained from the exif data of the picture.
+                clientAnswer.pop('Objective'),          # Objective corresponds to the objective used to take the picture. It is obtained from the exif data of the picture.
+                clientAnswer.pop('Extension'))          # Extension corresponds to the extension used to take the picture. It is obtained from the exif data of the picture.
+    )
+
+    # updates the Dataset table. It has to be tested if the inf to be added is already there. If that is the case, no change is needed.
+    database.insertItemsTable(
+        query='''INSERT INTO Dataset (name, ProjectName, Created, Description) VALUES (?, ?, ?, ?) ''',
+        values=(labelFile, clientAnswer.pop('ProjectName'), clientAnswer.pop('Created'), clientAnswer.pop('Description'))
+    )
+
+    # updates the MaterialType table. It has to be tested if the inf to be added is already there. If that is the case, no change is needed.
+    database.insertItemsTable(
+        query='''INSERT INTO MaterialType (mm0063, mm0125, mm0250, mm0400, mm0500, mm1000, mm2000, mm4000, mm8000, mm1600, mm3200) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ''',
+        values=(
+            clientAnswer.pop('mm0063'),                 # mm0063 corresponds to the value of the material type for the size of 0.063 mm. It is obtained from the exif data of the picture.
+            clientAnswer.pop('mm0125'),                 # mm0125 corresponds to the value of the material type for the size of 0.125 mm. It is obtained from the exif data of the picture.
+            clientAnswer.pop('mm0250'),                 # mm0250 corresponds to the value of the material type for the size of 0.250 mm. It is obtained from the exif data of the picture.
+            clientAnswer.pop('mm0400'),                 # mm0400 corresponds to the value of the material type for the size of 0.400 mm. It is obtained from the exif data of the picture.
+            clientAnswer.pop('mm0500'),                 # mm0500 corresponds to the value of the material type for the size of 0.500 mm. It is obtained from the exif data of the picture.  
+            clientAnswer.pop('mm1000'),                 # mm1000 corresponds to the value of the material type for the size of 1.000 mm. It is obtained from the exif data of the picture.
+            clientAnswer.pop('mm2000'),                 # mm2000 corresponds to the value of the material type for the size of 2.000 mm. It is obtained from the exif data of the picture.
+            clientAnswer.pop('mm4000'),                 # mm4000 corresponds to the value of the material type for the size of 4.000 mm. It is obtained from the exif data of the picture.
+            clientAnswer.pop('mm8000'),                 # mm8000 corresponds to the value of the material type for the size of 8.000 mm. It is obtained from the exif data of the picture.
+            clientAnswer.pop('mm1600'),                 # mm1600 corresponds to the value of the material type for the size of 16.000 mm. It is obtained from the exif data of the picture.
+            clientAnswer.pop('mm3200'))                 # mm3200 corresponds to the value of the material type for the size of 32.000 mm. It is obtained from the exif data of the picture.
+    )
+
+    # updates table sample 
+    database.insertItemsTable(
+        query='''INSERT INTO Sample (filePath, captureTime, isProcessed, path) VALUES (?, ?, ?, ?) ''',
+        values=(label._sampleNumber, clientAnswer.pop('name'), clientAnswer.pop('labelType'), ''.join(path.getPath(),addDataType(fileName=labelFile,dataType='jpeg')))
+    )
+
+    # returns the answer of the client with the rest of information to be added to the database
+    return clientAnswer    
 
 # imports more required libraries
 from Preprocessing.DataAugmentation import Flipping, ColorDistortion

@@ -83,7 +83,7 @@ class Database:
 
         # defines the sql-command for the creation of the table MaterialType
         materialType="CREATE TABLE IF NOT EXISTS MaterialType (IDMT INTEGER PRIMARY KEY, mm0063 REAL, " \
-        "mm0125 REAL, mm0400 REAL, mm0500 REAL, mm1000 REAL, mm2000 REAL, mm4000 REAL," \
+        "mm0125 REAL, mm0250 REAL, mm0400 REAL, mm0500 REAL, mm1000 REAL, mm2000 REAL, mm4000 REAL," \
         "mm8000 REAL, mm1600 REAL, mm3200 REAL, SampleID INTEGER);"
 
         # defines the sql-command for the creation of the table ModelMetric
@@ -281,3 +281,46 @@ class Database:
 
         # return nothing
         return None
+    
+
+# class to check if the data to be added to the database already exists in the database.
+class DataChecker:
+
+    # checks if the data to be added to the database already exists in the database
+    def checkData(self, query: str, values: tuple = ()) -> bool:
+        """ Safely check if data exists in a table using parameterized queries.
+
+        :param query: SQL SELECT statement with placeholders (?)
+        :param values: tuple of values to check
+        :return: True if data exists, False otherwise """ 
+
+        try:
+            # open connection
+            self.__openConnection()
+
+            cursor=self.conn.cursor()
+
+            # execute parameterized query
+            cursor.execute(query, values)
+
+            # fetch one result
+            result = cursor.fetchone()
+
+            # return True if result is not None, False otherwise
+            return result is not None
+
+        # catches errors during execution
+        except Error as e:
+
+            # prints errors
+            print(f"Error checking data: {e}")
+
+            # rolls back to previous state
+            self.conn.rollback()
+
+            return False
+
+        finally:
+
+            # always close connection
+            self.__closeConnection()

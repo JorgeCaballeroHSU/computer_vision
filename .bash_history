@@ -255,3 +255,5 @@ ss -tlnp
  source /home/computer_vision/.venv/bin/activate
  source /home/computer_vision/.venv/bin/activate
  source /home/computer_vision/.venv/bin/activate
+ source /home/computer_vision/.venv/bin/activate
+ source /home/computer_vision/.venv/bin/activate

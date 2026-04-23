@@ -67,7 +67,7 @@ class Label:
             return int(sampleLabelTable[0]['SampleID'])
         
     # sets sampleNumber
-    def setSampleNumber(self) ->bool:
+    def __setSampleNumber(self) ->bool:
         '''This method sets the sample number. It is used to label the photographs with the name of the person and the date of the photograph.'''
         
         # gets the actual latest sample number in the database
@@ -83,6 +83,9 @@ class Label:
     def generateSampleLabel(self) ->str:
         
         '''This method generates the label for the photograph. It is used to label the photographs with the name of the person and the date of the photograph.'''
+        
+        # sets the sample number
+        self.__setSampleNumber()
 
         # generates the label for the photograph
         label ='_'.join( [self._name , self._labelType , str(self._sampleNumber).zfill(3)])

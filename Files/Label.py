@@ -2,7 +2,6 @@
 # It is used to label the files that reside in a separated folder
 
 # import the necessary libraries
-import re # regular expression library to check for the label convertions of the project
 from Database.Database import Database
 
 # # creates class for the labelling of the photographs

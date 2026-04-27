@@ -9,13 +9,13 @@ class TFRecorder:
     def __init__(self, tfrecordDir: str):
         self.tfrecordDir = tfrecordDir
 
-    def __floatFeature(value):
+    def __floatFeature(self,value):
         return tf.train.Feature(float_list=tf.train.FloatList(value=value))
     
-    def __int64Feature(*value):
+    def __int64Feature(self,*value):
         return tf.train.Feature(int64_list=tf.train.Int64List(value=value))
     
-    def __stringFeature(value):
+    def __stringFeature(self,value):
         return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value.encode('utf-8')]))
 
     # module for the creation of TFrecord files
@@ -117,9 +117,3 @@ class TFRecorder:
 
         # returns None
         return None
-
-
-        
-
-    
-

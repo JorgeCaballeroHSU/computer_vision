@@ -4,7 +4,7 @@
 class Control:
 
     # properties of the class Control
-    __commands = ['focus', 'zoom', 'aperture', 'shutter_speed', 'iso', 'white_balance', 'exposure_compensation', 'flash_mode', 'drive_mode', 'metering_mode', 'picture_style']
+    _commands = ['focus', 'zoom', 'aperture', 'shutter_speed', 'iso', 'white_balance', 'exposure_compensation', 'flash_mode', 'drive_mode', 'metering_mode', 'picture_style']
 
     # constructor of the class Control, it initializes the list of commands
     def __init__(self)->None:
@@ -20,7 +20,7 @@ class Control:
         '''
 
         # returns the list of commands
-        return self.__commands
+        return self._commands
     
 
     # method to define the focus position of the camera
@@ -34,7 +34,7 @@ class Control:
         '''
 
         # returns None
-        return self.__commands[0], position
+        return self._commands[0], position
     
     # method to define the zoom level of the camera
     def zoom(self, level: int)->tuple:
@@ -47,7 +47,7 @@ class Control:
         '''
 
         # returns None
-        return self.__commands[1], level
+        return self._commands[1], level
     
     # method to define the aperture of the camera
     def aperture(self, value: float)->tuple:    
@@ -60,7 +60,7 @@ class Control:
         '''
 
         # returns None
-        return self.__commands[2], value
+        return self._commands[2], value
     
     # method to define the shutter speed of the camera
     def shutter_speed(self, value: float)->tuple:
@@ -73,7 +73,7 @@ class Control:
         '''
 
         # returns None
-        return self.__commands[3], value
+        return self._commands[3], value
     
     # method to define the ISO of the camera
     def iso(self, value: int)->tuple:
@@ -86,7 +86,7 @@ class Control:
         '''
 
         # returns None
-        return self.__commands[4], value
+        return self._commands[4], value
     
     # method to define the white balance of the camera
     def white_balance(self, value: str)->tuple:
@@ -99,7 +99,7 @@ class Control:
         '''
 
         # returns None
-        return self.__commands[5], value
+        return self._commands[5], value
     
     # method to define the exposure compensation of the camera
     def exposure_compensation(self, value: float)->tuple:
@@ -112,7 +112,7 @@ class Control:
         '''
 
         # returns None
-        return self.__commands[6], value
+        return self._commands[6], value
     
     # method to define the flash mode of the camera
     def flash_mode(self, value: str)->tuple:
@@ -125,7 +125,7 @@ class Control:
         '''
 
         # returns None
-        return self.__commands[7], value
+        return self._commands[7], value
     
     # method to define the drive mode of the camera
     def drive_mode(self, value: str)->tuple:
@@ -138,7 +138,7 @@ class Control:
         '''
 
         # returns None
-        return self.__commands[8], value
+        return self._commands[8], value
     
     # method to define the metering mode of the camera
     def metering_mode(self, value: str)->tuple:
@@ -151,7 +151,7 @@ class Control:
         '''
 
         # returns None
-        return self.__commands[9], value
+        return self._commands[9], value
     
     # method to define the picture style of the camera
     def picture_style(self, value: str)->tuple:
@@ -164,5 +164,5 @@ class Control:
         '''
 
         # returns None
-        return self.__commands[10], value
+        return self._commands[10], value
     

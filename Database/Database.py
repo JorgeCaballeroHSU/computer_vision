@@ -138,11 +138,45 @@ class Database:
         return None
     
 # class to create the tables
-class Schema():
+class Schema(Database):
 
     # creates the tables in the database
     # creates all the tables necessary for running this project. The database table relations can be seen in the document
     # Datenbak - Class Diagram.png
+     
+    def __init__(self, dbFile: str)->None:
+        super().__init__(dbFile)
+
+        # creates the tables in the database
+        self.__createTables(self.TableSchemaRawData())
+        self.__createTables(self.TableSchemaDerivedArtifacts())
+        self.__createTables(self.TableSchemaModel())
+
+    # creates the tables in the database
+    def __createTables(self, tableStatements:list)->None:
+        """ create tables in the database using the provided SQL statements
+        :param tableStatements: list of SQL statements for creating tables
+        """
+        # opens a try block to catch errors
+        try:
+
+            # creates a cursor object to execute SQL statements
+            cursor=self.conn.cursor()
+
+            # executes each statement in the provided list of table creation statements
+            for statement in tableStatements:
+                cursor.execute(statement)
+
+            # commits changes to the database
+            self.conn.commit()
+
+        # catches any errors that occur during the table creation process and print the error message
+        except Error as e:
+            print(f"Error creating tables: {e}")
+
+        # returns none
+        return None
+
     @staticmethod
     def TableSchemaRawData()->list:
         """ create a table from the create_table_sql statement
@@ -159,12 +193,12 @@ class Schema():
 
         # defines the table for the creation of the table Sample
         sample="CREATE TABLE IF NOT EXISTS Sample (SampleID INTEGER PRIMARY KEY, " \
-        "Label TEXT NOT NULL, filePath TEXT NOT NULL, FilePath TEXT NOT NULL," \
+        "Label TEXT NOT NULL,  FilePath TEXT NOT NULL," \
         "CaptureTime DATE NOT NULL, CameraInfoID INTEGER NOT NULL," \
-        "DatasetID INTEGER NOT NULL, MaterialID INTEGER NOT NULL, " \
-        "FOREIGN KEY(CameraInfoID) REFERENCES CameraInfo(CameraInfoID)," \
-        "FOREIGN KEY(DatasetID) REFERENCES Dataset(datasetID)," \
-        "FOREIGN KEY(MaterialID) REFERENCES MaterialType(MaterialTypeID) ON DELETE CASCADE ON UPDATE CASCADE)," \
+        "DatasetID INTEGER NOT NULL, MaterialType INTEGER NOT NULL, JunctionPreID INTEGER," \
+        "FOREIGN KEY(CameraInfoID) REFERENCES CameraInfo(CameraInfoID) ON DELETE CASCADE ON UPDATE CASCADE," \
+        "FOREIGN KEY(DatasetID) REFERENCES Dataset(datasetID) ON DELETE CASCADE ON UPDATE CASCADE," \
+        "FOREIGN KEY(MaterialType) REFERENCES MaterialType(MaterialTypeID) ON DELETE CASCADE ON UPDATE CASCADE," \
         "FOREIGN KEY(JunctionPreID) REFERENCES JunctionPre(JunctionPreID) ON DELETE CASCADE ON UPDATE CASCADE);"
         
         # defines the sql-command for the creation of the table MaterialType
@@ -186,7 +220,7 @@ class Schema():
         :return: list of SQL statements for creating tables
         """
         # defines the sql-command for the creation of the table JunctionPre
-        JunctionPre="CREATE TABLE IF NOT EXISTS JunctionPre (JunctionPreID INTEGER PRIMARY KEY, SampleID INTEGER, PreprocessingID INTERGER, " \
+        JunctionPre="CREATE TABLE IF NOT EXISTS JunctionPre (JunctionPreID INTEGER PRIMARY KEY, SampleID INTEGER, PreprocessingID INTEGER, " \
         "FOREIGN KEY(PreprocessingID) REFERENCES Preprocessing(PreprocessingID) ON DELETE CASCADE ON UPDATE CASCADE);"
 
         # defines the sql- statement for the creation of the table Preprocessing
@@ -237,8 +271,8 @@ class Schema():
         # defines the sql-command for the creation of the table ModelVersion
         modelVersion="CREATE TABLE IF NOT EXISTS ModelVersion (ModelVersionID INTEGER PRIMARY KEY, ModelVersion INTEGER NOT NULL, CreatedAt DATE NOT NULL, " \
         "ModelMetricID INTEGER, HyperparameterID INTEGER, ModelWeightsID INTEGER, " \
-        "FOREIGN KEY (ModelMetricID) REFERENCES ModelMetric(ModelMetricID) ON DELETE CASCADE ON UPDATE CASCADE)" \
-        "FOREIGN KEY (HyperparameterID) REFERENCES Hyperparameter(HyperparameterID) ON DELETE CASCADE ON UPDATE CASCADE)" \
+        "FOREIGN KEY (ModelMetricID) REFERENCES ModelMetric(ModelMetricID) ON DELETE CASCADE ON UPDATE CASCADE," \
+        "FOREIGN KEY (HyperparameterID) REFERENCES Hyperparameter(HyperparameterID) ON DELETE CASCADE ON UPDATE CASCADE," \
         "FOREIGN KEY (ModelWeightsID) REFERENCES ModelWeights(ModelWeightsID) ON DELETE CASCADE ON UPDATE CASCADE);"
 
         # defines the sql-command for the creation of the table ModelMetric
@@ -253,8 +287,6 @@ class Schema():
 
         # returns the list of tables to be created
         return [modelMetric, Hyperparameter, modelWeights, model, modelVersion]
-
-    
 
 # class to check if the data to be added to the database already exists in the database.
 class DataChecker(Database):
@@ -299,26 +331,6 @@ class DataChecker(Database):
             self.closeConnection()
 
 
-# class for table Label.
-class LabelTable (Database):
-
-    def __init__(self, dbFile: str)->None:
-        super().__init__(dbFile)
-
-    # updates the database with the metadata and the location of the image
-    def insertLabelTable(self, clientAnswer:dict, labelFile:str)->int:
-        
-        # inserts the database's table with the metadata and image location
-        # inserts table label
-        lastRowID,=self.insertItemsTable( # this has to check if the label type already exists in the database, if it already exists, there is no need to add a thing.
-            query='''INSERT INTO label (name, labelType) VALUES (?, ?) ''',
-            values=(labelFile,                      # labelfile is the label of the picture.
-                    clientAnswer.get('labelType'))      # LabelType corresponds to the type of label. S, K, T or M
-        )
-
-        # returns the last id of the Label table.
-        return lastRowID
-
 # class for the table CameraInfo
 class CameraInfoTable(Database):
     
@@ -344,6 +356,50 @@ class CameraInfoTable(Database):
 
         # returns the last id of the CameraInfo table.
         return lastRowID
+    
+        # updates the a parameter of the CameraInfo table
+    def updateCameraInfoTable(self, clientAnswer:dict)->None:
+
+        # defines the statement of the row update
+        statement= "UPDATE CameraInfo SET Manufacturer=?, CameraModel=?, ISO=?, Focus=?, Exposuretime=?, /"
+        "FlashMode=?,FocalLength=?,Objective=?,Extension=? WHERE CameraInfoID=?"
+
+        # executes the statement
+        self.updateItem(updateStatement=statement,Values=(
+            clientAnswer['Manufacturer'],
+            clientAnswer['CameraModel'],
+            clientAnswer['ISO'],
+            clientAnswer['Focus'],
+            clientAnswer['Exposuretime'],
+            clientAnswer['FlashMode'],
+            clientAnswer['FocalLength'],
+            clientAnswer['Objective'],
+            clientAnswer['Extension'],
+            clientAnswer['CameraInfoID']
+        ))
+
+        # returns None
+        return None
+    
+    # deletes the defined CameraInfo row
+    def deleteCameraInfoTable(self, clientAnswer:dict)->None:
+
+        # defines statement to for the deletion of the raw dataset
+        statementeCameraInfoTable='DELETE FROM CameraInfo WHERE CameraInfoID = ?'
+
+        # executes statement
+        self.updateItem(updateStatement=statementeCameraInfoTable,Values=(clientAnswer['CameraInfoID'],))
+
+        return None
+    
+    # fetchs the database in the CameraInfo table
+    def fetchCameraInfo(self)-> dict:
+
+        # fetches the dataset from the database
+        dataset=self.fetchInfo(query='''SELECT * FROM CameraInfo''')
+
+        # returns the dataset
+        return dataset
 
 # class for the table Dataset
 class DatasetTable(Database):
@@ -352,16 +408,55 @@ class DatasetTable(Database):
         super().__init__(dbFile)
 
     # inserts the Dataset table. It has to be tested if the inf to be added is already there. If that is the case, no change is needed.
-    def insertDatasetTable(self, clientAnswer:dict, labelFile:str)->int:
+    def insertDatasetTable(self, clientAnswer:dict)->int:
 
         # inserts the Dataset table. It has to be tested if the inf to be added is already there. If that is the case, no change is needed.
         lastRowID,=self.insertItemsTable(
-            query='''INSERT INTO Dataset (name, ProjectName, Created, Description) VALUES (?, ?, ?, ?) ''',
-            values=(labelFile, clientAnswer.get('ProjectName'), clientAnswer.get('Created'), clientAnswer.get('Description'))
+            query='''INSERT INTO Dataset (ProjectName, MaterialType, Created, Description) VALUES (?, ?, ?, ?) ''',
+            values=(clientAnswer.get('ProjectName'), clientAnswer.get('MaterialType'), clientAnswer.get('Created'), clientAnswer.get('Description'))
         )
 
         # returns the last id of the Dataset table.
         return lastRowID
+    
+    # updates the a parameter of the Dataset table
+    def updateDatasetTable(self, clientAnswer:dict)->None:
+
+        # defines the statement of the row update
+        statement= "UPDATE Dataset SET ProjectName=?, MaterialType=?, Created=?, Description=? WHERE DatasetID=?"
+
+        # executes the statement
+        self.updateItem(updateStatement=statement,Values=(
+            clientAnswer['ProjectName'],
+            clientAnswer['MaterialType'],
+            clientAnswer['Created'],
+            clientAnswer['Description'],
+            clientAnswer['DatasetID']
+        ))
+
+        # returns None
+        return None
+    
+    # deletes the defined dataset row
+    def deleteDatasetTable(self, clientAnswer:dict)->None:
+
+        # defines statement to for the deletion of the raw dataset
+        statementeSampleTable='DELETE FROM Dataset WHERE DatasetID = ?'
+
+        # executes statement
+        self.updateItem(updateStatement=statementeSampleTable,Values=(clientAnswer['DatasetID'],))
+
+        return None
+
+    # fetchs the database in te table Dataset
+    def fetchDataset(self)-> dict:
+
+        # fetches the dataset from the database
+        dataset=self.fetchInfo(query='''SELECT * FROM Dataset''')
+
+        # returns the dataset
+        return dataset
+    
 
 # class for the table MatrialType
 class MaterialTypeTable(Database):
@@ -391,93 +486,493 @@ class MaterialTypeTable(Database):
         # returns the last id of the MaterialType table.
         return lastRowID
     
+    # updates the a parameter of the MaterialType table
+    def updateMaterialTypeTable(self, clientAnswer:dict)->None:
+
+        # defines the statement of the row update
+        statement= "UPDATE MaterialType SET mm0063=?, mm0125=?, mm0250=?, mm0400=?, "\
+        "mm0500=?, mm1000=?, mm2000=?, mm4000=?, mm8000=?, mm1600=?, mm3200=? WHERE MaterialTypeID=?"
+
+        # executes the statement
+        self.updateItem(updateStatement=statement,Values=(
+            clientAnswer['mm0063'],
+            clientAnswer['mm0125'],
+            clientAnswer['mm0250'],
+            clientAnswer['mm0400'],
+            clientAnswer['mm0500'],
+            clientAnswer['mm1000'],
+            clientAnswer['mm2000'],
+            clientAnswer['mm4000'],
+            clientAnswer['mm8000'],
+            clientAnswer['mm1600'],
+            clientAnswer['mm3200'],
+            clientAnswer['MaterialTypeID']
+        ))
+
+        # returns None
+        return None
+    
+    # deletes the defined dataset row
+    def deleteMaterialTypeTable(self, clientAnswer:dict)->None:
+
+        # defines statement to for the deletion of the raw dataset
+        statementeSampleTable='DELETE FROM MaterialType WHERE MaterialTypeID = ?'
+
+        # executes statement
+        self.updateItem(updateStatement=statementeSampleTable,Values=(clientAnswer['MaterialTypeID'],))
+
+        return None
+    
+    # fetches the materialType from the database
+    def fetchMaterialType(self)-> dict:
+
+        # fetches the materialType from the database
+        materialType=self.fetchInfo(query='''SELECT * FROM MaterialType''')
+
+        # returns the materialType
+        return materialType
+    
+    
 # class for the sample Table manipualtion
 class SampleTable(Database):
 
     def __init__(self, dbFile: str)->None:
         super().__init__(dbFile)
 
-    # updates table sample 
-    def insertSampleTable(self, clientAnswer:dict, isProcessed:bool,LastCameraID:int,LastDatasetID:int,LastMaterialID:int,LastTFRLabelID:int)->int:
-
-        # updates table sample  
+    # inserts the sample table. It has to be tested if the inf to be added is already there. If that is the case, no change is needed.
+    def insertSampleTable(self, clientAnswer:dict)->int:
+        # inserts the sample table. It has to be tested if the inf to be added is already there. If that is the case, no change is needed.
         lastRowID,=self.insertItemsTable(
-            query='''INSERT INTO Sample (filePath, captureTime, isProcessed, CameraID, DatasetID, MaterialID, IDTFL) VALUES (?, ?, ?, ?, ?, ?, ?) ''',
-            values=(
-                clientAnswer.get('filePath'),               # filePath corresponds to the file path of the picture. It is obtained from the exif data of the picture.
-                clientAnswer.get('captureTime'),            # captureTime corresponds to the capture time of the picture. It is obtained from the exif data of the picture.
-                isProcessed,                                # isProcessed corresponds to whether the picture has been processed or not. It is set to 0 when the picture is added to the database and it is set to 1 when the picture has been processed.
-                LastCameraID,                               # CameraID corresponds to the ID of the camera used to take the picture. It is obtained from the exif data of the picture.
-                LastDatasetID,                               # DatasetID corresponds to the ID of the dataset to which the picture belongs. It is obtained from the exif data of the picture.
-                LastMaterialID,                             # MaterialID corresponds to the ID of the material type of the picture. It is obtained from the exif data of the picture.
-                LastTFRLabelID                               # IDTFL corresponds to the ID of the TFRLabel of the picture. It is obtained from the exif data of the picture.
-            )
+            query='''INSERT INTO Sample (Label, FilePath, CaptureTime, CameraInfoID, DatasetID, MaterialTypeID) VALUES (?, ?, ?, ?, ?, ?) ''',
+            values=(clientAnswer.get('Label'), clientAnswer.get('FilePath'), clientAnswer.get('CaptureTime'), 
+                    clientAnswer.get('cameraInfoID'), clientAnswer.get('datasetID'), clientAnswer.get('materialTypeID'))
         )
 
-        # returns the last id of the Sample table.
+        # returns the last id of the sample table.
         return lastRowID
+    
+        # updates a JunctionAugmentation row
+    def updateJunctionAugmentationTable(self, clientAnswer: dict) -> None:
+        statement = '''
+        UPDATE JunctionAugmentation 
+        SET PreprocessingID = ?, AugmentationID = ?
+        WHERE JunctionAugID = ?
+        '''
 
+        self.updateItem(
+            updateStatement=statement,
+            Values=(
+                clientAnswer['PreprocessingID'],
+                clientAnswer['AugmentationID'],
+                clientAnswer['JunctionAugID']
+            )
+        )
+        return None
+
+    # deletes a JunctionAugmentation row
+    def deleteJunctionAugmentationTable(self, clientAnswer: dict) -> None:
+        statement = 'DELETE FROM JunctionAugmentation WHERE JunctionAugID = ?'
+
+        self.updateItem(
+            updateStatement=statement,
+            Values=(clientAnswer['JunctionAugID'],)
+        )
+        return None
+
+    # fetches all JunctionAugmentation rows
+    def fetchJunctionAugmentation(self) -> dict:
+        junctionAugmentation = self.fetchInfo(
+            query='''SELECT * FROM JunctionAugmentation'''
+        )
+        return junctionAugmentation
+    
+# class for the table JunctionPre
+class JunctionPreTable(Database):
+
+    def __init__(self, dbFile: str)->None:
+        super().__init__(dbFile)
+
+    # inserts the JunctionPre table. It has to be tested if the inf to be added is already there. If that is the case, no change is needed.
+    def insertJunctionPreTable(self, clientAnswer:dict)->int:
+        # inserts the JunctionPre table. It has to be tested if the inf to be added is already there. If that is the case, no change is needed.
+        lastRowID,=self.insertItemsTable(
+            query='''INSERT INTO JunctionPre (SampleID, PreprocessingID) VALUES (?, ?) ''',
+            values=(clientAnswer['SampleID'], clientAnswer['PreprocessingID'])
+        )
+
+        # returns the last id of the JunctionPre table.
+        return lastRowID
+    
+    # updates the a parameter of the JunctionPre table
+    def updateJunctionPreTable(self, clientAnswer:dict)->None:
+
+        # defines the statement of the row update
+        statement= "UPDATE JunctionPre SET SampleID=?, PreprocessingID=? WHERE JunctionPreID=?"
+
+        # executes the statement
+        self.updateItem(updateStatement=statement,Values=(
+            clientAnswer['SampleID'],
+            clientAnswer['PreprocessingID'],
+            clientAnswer['JunctionPreID']
+        ))
+
+        # returns None
+        return None
+    
+    # deletes the defined JunctionPre row
+    def deleteJunctionPreTable(self, clientAnswer:dict)->None:
+
+        # defines statement to for the deletion of the raw dataset
+        statementeSampleTable='DELETE FROM JunctionPre WHERE JunctionPreID = ?'
+
+        # executes statement
+        self.updateItem(updateStatement=statementeSampleTable,Values=(clientAnswer['JunctionPreID'],))
+
+        return None
+    
+    # fetches the JunctionPre from the database
+    def fetchJunctionPre(self)-> dict:
+
+        # fetches the JunctionPre from the database
+        junctionPre=self.fetchInfo(query='''SELECT * FROM JunctionPre''')
+
+        # returns the JunctionPre
+        return junctionPre
+    
+# class for the table Preprocessing
+class PreprocessingTable(Database):
+    
+    def __init__(self, dbFile: str)->None:
+        super().__init__(dbFile)
+
+    # inserts the Preprocessing table. It has to be tested if the inf to be added is already there. If that is the case, no change is needed.
+    def insertPreprocessingTable(self, clientAnswer:dict)->int:
+        # inserts the Preprocessing table. It has to be tested if the inf to be added is already there. If that is the case, no change is needed.
+        lastRowID,=self.insertItemsTable(
+            query='''INSERT INTO Preprocessing (PreprocessingType, FilePath, Label) VALUES (?, ?, ?) ''',
+            values=(clientAnswer.get('PreprocessingType'), clientAnswer.get('FilePath'), clientAnswer.get('Label'))
+        )
+
+        # returns the last id of the Preprocessing table.
+        return lastRowID
+    
+        # updates the a parameter of the Preprocessing table
+    def updatePreprocessingTable(self, clientAnswer:dict)->None:
+
+        # defines the statement of the row update
+        statement= "UPDATE Preprocessing SET PreprocessingType=?, FilePath=?, Label=? WHERE PreprocessingID=?"
+
+        # executes the statement
+        self.updateItem(updateStatement=statement,Values=(
+            clientAnswer['PreprocessingType'],
+            clientAnswer['FilePath'],
+            clientAnswer['Label'],
+            clientAnswer['PreprocessingID']
+        ))
+
+        # returns None
+        return None
+    
+    # deletes the defined Preprocessing row
+    def deletePreprocessingTable(self, clientAnswer:dict)->None:
+
+        # defines statement to for the deletion of the raw dataset
+        statementeSampleTable='DELETE FROM Preprocessing WHERE PreprocessingID = ?'
+
+        # executes statement
+        self.updateItem(updateStatement=statementeSampleTable,Values=(clientAnswer['PreprocessingID'],))
+
+        return None
+    
+    
+    # fetches the Preprocessing from the database
+    def fetchPreprocessing(self)-> dict:
+
+        # fetches the Preprocessing from the database
+        preprocessing=self.fetchInfo(query='''SELECT * FROM Preprocessing''')
+
+        # returns the Preprocessing
+        return preprocessing
+    
+# class for the table JunctionAugmentation
+class JunctionAugmentationTable(Database):
+    
+    def __init__(self, dbFile: str)->None:
+        super().__init__(dbFile)
+
+    # inserts the JunctionAugmentation table. It has to be tested if the inf to be added is already there. If that is the case, no change is needed.
+    def insertJunctionAugmentationTable(self, preprocessingID:int, augmentationID:int)->int:
+        # inserts the JunctionAugmentation table. It has to be tested if the inf to be added is already there. If that is the case, no change is needed.
+        lastRowID,=self.insertItemsTable(
+            query='''INSERT INTO JunctionAugmentation (PreprocessingID, AugmentationID) VALUES (?, ?) ''',
+            values=(preprocessingID, augmentationID)
+        )
+
+        # returns the last id of the JunctionAugmentation table.
+        return lastRowID
+    
+    # fetches the JunctionAugmentation from the database
+    def fetchJunctionAugmentation(self)-> dict:
+
+        # fetches the JunctionAugmentation from the database
+        junctionAugmentation=self.fetchInfo(query='''SELECT * FROM JunctionAugmentation''')
+
+        # returns the JunctionAugmentation
+        return junctionAugmentation
+    
 # class for the table Augmentation
 class AugmentationTable(Database):
-
+    
     def __init__(self, dbFile: str)->None:
         super().__init__(dbFile)
 
-    # updates table Augmentation
-    def insertAugmentationTable(self, method:str, SampleID:int)->int:
-        # possible methods for augmentation: rotation (R), flipping(F), color jittering(C), translation(T), none(N).
-
-        # updates table Augmentation
+    # inserts the Augmentation table. It has to be tested if the inf to be added is already there. If that is the case, no change is needed.
+    def insertAugmentationTable(self, clientAnswer:dict)->int:
+        # inserts the Augmentation table. It has to be tested if the inf to be added is already there. If that is the case, no change is needed.
         lastRowID,=self.insertItemsTable(
-            query='''INSERT INTO Augmentation (method, SampleID) VALUES (?, ?) ''',
-            values=(
-                method,                                     # method corresponds to the augmentation method used to augment the picture. It is obtained from the exif data of the picture.
-                SampleID                                    # SampleID corresponds to the ID of the sample to which the augmentation belongs. It is obtained from the exif data of the picture.
-            )
+            query='''INSERT INTO Augmentation (Method, FilePath) VALUES (?, ?) ''',
+            values=(clientAnswer.get('Method'), clientAnswer.get('FilePath'))
         )
 
-        # returns the last row ID
-        return lastRowID
-
-# class for TFrecording
-class TFRecordingTable(Database):
-
-    def __init__(self, dbFile: str)->None:
-        super().__init__(dbFile)
-
-    # updates table TFRecording
-    def insertTFRecordingTable(self, TFRecord:bytes, IDTFL:int)->None:
-
-        # updates table TFRecording
-        lastRowID,=self.insertItemsTable(
-            query='''INSERT INTO TFRecording (TFRecording, IDTFL) VALUES (?, ?) ''',
-            values=(
-                TFRecord,                                  # TFRecord corresponds to the binary of the TFRecord created with the picture. It is obtained from the exif data of the picture.
-                IDTFL                                      # IDTFL corresponds to the ID of the TFRLabel of the picture. It is obtained from the exif data of the picture.
-            )
-        )
-
-        # returns the last row ID
+        # returns the last id of the Augmentation table.
         return lastRowID
     
-# class for the TFRLabel table
-class TFRLabelTable(Database):
+    # fetches the Augmentation from the database
+    def fetchAugmentation(self)-> dict:
+
+        # fetches the Augmentation from the database
+        augmentation=self.fetchInfo(query='''SELECT * FROM Augmentation''')
+
+        # returns the Augmentation
+        return augmentation
+    
+# class for the table TFRecording
+class TFRecording(Database):
+    
+    def __init__(self, dbFile: str)->None:
+        super().__init__(dbFile)
+
+    # inserts the TFRecording table. It has to be tested if the inf to be added is already there. If that is the case, no change is needed.
+    def insertTFRecordingTable(self, clientAnswer:dict)->int:
+        # inserts the TFRecording table. It has to be tested if the inf to be added is already there. If that is the case, no change is needed.
+        lastRowID,=self.insertItemsTable(
+            query='''INSERT INTO TFRecording (Label, FilePath, AugmentationID) VALUES (?, ?, ?) ''',
+            values=(clientAnswer.get('Label'), clientAnswer.get('FilePath'), clientAnswer.get('AugmentationID'))
+        )
+    
+    # fetcehes the TFRecording from the database
+    def fetchTFRecording(self)-> dict:
+
+        # fetches the TFRecording from the database
+        tfRecording=self.fetchInfo(query='''SELECT * FROM TFRecording''')
+
+        # returns the TFRecording
+        return tfRecording
+    
+# class for the table Validation
+class ValidationTable(Database):
+    
+    def __init__(self, dbFile: str)->None:
+        super().__init__(dbFile)
+
+    # inserts the Validation table. It has to be tested if the inf to be added is already there. If that is the case, no change is needed.
+    def insertValidationTable(self, tfRecordingID:int, modelID:int)->int:
+        # inserts the Validation table. It has to be tested if the inf to be added is already there. If that is the case, no change is needed.
+        lastRowID,=self.insertItemsTable(
+            query='''INSERT INTO Validation (TFRecordingID, ModelID) VALUES (?, ?) ''',
+            values=(tfRecordingID, modelID)
+        )
+
+        # returns the last id of the Validation table.
+        return lastRowID
+    
+    # fetches the Validation from the database
+    def fetchValidation(self)-> dict:
+
+        # fetches the Validation from the database
+        validation=self.fetchInfo(query='''SELECT * FROM Validation''')
+
+        # returns the Validation
+        return validation
+    
+# class for the table Testing
+class TestingTable(Database):
+    
+    def __init__(self, dbFile: str)->None:
+        super().__init__(dbFile)
+
+    # inserts the Testing table. It has to be tested if the inf to be added is already there. If that is the case, no change is needed.
+    def insertTestingTable(self, tfRecordingID:int, modelID:int)->int:
+        # inserts the Testing table. It has to be tested if the inf to be added is already there. If that is the case, no change is needed.
+        lastRowID,=self.insertItemsTable(
+            query='''INSERT INTO Testing (TFRecordingID, ModelID) VALUES (?, ?) ''',
+            values=(tfRecordingID, modelID)
+        )
+
+        # returns the last id of the Testing table.
+        return lastRowID
+    
+    # fetches the Testing from the database
+    def fetchTesting(self)-> dict:
+
+        # fetches the Testing from the database
+        testing=self.fetchInfo(query='''SELECT * FROM Testing''')
+
+        # returns the Testing
+        return testing
+    
+# class for the table Training
+class TrainingTable(Database):
+    
+    def __init__(self, dbFile: str)->None:
+        super().__init__(dbFile)
+
+    # inserts the Training table. It has to be tested if the inf to be added is already there. If that is the case, no change is needed.
+    def insertTrainingTable(self, tfRecordingID:int, modelID:int)->int:
+        # inserts the Training table. It has to be tested if the inf to be added is already there. If that is the case, no change is needed.
+        lastRowID,=self.insertItemsTable(
+            query='''INSERT INTO Training (TFRecordingID, ModelID) VALUES (?, ?) ''',
+            values=(tfRecordingID, modelID)
+        )
+
+        # returns the last id of the Training table.
+        return lastRowID
+    
+    # fetches the Training from the database
+    def fetchTraining(self)-> dict:
+
+        # fetches the Training from the database
+        training=self.fetchInfo(query='''SELECT * FROM Training''')
+
+        # returns the Training
+        return training
+    
+# class for the table Model
+class ModelTable(Database):
+    
+    def __init__(self, dbFile: str)->None:
+        super().__init__(dbFile)
+
+    # inserts the Model table. It has to be tested if the inf to be added is already there. If that is the case, no change is needed.
+    def insertModelTable(self, clientAnswer:dict)->int:
+        # inserts the Model table. It has to be tested if the inf to be added is already there. If that is the case, no change is needed.
+        lastRowID,=self.insertItemsTable(
+            query='''INSERT INTO Model (ModelName, TrainingStatus, CreatedAt, ModelVersionID) VALUES (?, ?, ?, ?) ''',
+            values=(clientAnswer.get('ModelName'), clientAnswer.get('TrainingStatus'), clientAnswer.get('CreatedAt'), clientAnswer.get('ModelVersionID'))
+        )
+
+        # returns the last id of the Model table.
+        return lastRowID
+    
+    # fetches the Model from the database
+    def fetchModel(self)-> dict:
+
+        # fetches the Model from the database
+        model=self.fetchInfo(query='''SELECT * FROM Model''')
+
+        # returns the Model
+        return model
+    
+# class for the table ModelVersion
+class ModelVersionTable(Database):
+    
+    def __init__(self, dbFile: str)->None:
+        super().__init__(dbFile)
+
+    # inserts the ModelVersion table. It has to be tested if the inf to be added is already there. If that is the case, no change is needed.
+    def insertModelVersionTable(self, clientAnswer:dict)->int:
+        # inserts the ModelVersion table. It has to be tested if the inf to be added is already there. If that is the case, no change is needed.
+        lastRowID,=self.insertItemsTable(
+            query='''INSERT INTO ModelVersion (ModelVersion, CreatedAt, ModelMetricID, HyperparameterID, ModelWeightsID) VALUES (?, ?, ?, ?, ?) ''',
+            values=(clientAnswer.get('ModelVersion'), clientAnswer.get('CreatedAt'), clientAnswer.get('ModelMetricID'), clientAnswer.get('HyperparameterID'), clientAnswer.get('ModelWeightsID'))
+        )
+
+        # returns the last id of the ModelVersion table.
+        return lastRowID
+    
+    # fetches the ModelVersion from the database
+    def fetchModelVersion(self)-> dict:
+
+        # fetches the ModelVersion from the database
+        modelVersion=self.fetchInfo(query='''SELECT * FROM ModelVersion''')
+
+        # returns the ModelVersion
+        return modelVersion
+
+# class for the table ModelMetric
+class ModelMetricTable(Database):
+    
+    def __init__(self, dbFile: str)->None:
+        super().__init__(dbFile)
+
+    # inserts the ModelMetric table. It has to be tested if the inf to be added is already there. If that is the case, no change is needed.
+    def insertModelMetricTable(self, clientAnswer:dict)->int:
+        # inserts the ModelMetric table. It has to be tested if the inf to be added is already there. If that is the case, no change is needed.
+        lastRowID,=self.insertItemsTable(
+            query='''INSERT INTO ModelMetric (MSE, r2, loss) VALUES (?, ?, ?) ''',
+            values=(clientAnswer.get('MSE'), clientAnswer.get('r2'), clientAnswer.get('loss'))
+        )
+
+        # returns the last id of the ModelMetric table.
+        return lastRowID
+    
+    # fetches the ModelMetric from the database
+    def fetchModelMetric(self)-> dict:
+
+        # fetches the ModelMetric from the database
+        modelMetric=self.fetchInfo(query='''SELECT * FROM ModelMetric''')
+
+        # returns the ModelMetric
+        return modelMetric
+    
+# class for the table Hyperparameter
+class HyperparameterTable(Database):
 
     def __init__(self, dbFile: str)->None:
         super().__init__(dbFile)
 
-    # updates table TFRLabel
-    def insertTFRLabelTable(self, sampleID:int, IDTFR:int)->int:
-
-        # updates table TFRLabel
+    # inserts the Hyperparameter table. It has to be tested if the inf to be added is already there. If that is the case, no change is needed.
+    def insertHyperparameterTable(self, clientAnswer:dict)->int:
+        # inserts the Hyperparameter table. It has to be tested if the inf to be added is already there. If that is the case, no change is needed.
         lastRowID,=self.insertItemsTable(
-            query='''INSERT INTO TFRLabel (sampleID, IDTFR) VALUES (?, ?) ''',
-            values=(
-                sampleID,                                   # sampleID corresponds to the ID of the sample to which the TFRLabel belongs. It is obtained from the exif data of the picture.
-                IDTFR                                       # IDTFR corresponds to the ID of the TFRecord of the picture. It is obtained from the exif data of the picture.
-            )
+            query='''INSERT INTO Hyperparameter (Hyperparameters) VALUES (?) ''',
+            values=(clientAnswer.get('Hyperparameters'),)
         )
 
-        # returns the last row ID
+        # returns the last id of the Hyperparameter table.
         return lastRowID
     
+    # fetches the Hyperparameter from the database
+    def fetchHyperparameter(self)-> dict:
+
+        # fetches the Hyperparameter from the database
+        hyperparameter=self.fetchInfo(query='''SELECT * FROM Hyperparameter''')
+
+        # returns the Hyperparameter
+        return hyperparameter
+    
+# class for the table ModelWeights
+class ModelWeightsTable(Database):
+    
+    def __init__(self, dbFile: str)->None:
+        super().__init__(dbFile)
+
+    # inserts the ModelWeights table. It has to be tested if the inf to be added is already there. If that is the case, no change is needed.
+    def insertModelWeightsTable(self, clientAnswer:dict)->int:
+        # inserts the ModelWeights table. It has to be tested if the inf to be added is already there. If that is the case, no change is needed.
+        lastRowID,=self.insertItemsTable(
+            query='''INSERT INTO ModelWeights (ModelWeightsPath) VALUES (?) ''',
+            values=(clientAnswer.get('ModelWeightsPath'),)
+        )
+
+        # returns the last id of the ModelWeights table.
+        return lastRowID
+    
+    # fetches the ModelWeights from the database
+    def fetchModelWeights(self)-> dict:
+
+        # fetches the ModelWeights from the database
+        modelWeights=self.fetchInfo(query='''SELECT * FROM ModelWeights''')
+
+        # returns the ModelWeights
+        return modelWeights

@@ -6,7 +6,7 @@ from Tools.ChangePath import ChangePath
 from Tools.Format import addDataType
 from Files.Path import Path
 from Files.Label import Label
-from Database.Database import Database
+from Database.Database import *
 from Preprocessing.TFRecorder import TFRecorder
 import os
 from PIL import Image
@@ -17,6 +17,599 @@ windowsAddress=r'C:\Users\Admin\OneDrive - Helmut-Schmidt-Universität\Dokumente
 
 # object to change the path formatting from windows to linux and viseversa
 pathFormat=ChangePath()
+
+# changes in the dataset table. Returns bool indicating if the process was a success (True) or something failed (False)
+def Dataset(clientDataset:dict|None, table:DatasetTable, action: str='add')->list[bool, dict,int |None]:
+
+    '''Handles the acces of the Table Dataset according to the requirements of the client. \n
+    :param clientDataset: Dictionary with information required to add or modifiy new projects.
+    :param table: Database table handler.
+    :param action: Type of action to be made. There are only three options 'add', 'modify', and 'delete' to add, modify, and delete the database.
+    :return: bool indicating if the process was a success.
+    '''
+
+    # executes code according to the action
+    if action=='add':
+
+        try:
+            # adds new project to the database
+            lastIdRow=table.insertDatasetTable(clientAnswer=clientDataset)
+
+            # gets the actual composition of the database
+            actualDatabase=table.fetchDataset()
+
+            return [True,actualDatabase,lastIdRow]
+        
+        #in case of error return false
+        except Exception as e:
+            
+            # prints the error
+            print('An error has occured. Error:{}'.format(e))
+
+            # gets the actual composition of the database
+            actualDatabase=table.fetchDataset()
+
+            # as there was an error, returns False
+            return [False, actualDatabase,None]
+        
+    # if the actions is to modify an existing project of the dataset table
+    elif action=='modify':
+
+        try:
+
+            # modify the indicated row of the table
+            table.updateDatasetTable(clientAnswer=clientDataset)
+
+            # gets the actual composition of the database
+            actualDatabase=table.fetchDataset()
+
+            # returns results
+            return[True, actualDatabase, None]
+        
+        except Exception as e:
+
+            # prints error
+            print('An error has occured. Error {}'.format(e))
+
+            # gets the actual composition of the database
+            actualDatabase=table.fetchDataset()
+
+            # as there was an error, returns False
+            return [False, actualDatabase,None]
+        
+    elif action=='delete':
+
+        try: 
+
+            # deletes the indicated row
+            table.deleteDatasetTable(clientAnswer=clientDataset)
+
+            # gets the actual composition of the database
+            actualDatabase=table.fetchDataset()
+
+            # returns results
+            return[True, actualDatabase, None]
+        
+        except Exception as e:
+
+            # prints error
+            print('An error has occured. Error {}'.format(e))
+
+            # gets the actual composition of the database
+            actualDatabase=table.fetchDataset()
+
+            # as there was an error, returns False
+            return [False, actualDatabase,None]
+        
+# does all necessary changes to CameraInfo table and returns bool indicating whether the changes were successfull and as well the last row 
+def CameraInfo(clientDataset:dict|None, table:CameraInfoTable, action: str='add')->list[bool, dict,int |None]:
+
+    '''Handles the acces of the Table Dataset according to the requirements of the client. \n
+    :param clientDataset: Dictionary with information required to add or modifiy new projects.
+    :param table: Database table handler.
+    :param action: Type of action to be made. There are only three options 'add', 'modify', and 'delete' to add, modify, and delete the database.
+    :return: bool indicating if the process was a success.
+    '''
+
+    # executes code according to the action
+    if action=='add':
+
+        try:
+            # adds new project to the database
+            lastIdRow=table.insertCameraInfoTable(clientAnswer=clientDataset)
+
+            # gets the actual composition of the database
+            actualDatabase=table.fetchCameraInfo()
+
+            return [True,actualDatabase,lastIdRow]
+        
+        #in case of error return false
+        except Exception as e:
+            
+            # prints the error
+            print('An error has occured. Error:{}'.format(e))
+
+            # gets the actual composition of the database
+            actualDatabase=table.fetchCameraInfo()
+
+            # as there was an error, returns False
+            return [False, actualDatabase,None]
+        
+    # if the actions is to modify an existing project of the dataset table
+    elif action=='modify':
+
+        try:
+
+            # modify the indicated row of the table
+            table.updateCameraInfoTable(clientAnswer=clientDataset)
+
+            # gets the actual composition of the database
+            actualDatabase=table.fetchCameraInfo()
+
+            # returns results
+            return[True, actualDatabase, None]
+        
+        except Exception as e:
+
+            # prints error
+            print('An error has occured. Error {}'.format(e))
+
+            # gets the actual composition of the database
+            actualDatabase=table.updateCameraInfoTable()
+
+            # as there was an error, returns False
+            return [False, actualDatabase,None]
+        
+    elif action=='delete':
+
+        try: 
+
+            # deletes the indicated row
+            table.deleteCameraInfoTable(clientAnswer=clientDataset)
+
+            # gets the actual composition of the database
+            actualDatabase=table.fetchCameraInfo()
+
+            # returns results
+            return[True, actualDatabase, None]
+        
+        except Exception as e:
+
+            # prints error
+            print('An error has occured. Error {}'.format(e))
+
+            # gets the actual composition of the database
+            actualDatabase=table.fetchCameraInfo()
+
+            # as there was an error, returns False
+            return [False, actualDatabase,None]
+        
+# does all necessary changes to MaterialType table and returns bool indicating whether the changes were successfull and as well the last row 
+def MaterialType(clientDataset:dict|None, table:MaterialTypeTable, action: str='add')->list[bool, dict,int |None]:
+
+    '''Handles the acces of the Table Dataset according to the requirements of the client. \n
+    :param clientDataset: Dictionary with information required to add or modifiy new projects.
+    :param table: Database table handler.
+    :param action: Type of action to be made. There are only three options 'add', 'modify', and 'delete' to add, modify, and delete the database.
+    :return: bool indicating if the process was a success.
+    '''
+
+    # executes code according to the action
+    if action=='add':
+
+        try:
+            # adds new project to the database
+            lastIdRow=table.insertMaterialTypeTable(clientAnswer=clientDataset)
+
+            # gets the actual composition of the database
+            actualDatabase=table.fetchMaterialType()
+
+            return [True,actualDatabase,lastIdRow]
+        
+        #in case of error return false
+        except Exception as e:
+            
+            # prints the error
+            print('An error has occured. Error:{}'.format(e))
+
+            # gets the actual composition of the database
+            actualDatabase=table.fetchMaterialType()
+
+            # as there was an error, returns False
+            return [False, actualDatabase,None]
+        
+    # if the actions is to modify an existing project of the dataset table
+    elif action=='modify':
+
+        try:
+
+            # modify the indicated row of the table
+            table.updateMaterialTypeTable(clientAnswer=clientDataset)
+
+            # gets the actual composition of the database
+            actualDatabase=table.fetchMaterialType()
+
+            # returns results
+            return[True, actualDatabase, None]
+        
+        except Exception as e:
+
+            # prints error
+            print('An error has occured. Error {}'.format(e))
+
+            # gets the actual composition of the database
+            actualDatabase=table.fetchMaterialType()
+
+            # as there was an error, returns False
+            return [False, actualDatabase,None]
+        
+    elif action=='delete':
+
+        try: 
+
+            # deletes the indicated row
+            table.deleteMaterialTypeTable(clientAnswer=clientDataset)
+
+            # gets the actual composition of the database
+            actualDatabase=table.fetchMaterialType()
+
+            # returns results
+            return[True, actualDatabase, None]
+        
+        except Exception as e:
+
+            # prints error
+            print('An error has occured. Error {}'.format(e))
+
+            # gets the actual composition of the database
+            actualDatabase=table.fetchMaterialType()
+
+            # as there was an error, returns False
+            return [False, actualDatabase,None]
+
+# does all necessary changes to Sample table and returns bool indicating whether the changes were successfull and as well the last row 
+def Sample(clientDataset:dict|None, table:SampleTable, action: str='add')->list[bool, dict,int |None]:
+
+    '''Handles the acces of the Table Dataset according to the requirements of the client. \n
+    :param clientDataset: Dictionary with information required to add or modifiy new projects.
+    :param table: Database table handler.
+    :param action: Type of action to be made. There are only three options 'add', 'modify', and 'delete' to add, modify, and delete the database.
+    :return: bool indicating if the process was a success.
+    '''
+
+    # executes code according to the action
+    if action=='add':
+
+        try:
+            # adds new project to the database
+            lastIdRow=table.insertSampleTable(clientAnswer=clientDataset)
+
+            # gets the actual composition of the database
+            actualDatabase=table.fetchSample()
+
+            return [True,actualDatabase,lastIdRow]
+        
+        #in case of error return false
+        except Exception as e:
+            
+            # prints the error
+            print('An error has occured. Error:{}'.format(e))
+
+            # gets the actual composition of the database
+            actualDatabase=table.fetchSample()
+
+            # as there was an error, returns False
+            return [False, actualDatabase,None]
+        
+    # if the actions is to modify an existing project of the dataset table
+    elif action=='modify':
+
+        try:
+
+            # modify the indicated row of the table
+            table.updateSampleTable(clientAnswer=clientDataset)
+
+            # gets the actual composition of the database
+            actualDatabase=table.fetchSample()
+
+            # returns results
+            return[True, actualDatabase, None]
+        
+        except Exception as e:
+
+            # prints error
+            print('An error has occured. Error {}'.format(e))
+
+            # gets the actual composition of the database
+            actualDatabase=table.fetchSample()
+
+            # as there was an error, returns False
+            return [False, actualDatabase,None]
+        
+    elif action=='delete':
+
+        try: 
+
+            # deletes the indicated row
+            table.deleteSampleTable(clientAnswer=clientDataset)
+
+            # gets the actual composition of the database
+            actualDatabase=table.fetchSample()
+
+            # returns results
+            return[True, actualDatabase, None]
+        
+        except Exception as e:
+
+            # prints error
+            print('An error has occured. Error {}'.format(e))
+
+            # gets the actual composition of the database
+            actualDatabase=table.fetchSample()
+
+            # as there was an error, returns False
+            return [False, actualDatabase,None]
+
+
+# does all necessary changes to JunctionPre table and returns bool indicating whether the changes were successfull and as well the last row 
+def JunctionPre(clientDataset:dict|None, table:JunctionPreTable, action: str='add')->list[bool, dict,int |None]:
+
+    '''Handles the acces of the Table Dataset according to the requirements of the client. \n
+    :param clientDataset: Dictionary with information required to add or modifiy new projects.
+    :param table: Database table handler.
+    :param action: Type of action to be made. There are only three options 'add', 'modify', and 'delete' to add, modify, and delete the database.
+    :return: bool indicating if the process was a success.
+    '''
+
+    # executes code according to the action
+    if action=='add':
+
+        try:
+            # adds new project to the database
+            lastIdRow=table.insertJunctionPreTable(clientAnswer=clientDataset)
+
+            # gets the actual composition of the database
+            actualDatabase=table.fetchJunctionPre()
+
+            return [True,actualDatabase,lastIdRow]
+        
+        #in case of error return false
+        except Exception as e:
+            
+            # prints the error
+            print('An error has occured. Error:{}'.format(e))
+
+            # gets the actual composition of the database
+            actualDatabase=table.fetchJunctionPre()
+
+            # as there was an error, returns False
+            return [False, actualDatabase,None]
+        
+    # if the actions is to modify an existing project of the dataset table
+    elif action=='modify':
+
+        try:
+
+            # modify the indicated row of the table
+            table.updateJunctionPreTable(clientAnswer=clientDataset)
+
+            # gets the actual composition of the database
+            actualDatabase=table.fetchJunctionPre()
+
+            # returns results
+            return[True, actualDatabase, None]
+        
+        except Exception as e:
+
+            # prints error
+            print('An error has occured. Error {}'.format(e))
+
+            # gets the actual composition of the database
+            actualDatabase=table.fetchJunctionPre()
+
+            # as there was an error, returns False
+            return [False, actualDatabase,None]
+        
+    elif action=='delete':
+
+        try: 
+
+            # deletes the indicated row
+            table.deleteJunctionPreTable(clientAnswer=clientDataset)
+
+            # gets the actual composition of the database
+            actualDatabase=table.fetchJunctionPre()
+
+            # returns results
+            return[True, actualDatabase, None]
+        
+        except Exception as e:
+
+            # prints error
+            print('An error has occured. Error {}'.format(e))
+
+            # gets the actual composition of the database
+            actualDatabase=table.fetchJunctionPre()
+
+            # as there was an error, returns False
+            return [False, actualDatabase,None]
+
+
+# does all necessary changes to Preprocessing table and returns bool indicating whether the changes were successfull and as well the last row 
+def Preprocessing(clientDataset:dict|None, table:PreprocessingTable, action: str='add')->list[bool, dict,int |None]:
+
+    '''Handles the acces of the Table Dataset according to the requirements of the client. \n
+    :param clientDataset: Dictionary with information required to add or modifiy new projects.
+    :param table: Database table handler.
+    :param action: Type of action to be made. There are only three options 'add', 'modify', and 'delete' to add, modify, and delete the database.
+    :return: bool indicating if the process was a success.
+    '''
+
+    # executes code according to the action
+    if action=='add':
+
+        try:
+            # adds new project to the database
+            lastIdRow=table.insertPreprocessingTable(clientAnswer=clientDataset)
+
+            # gets the actual composition of the database
+            actualDatabase=table.fetchPreprocessing()
+
+            return [True,actualDatabase,lastIdRow]
+        
+        #in case of error return false
+        except Exception as e:
+            
+            # prints the error
+            print('An error has occured. Error:{}'.format(e))
+
+            # gets the actual composition of the database
+            actualDatabase=table.fetchPreprocessing()
+
+            # as there was an error, returns False
+            return [False, actualDatabase,None]
+        
+    # if the actions is to modify an existing project of the dataset table
+    elif action=='modify':
+
+        try:
+
+            # modify the indicated row of the table
+            table.updatePreprocessingTable(clientAnswer=clientDataset)
+
+            # gets the actual composition of the database
+            actualDatabase=table.fetchPreprocessing()
+
+            # returns results
+            return[True, actualDatabase, None]
+        
+        except Exception as e:
+
+            # prints error
+            print('An error has occured. Error {}'.format(e))
+
+            # gets the actual composition of the database
+            actualDatabase=table.fetchPreprocessing()
+
+            # as there was an error, returns False
+            return [False, actualDatabase,None]
+        
+    elif action=='delete':
+
+        try: 
+
+            # deletes the indicated row
+            table.deletePreprocessingTable(clientAnswer=clientDataset)
+
+            # gets the actual composition of the database
+            actualDatabase=table.fetchPreprocessing()
+
+            # returns results
+            return[True, actualDatabase, None]
+        
+        except Exception as e:
+
+            # prints error
+            print('An error has occured. Error {}'.format(e))
+
+            # gets the actual composition of the database
+            actualDatabase=table.fetchPreprocessing()
+
+            # as there was an error, returns False
+            return [False, actualDatabase,None]
+
+
+# handles all necessary changes to JunctionAugmentation table and returns:
+# [success flag, actual database state, last inserted row id (if any)]
+
+def JunctionAugmentation(clientData: dict | None, table: JunctionAugmentationTable, action: str = 'add') -> list[bool, dict, int | None]:
+
+    '''
+    Handles access to the JunctionAugmentation table according to client requirements.
+
+    :param clientData: Dictionary with information required to add/modify/delete entries.
+    :param table: Database table handler.
+    :param action: Type of action ('add', 'modify', 'delete').
+    :return: [bool success, dict database snapshot, int | None lastRowID]
+    '''
+
+    # ADD
+    if action == 'add':
+        try:
+            # adds new project to the database
+            lastIdRow = table.insertJunctionAugmentationTable(clientAnswer=clientData)
+
+            # gets the actual composition of the database
+            actualDatabase = table.fetchJunctionAugmentation()
+
+            # returns results
+            return [True, actualDatabase, lastIdRow]
+
+        # in case of error return false
+        except Exception as e:
+            
+            # prints error
+            print('An error has occurred. Error: {}'.format(e))
+
+            # gets the actual composition of the database
+            actualDatabase = table.fetchJunctionAugmentation()
+
+            # as there was an error, returns False
+            return [False, actualDatabase, None]
+
+    # MODIFY
+    elif action == 'modify':
+        try:
+            # modify the indicated row of the table
+            table.updateJunctionAugmentationTable(
+                clientAnswer=clientData
+            )
+
+            # gets the actual composition of the database
+            actualDatabase = table.fetchJunctionAugmentation()
+
+            # as there was an error, returns False
+            return [True, actualDatabase, None]
+
+        except Exception as e:
+
+            # prints error
+            print('An error has occurred. Error {}'.format(e))
+
+            # gets the actual composition of the database
+            actualDatabase = table.fetchJunctionAugmentation()
+
+            # as there was an error, returns False
+            return [False, actualDatabase, None]
+
+    # DELETE
+    elif action == 'delete':
+
+        try:
+
+            # deletes the indicated row
+            table.deleteJunctionAugmentationTable(
+                clientAnswer=clientData
+            )
+
+            # gets the actual composition of the database
+            actualDatabase = table.fetchJunctionAugmentation()
+
+            # returns results
+            return [True, actualDatabase, None]
+
+        except Exception as e:
+
+            # prints error
+            print('An error has occurred. Error {}'.format(e))
+
+            # gets the actual compostion of the database
+            actualDatabase = table.fetchJunctionAugmentation()
+
+            # returns results
+            return [False, actualDatabase, None]
+
+
 
 # defines the function databaseFill to fill up date database of images for later training
 def dataBaseFill(socketServer:SocketServer, label:Label,path:Path, database:Database)->dict:
@@ -34,7 +627,7 @@ def dataBaseFill(socketServer:SocketServer, label:Label,path:Path, database:Data
     path.setPath(path=pathFormat.changePathWindowsToWsl(path=windowsAddress))
 
     # generates label for the picture
-    label.setLabelType(labelType=clientAnswer.pop('labelType')) # sets the label type
+    label.setLabelType(labelType=clientAnswer.get('labelType')) # sets the label type
     labelFile=label.generateSampleLabel()
 
     # creates a file where the image is going to be saved

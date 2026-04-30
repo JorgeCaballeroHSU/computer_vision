@@ -5,6 +5,14 @@ from Sockets.SocketServer import SocketServer
 from dataBaseFill import dataBaseFill
 from trainModel import trainModel
 from prediction import prediction
+from Database.Database import *
+
+# defines the location of the database
+databaseLocation=r'/home/helmut-schmidt-universitaet/Documents/Computer Vision Project/Database/database.db' #---> to be corrected
+
+# creates the database and the working schema of the project
+database=Schema(dbFile=databaseLocation) 
+
 
 
 # connects with the client

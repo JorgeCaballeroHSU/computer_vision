@@ -701,15 +701,42 @@ class JunctionAugmentationTable(Database):
         super().__init__(dbFile)
 
     # inserts the JunctionAugmentation table. It has to be tested if the inf to be added is already there. If that is the case, no change is needed.
-    def insertJunctionAugmentationTable(self, preprocessingID:int, augmentationID:int)->int:
+    def insertJunctionAugmentationTable(self, clientAnswer:dict)->int:
         # inserts the JunctionAugmentation table. It has to be tested if the inf to be added is already there. If that is the case, no change is needed.
         lastRowID,=self.insertItemsTable(
             query='''INSERT INTO JunctionAugmentation (PreprocessingID, AugmentationID) VALUES (?, ?) ''',
-            values=(preprocessingID, augmentationID)
+            values=(clientAnswer['PreprocessingID'],  clientAnswer['AugmentationID'])
         )
 
         # returns the last id of the JunctionAugmentation table.
         return lastRowID
+    
+    # updates the a parameter of the JunctionAugmentation table
+    def updateJunctionAugmentationTable(self, clientAnswer:dict)->None:
+
+        # defines the statement of the row update
+        statement= "UPDATE JunctionAugmentation SET PreprocessingID=?, AugmentationID=?, WHERE JunctionAugmentationID=?"
+
+        # executes the statement
+        self.updateItem(updateStatement=statement,Values=(
+            clientAnswer['PreprocessingID'],
+            clientAnswer['AugmentationID'],
+            clientAnswer['JunctionAugmentationID']
+        ))
+
+        # returns None
+        return None
+    
+    # deletes the defined JunctionAugmentation row
+    def deleteJunctionAugmentationTable(self, clientAnswer:dict)->None:
+
+        # defines statement to for the deletion of the raw dataset
+        statementeSampleTable='DELETE FROM JunctionAugmentation WHERE JunctionAugmentationID = ?'
+
+        # executes statement
+        self.updateItem(updateStatement=statementeSampleTable,Values=(clientAnswer['JunctionAugmentationID'],))
+
+        return None
     
     # fetches the JunctionAugmentation from the database
     def fetchJunctionAugmentation(self)-> dict:
@@ -719,6 +746,7 @@ class JunctionAugmentationTable(Database):
 
         # returns the JunctionAugmentation
         return junctionAugmentation
+    
     
 # class for the table Augmentation
 class AugmentationTable(Database):
@@ -737,6 +765,33 @@ class AugmentationTable(Database):
         # returns the last id of the Augmentation table.
         return lastRowID
     
+    # updates the a parameter of the Augmentation table
+    def updateAugmentationTable(self, clientAnswer:dict)->None:
+
+        # defines the statement of the row update
+        statement= "UPDATE Augmentation SET Method=?, FilePath=?, WHERE AugmentationID=?"
+
+        # executes the statement
+        self.updateItem(updateStatement=statement,Values=(
+            clientAnswer['Method'],
+            clientAnswer['FilePath'],
+            clientAnswer['AugmentationID']
+        ))
+
+        # returns None
+        return None
+    
+    # deletes the defined Augmentation row
+    def deleteAugmentationTable(self, clientAnswer:dict)->None:
+
+        # defines statement to for the deletion of the raw dataset
+        statementeSampleTable='DELETE FROM Augmentation WHERE AugmentationID = ?'
+
+        # executes statement
+        self.updateItem(updateStatement=statementeSampleTable,Values=(clientAnswer['AugmentationID'],))
+
+        return None
+    
     # fetches the Augmentation from the database
     def fetchAugmentation(self)-> dict:
 
@@ -747,7 +802,7 @@ class AugmentationTable(Database):
         return augmentation
     
 # class for the table TFRecording
-class TFRecording(Database):
+class TFRecordingTable(Database):
     
     def __init__(self, dbFile: str)->None:
         super().__init__(dbFile)
@@ -759,6 +814,34 @@ class TFRecording(Database):
             query='''INSERT INTO TFRecording (Label, FilePath, AugmentationID) VALUES (?, ?, ?) ''',
             values=(clientAnswer.get('Label'), clientAnswer.get('FilePath'), clientAnswer.get('AugmentationID'))
         )
+
+    # updates the a parameter of the TFRecording table
+    def updateTFRecordingTable(self, clientAnswer:dict)->None:
+
+        # defines the statement of the row update
+        statement= "UPDATE TFRecording SET Label=?, FilePath=?, AugmentationID=? WHERE TFRecordingID=?"
+
+        # executes the statement
+        self.updateItem(updateStatement=statement,Values=(
+            clientAnswer['Label'],
+            clientAnswer['FilePath'],
+            clientAnswer['AugmentationID'],
+            clientAnswer['TFRecordingID']
+        ))
+
+        # returns None
+        return None
+    
+    # deletes the defined TFRecording row
+    def deleteTFRecordingTable(self, clientAnswer:dict)->None:
+
+        # defines statement to for the deletion of the raw dataset
+        statementeSampleTable='DELETE FROM TFRecording WHERE TFRecordingID = ?'
+
+        # executes statement
+        self.updateItem(updateStatement=statementeSampleTable,Values=(clientAnswer['TFRecordingID'],))
+
+        return None
     
     # fetcehes the TFRecording from the database
     def fetchTFRecording(self)-> dict:
@@ -776,15 +859,42 @@ class ValidationTable(Database):
         super().__init__(dbFile)
 
     # inserts the Validation table. It has to be tested if the inf to be added is already there. If that is the case, no change is needed.
-    def insertValidationTable(self, tfRecordingID:int, modelID:int)->int:
+    def insertValidationTable(self, clientAnswer:dict)->int:
         # inserts the Validation table. It has to be tested if the inf to be added is already there. If that is the case, no change is needed.
         lastRowID,=self.insertItemsTable(
             query='''INSERT INTO Validation (TFRecordingID, ModelID) VALUES (?, ?) ''',
-            values=(tfRecordingID, modelID)
+            values=(clientAnswer['TFRecordingID'], clientAnswer['ModelID'])
         )
 
         # returns the last id of the Validation table.
         return lastRowID
+    
+    # updates the a parameter of the Validation table
+    def updateValidationTable(self, clientAnswer:dict)->None:
+
+        # defines the statement of the row update
+        statement= "UPDATE Validation SET TFRecordingID=?, ModelID=? WHERE ValidationID=?"
+
+        # executes the statement
+        self.updateItem(updateStatement=statement,Values=(
+            clientAnswer['TFRecordingID'],
+            clientAnswer['ModelID'],
+            clientAnswer['ValidationID']
+        ))
+
+        # returns None
+        return None
+    
+    # deletes the defined Validation row
+    def deleteValidationTable(self, clientAnswer:dict)->None:
+
+        # defines statement to for the deletion of the raw dataset
+        statementeSampleTable='DELETE FROM Validation WHERE ValidationID = ?'
+
+        # executes statement
+        self.updateItem(updateStatement=statementeSampleTable,Values=(clientAnswer['ValidationID'],))
+
+        return None
     
     # fetches the Validation from the database
     def fetchValidation(self)-> dict:
@@ -802,15 +912,42 @@ class TestingTable(Database):
         super().__init__(dbFile)
 
     # inserts the Testing table. It has to be tested if the inf to be added is already there. If that is the case, no change is needed.
-    def insertTestingTable(self, tfRecordingID:int, modelID:int)->int:
+    def insertTestingTable(self, clientAnswer)->int:
         # inserts the Testing table. It has to be tested if the inf to be added is already there. If that is the case, no change is needed.
         lastRowID,=self.insertItemsTable(
             query='''INSERT INTO Testing (TFRecordingID, ModelID) VALUES (?, ?) ''',
-            values=(tfRecordingID, modelID)
+            values=(clientAnswer['TFRecordingID'], clientAnswer['ModelID'])
         )
 
         # returns the last id of the Testing table.
         return lastRowID
+    
+    # updates the a parameter of the Testing table
+    def updateTestingTable(self, clientAnswer:dict)->None:
+
+        # defines the statement of the row update
+        statement= "UPDATE Testing SET TFRecordingID=?, ModelID=? WHERE TestingID=?"
+
+        # executes the statement
+        self.updateItem(updateStatement=statement,Values=(
+            clientAnswer['TFRecordingID'],
+            clientAnswer['ModelID'],
+            clientAnswer['TestingID']
+        ))
+
+        # returns None
+        return None
+    
+    # deletes the defined Testing row
+    def deleteTestingTable(self, clientAnswer:dict)->None:
+
+        # defines statement to for the deletion of the raw dataset
+        statementeSampleTable='DELETE FROM Testing WHERE TestingID = ?'
+
+        # executes statement
+        self.updateItem(updateStatement=statementeSampleTable,Values=(clientAnswer['TestingID'],))
+
+        return None    
     
     # fetches the Testing from the database
     def fetchTesting(self)-> dict:
@@ -828,15 +965,42 @@ class TrainingTable(Database):
         super().__init__(dbFile)
 
     # inserts the Training table. It has to be tested if the inf to be added is already there. If that is the case, no change is needed.
-    def insertTrainingTable(self, tfRecordingID:int, modelID:int)->int:
+    def insertTrainingTable(self, clientAnswer:dict)->int:
         # inserts the Training table. It has to be tested if the inf to be added is already there. If that is the case, no change is needed.
         lastRowID,=self.insertItemsTable(
             query='''INSERT INTO Training (TFRecordingID, ModelID) VALUES (?, ?) ''',
-            values=(tfRecordingID, modelID)
+            values=(clientAnswer['TFRecordingID'], clientAnswer['ModelID'])
         )
 
         # returns the last id of the Training table.
         return lastRowID
+    
+    # updates the a parameter of the Training table
+    def updateTrainingTable(self, clientAnswer:dict)->None:
+
+        # defines the statement of the row update
+        statement= "UPDATE Training SET TFRecordingID=?, ModelID=? WHERE TrainingID=?"
+
+        # executes the statement
+        self.updateItem(updateStatement=statement,Values=(
+            clientAnswer['TFRecordingID'],
+            clientAnswer['ModelID'],
+            clientAnswer['TrainingID']
+        ))
+
+        # returns None
+        return None
+    
+    # deletes the defined Training row
+    def deleteTrainingTable(self, clientAnswer:dict)->None:
+
+        # defines statement to for the deletion of the raw dataset
+        statementeSampleTable='DELETE FROM Training WHERE TrainingID = ?'
+
+        # executes statement
+        self.updateItem(updateStatement=statementeSampleTable,Values=(clientAnswer['TrainingID'],))
+
+        return None  
     
     # fetches the Training from the database
     def fetchTraining(self)-> dict:
@@ -864,6 +1028,35 @@ class ModelTable(Database):
         # returns the last id of the Model table.
         return lastRowID
     
+    # updates the a parameter of the Model table
+    def updateModelTable(self, clientAnswer:dict)->None:
+
+        # defines the statement of the row update
+        statement= "UPDATE Model SET ModelName=?, TrainingStatus=?, CreatedAt=?, ModelVersionID=? WHERE ModelID=?"
+
+        # executes the statement
+        self.updateItem(updateStatement=statement,Values=(
+            clientAnswer['ModelName'],
+            clientAnswer['TrainingStatus'],
+            clientAnswer['CreatedAt'],
+            clientAnswer['ModelVersionID'],
+            clientAnswer['ModelID']
+        ))
+
+        # returns None
+        return None
+    
+    # deletes the defined Model row
+    def deleteModelTable(self, clientAnswer:dict)->None:
+
+        # defines statement to for the deletion of the raw dataset
+        statementeSampleTable='DELETE FROM Model WHERE ModelID = ?'
+
+        # executes statement
+        self.updateItem(updateStatement=statementeSampleTable,Values=(clientAnswer['ModelID'],))
+
+        return None  
+    
     # fetches the Model from the database
     def fetchModel(self)-> dict:
 
@@ -889,6 +1082,36 @@ class ModelVersionTable(Database):
 
         # returns the last id of the ModelVersion table.
         return lastRowID
+    
+    # updates the a parameter of the ModelVersion table
+    def updateModelVersionTable(self, clientAnswer:dict)->None:
+
+        # defines the statement of the row update
+        statement= "UPDATE ModelVersion SET ModelVersion=?, CreatedAt=?, ModelMetricID=?, HyperparameterID=?, ModelWeightsID=? WHERE ModelVersionID=?"
+
+        # executes the statement
+        self.updateItem(updateStatement=statement,Values=(
+            clientAnswer['ModelVersion'],
+            clientAnswer['CreatedAt'],
+            clientAnswer['ModelMetricID'],
+            clientAnswer['HyperparameterID'],
+            clientAnswer['ModelWeightsID'],
+            clientAnswer['ModelVersionID']
+        ))
+
+        # returns None
+        return None
+    
+    # deletes the defined ModelVersion row
+    def deleteModelVersionTable(self, clientAnswer:dict)->None:
+
+        # defines statement to for the deletion of the raw dataset
+        statementeSampleTable='DELETE FROM ModelVersion WHERE ModelVersionID = ?'
+
+        # executes statement
+        self.updateItem(updateStatement=statementeSampleTable,Values=(clientAnswer['ModelVersionID'],))
+
+        return None  
     
     # fetches the ModelVersion from the database
     def fetchModelVersion(self)-> dict:
@@ -916,6 +1139,34 @@ class ModelMetricTable(Database):
         # returns the last id of the ModelMetric table.
         return lastRowID
     
+    # updates the a parameter of the ModelMetric table
+    def updateModelMetricTable(self, clientAnswer:dict)->None:
+
+        # defines the statement of the row update
+        statement= "UPDATE ModelMetric SET MSE=?, r2=?, loss=? WHERE ModelMetricID=?"
+
+        # executes the statement
+        self.updateItem(updateStatement=statement,Values=(
+            clientAnswer['MSE'],
+            clientAnswer['r2'],
+            clientAnswer['loss'],
+            clientAnswer['ModelMetricID']
+        ))
+
+        # returns None
+        return None
+    
+    # deletes the defined ModelMetric row
+    def deleteModelMetricTable(self, clientAnswer:dict)->None:
+
+        # defines statement to for the deletion of the raw dataset
+        statementeSampleTable='DELETE FROM ModelMetric WHERE ModelMetricID = ?'
+
+        # executes statement
+        self.updateItem(updateStatement=statementeSampleTable,Values=(clientAnswer['ModelMetricID'],))
+
+        return None  
+    
     # fetches the ModelMetric from the database
     def fetchModelMetric(self)-> dict:
 
@@ -942,6 +1193,32 @@ class HyperparameterTable(Database):
         # returns the last id of the Hyperparameter table.
         return lastRowID
     
+    # updates the a parameter of the Hyperparameter table
+    def updateHyperparameterTable(self, clientAnswer:dict)->None:
+
+        # defines the statement of the row update
+        statement= "UPDATE Hyperparameter SET Hyperparameters=? WHERE HyperparameterID=?"
+
+        # executes the statement
+        self.updateItem(updateStatement=statement,Values=(
+            clientAnswer['Hyperparameters'],
+            clientAnswer['HyperparameterID']
+        ))
+
+        # returns None
+        return None
+    
+    # deletes the defined Hyperparameters row
+    def deleteHyperparameterTable(self, clientAnswer:dict)->None:
+
+        # defines statement to for the deletion of the raw dataset
+        statementeSampleTable='DELETE FROM Hyperparameters WHERE HyperparameterID = ?'
+
+        # executes statement
+        self.updateItem(updateStatement=statementeSampleTable,Values=(clientAnswer['HyperparameterID'],))
+
+        return None  
+    
     # fetches the Hyperparameter from the database
     def fetchHyperparameter(self)-> dict:
 
@@ -967,6 +1244,32 @@ class ModelWeightsTable(Database):
 
         # returns the last id of the ModelWeights table.
         return lastRowID
+    
+    # updates the a parameter of the ModelWeights table
+    def updateModelWeightsTable(self, clientAnswer:dict)->None:
+
+        # defines the statement of the row update
+        statement= "UPDATE ModelWeights SET ModelWeightsPath=? WHERE ModelWeightsID=?"
+
+        # executes the statement
+        self.updateItem(updateStatement=statement,Values=(
+            clientAnswer['ModelWeightsPath'],
+            clientAnswer['ModelWeightsID']
+        ))
+
+        # returns None
+        return None
+    
+    # deletes the defined ModelWeights row
+    def deleteModelWeightsTable(self, clientAnswer:dict)->None:
+
+        # defines statement to for the deletion of the raw dataset
+        statementeSampleTable='DELETE FROM ModelWeights WHERE ModelWeightsID = ?'
+
+        # executes statement
+        self.updateItem(updateStatement=statementeSampleTable,Values=(clientAnswer['ModelWeightsID'],))
+
+        return None 
     
     # fetches the ModelWeights from the database
     def fetchModelWeights(self)-> dict:

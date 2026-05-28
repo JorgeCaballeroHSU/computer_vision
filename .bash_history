@@ -276,3 +276,20 @@ ss -tlnp
  source /home/computer_vision/.venv/bin/activate
  source /home/computer_vision/.venv/bin/activate
  source /home/computer_vision/.venv/bin/activate
+ source /home/computer_vision/.venv/bin/activate
+ source /home/computer_vision/.venv/bin/activate
+ source /home/computer_vision/.venv/bin/activate
+pip import fastapi
+pip install fastapi
+uvicorn main2:app --reload
+pip install uvicorn
+uvicorn main2:app --reload
+ source /home/computer_vision/.venv/bin/activate
+ source /home/computer_vision/.venv/bin/activate
+ source /home/computer_vision/.venv/bin/activate
+ source /home/computer_vision/.venv/bin/activate
+ source /home/computer_vision/.venv/bin/activate
+ source /home/computer_vision/.venv/bin/activate
+ source /home/computer_vision/.venv/bin/activate
+ source /home/computer_vision/.venv/bin/activate
+ source /home/computer_vision/.venv/bin/activate

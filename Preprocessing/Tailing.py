@@ -9,8 +9,9 @@ class Tailing:
     # space for the properties of the class
 
     # module for the initialization of the class
-    def __init__(self, size: int):
+    def __init__(self, size: int=512,stride: int=206) -> None:
         self.size = size
+        self.stride = stride
 
     # module for the forming of input images
     def tailing(self, image: tf.Tensor)-> tf.Tensor:
@@ -18,14 +19,14 @@ class Tailing:
         Args:
             image: the image to be formed
         Returns:
-            the formed image
+            the formed image as a tensor of the specified size
         '''
 
         # extracts patches from the image
         tiles=tf.image.extract_patches(
             images=tf.expand_dims(image, axis=0),
             sizes=[1, self.size, self.size, 1],
-            strides=[1, self.size, self.size, 1],
+            strides=[1, self.stride, self.stride, 1],
             rates=[1, 1, 1, 1],
             padding='VALID'
         )

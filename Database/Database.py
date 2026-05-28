@@ -552,39 +552,39 @@ class SampleTable(Database):
         return lastRowID
     
         # updates a JunctionAugmentation row
-    def updateJunctionAugmentationTable(self, clientAnswer: dict) -> None:
-        statement = '''
-        UPDATE JunctionAugmentation 
-        SET PreprocessingID = ?, AugmentationID = ?
-        WHERE JunctionAugID = ?
-        '''
+    def updateSampleTable(self, clientAnswer: dict) -> None:
+        statement = '''UPDATE Sample SET Label = ?, FilePath = ?, CaptureTime=?, CameraInfoID=?, DatasetID=?, MaterialTypeID=? WHERE SampleID = ?'''
 
         self.updateItem(
             updateStatement=statement,
             Values=(
-                clientAnswer['PreprocessingID'],
-                clientAnswer['AugmentationID'],
-                clientAnswer['JunctionAugID']
+                clientAnswer['Label'],
+                clientAnswer['FilePath'],
+                clientAnswer['CaptureTime'],
+                clientAnswer['CameraInfoID'],
+                clientAnswer['DatasetID'],
+                clientAnswer['MaterialTypeID'],
+                clientAnswer['SampleID']
             )
         )
         return None
 
-    # deletes a JunctionAugmentation row
-    def deleteJunctionAugmentationTable(self, clientAnswer: dict) -> None:
-        statement = 'DELETE FROM JunctionAugmentation WHERE JunctionAugID = ?'
+    # deletes a Sample row
+    def deleteSampleTable(self, clientAnswer: dict) -> None:
+        statement = 'DELETE FROM Sample WHERE SampleID = ?'
 
         self.updateItem(
             updateStatement=statement,
-            Values=(clientAnswer['JunctionAugID'],)
+            Values=(clientAnswer['SampleID'],)
         )
         return None
 
-    # fetches all JunctionAugmentation rows
+    # fetches all Sample rows
     def fetchJunctionAugmentation(self) -> dict:
-        junctionAugmentation = self.fetchInfo(
-            query='''SELECT * FROM JunctionAugmentation'''
+        Sample = self.fetchInfo(
+            query='''SELECT * FROM Sample'''
         )
-        return junctionAugmentation
+        return Sample
     
 # class for the table JunctionPre
 class JunctionPreTable(Database):

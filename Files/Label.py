@@ -127,10 +127,10 @@ class LabelPreprocessing ():
         self._preprocessingType=preprocessingType
 
     # generates label for preprocessing files
-    def generatePreprocessingLabel(self)->str:
+    def generatePreprocessingLabel(self, number:int)->str:
 
         # generates the label. Label example -> HSU-HH_S_001_F -> Project: HSU-HH. Sample type: S= Sand. 001 Sample one. Type of preprocessing: F=Flipping
-        label='_'.join([self._sampleLabel,self._preprocessingType])
+        label='_'.join([self._sampleLabel,self._preprocessingType,str(number).zfill(2)])
 
         # returns generated label as string
         return label

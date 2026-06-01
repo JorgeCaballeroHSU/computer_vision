@@ -293,3 +293,5 @@ uvicorn main2:app --reload
  source /home/computer_vision/.venv/bin/activate
  source /home/computer_vision/.venv/bin/activate
  source /home/computer_vision/.venv/bin/activate
+                                                                                                   source /home/computer_vision/.venv/bin/activate
+ source /home/computer_vision/.venv/bin/activate

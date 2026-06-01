@@ -123,8 +123,7 @@ def generateTensorFlowRecords(path:Path, database:Database, tfRecorder:TFRecorde
     )
 
 
-# imports more required libraries
-from Preprocessing.DataAugmentation import Flipping, ColorDistortion
+# imports required libraries
 from Preprocessing import Tailing
 
 # Preprocesses the images by applying tailing
@@ -178,6 +177,98 @@ def PreprocessingImages(clientAnswer:dict)->list:
         # The functions Preprocessing and JunctionPre will always provide the full database of the indicated tables
         # it is to be expected that the last results bring the required information to update on the front side
         return [PreproTable, JuctionTable]
+
+# imports more required libraries
+from Preprocessing.DataAugmentation import Flipping, ColorDistortion
+from Files.Label import LabelTFRecording
+
+# defines the function augmentation that generate augmented version of available images. 
+# Two kind of augmentation techniques will be considered: flipping and color distortion
+def AugmentationImages(clientAnswer:dict)->list:
+    
+    # gets the location of the preprocessed image to be augmented
+    # this information is to be taken from the preprocessedID
+    PreprocessingTable=PreprocessingTable()
+
+    # fetches the location of the preprocessed image from the database
+    imagePath=PreprocessingTable.fetchInfo(statement='''SELECT FilePath, Label FROM Preprocessing WHERE PreprocessingID={}'''.format(clientAnswer['PreprocessingID']))
+    
+    # gets the label used for this preprocessed image
+    preprocessedLabel=imagePath[0]['Label']
+    
+    # gets the location of the preprocessed image to be augmented
+    imagePath=imagePath[0]['FilePath']
+
+    # checks the type of data augmentation is required to be executed.
+    # There are two options: Flipping and color distortion
+    if clientAnswer['Method'].lower() =='flipping':
+
+        # creates a Flipping-object for augmenting the photos
+        flipping=Flipping(flipType=clientAnswer['Method'])
+
+        # generates the augmented image to be saved
+        augmentedImage=flipping.flip(image=imagePath)
+
+        # creates an TFRecord-object to save the TFrecord in the indicated path
+        saveTFRecordsFlip=TFRecorder() # correct location of the files
+
+        # generates the label for the creation of the file name
+        augmentationLabel= LabelTFRecording(preprocessingLabel=preprocessedLabel,augmentationType='flipping')
+        
+        # saves the TFrecord in the indicated location
+        saveTFRecordsFlip.saveTFRecord(fileName=augmentationLabel.generateTensorFlowRecordLabel(),
+                                       filePath=pathFormat.changePathWindowsToWsl(path=windowsAddress), # probably the address need to be changed
+                                       TFRecord=augmentedImage)
+        
+        # adds information to the table Augmentation 
+        augmentationTable=Augmentation(clientData={'Method':clientAnswer['Method'], 'FilePath':'/'.join([pathFormat.changePathWindowsToWsl(path=windowsAddress),augmentationLabel.generateTensorFlowRecordLabel()])},
+                                       )
+        
+        # adds information to JuctionAgumentation table
+        juctionAugmentationTable=JunctionAugmentation(clientData={'PreprocessingID':clientAnswer['PreprocessingID'],'AugmentationID':augmentationTable[2]})
+
+        # returns results for updating the status of the database at fronend.
+        return [augmentationTable, juctionAugmentationTable]
+
+    
+    elif clientAnswer['Method'].lower()=='color distortion':
+
+        # creates a ColorDistortion-Object for the augmentation of the photos
+        # creates a ColorDistortion-object for augmenting the photos
+        colorDistorion=ColorDistortion()
+
+        # generates the augmented image to be saved
+        augmentedImage=colorDistorion.distortColors(image=imagePath)
+
+        # creates an TFRecord-object to save the TFrecord in the indicated path
+        saveTFRecordsFlip=TFRecorder() # correct location of the files
+
+        # generates the label for the creation of the file name
+        augmentationLabel= LabelTFRecording(preprocessingLabel=preprocessedLabel,augmentationType='flipping')
+        
+        # saves the TFrecord in the indicated location
+        saveTFRecordsFlip.saveTFRecord(fileName=augmentationLabel.generateTensorFlowRecordLabel(),
+                                       filePath=pathFormat.changePathWindowsToWsl(path=windowsAddress), # probably the address need to be changed
+                                       TFRecord=augmentedImage)
+        
+        # adds information to the table Augmentation 
+        augmentationTable=Augmentation(clientData={'Method':clientAnswer['Method'], 'FilePath':'/'.join([pathFormat.changePathWindowsToWsl(path=windowsAddress),augmentationLabel.generateTensorFlowRecordLabel()])},
+                                       )
+        
+        # adds information to JuctionAgumentation table
+        juctionAugmentationTable=JunctionAugmentation(clientData={'PreprocessingID':clientAnswer['PreprocessingID'],'AugmentationID':augmentationTable[2]})
+
+        # returns results for updating the status of the database at fronend.
+        return [augmentationTable, juctionAugmentationTable]
+
+    else:
+
+        # informs that something wrong has happened and need addressing
+        print('An error has ocurred. Please review the entry "Method" and try again.')
+        
+
+    return 
+
 
         # in this loop the transformations will be done
         for i in range(0, timesPerFoto):

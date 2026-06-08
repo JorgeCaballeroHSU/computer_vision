@@ -1,12 +1,13 @@
 # main.py
 
 # imports required libraries for endpoint creation
-from fastapi import FastAPI
+from fastapi import FastAPI, File, HTTPException, UploadFile
 from pydantic import BaseModel
 from typing import Optional
 
 
 from Sockets.SocketServer import SocketServer
+from Tools.ChangePath import ChangePath
 from dataBaseFill import dataBaseFill, PreprocessingImages, AugmentationImages
 from trainModel import trainModel
 from prediction import prediction
@@ -22,16 +23,47 @@ app=FastAPI()
 # defines the location of the database
 databaseLocation=r'/home/helmut-schmidt-universitaet/Documents/Computer Vision Project/Database/database.db' #---> to be corrected
 
+# windows-formatted address to store the pictures
+windowsAddress=r'C:\Users\Admin\OneDrive - Helmut-Schmidt-Universität\Dokumente\Computer Vision Project\01 Pictures'
+
+# object to change the path formatting from windows to linux and viseversa
+pathFormat=ChangePath()
+
 # creates the database schema of the application
 schemaCreation=Schema(dbFile=databaseLocation) 
 schemaCreation.closeConnection() # ---> Closes the connection
 
+####### GETS THE PCITURES FROM CLIENT #######
+# gets the pictures from the frontend and saves them in a folder
+@app.post("/upload-image")
+def handleImage(file: UploadFile = File(...)):
+
+    # opens try block to catch errors
+    try:
+
+        # opens the file and saves it in the indicated location
+        with open(pathFormat.changePathWindowsToWsl(path=windowsAddress)+"/"+file.filename, "wb") as buffer:
+            while contents := file.file.read(1024 * 1024):
+                buffer.write(contents)
+
+    # catches exceptions and raises an HTTPException with status code 500 and a detail message
+    except Exception:
+        raise HTTPException(status_code=500, detail="Error uploading the file")
+    
+    finally:
+        file.file.close()
+
+    # restuns a success message if the file is uploaded successfully
+    return {"message": "File uploaded successfully"}
+
+
+#### DATASET TABLE########
 # defines the input format for most of the tables
 class TableRequest(BaseModel):
     clientDataset: Optional[dict]
     action: str='add'
 
-#### DATASET TABLE########
+
 # writes, updates, and deletes a item of the Dataset table
 @app.post("/dataset")
 def handleDataset(request:TableRequest):
@@ -81,7 +113,6 @@ def handleCameraInfo(request: TableRequest):
         'data': results[1],
         'lastID': results[2]
     }
-
 
 # gets list of items in the CameraInfo table
 @app.get("/camera-info")

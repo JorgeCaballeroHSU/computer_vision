@@ -223,14 +223,21 @@ def AugmentationImages(clientAnswer:dict)->list:
         # adds information to the table Augmentation 
         augmentationTable=Augmentation(clientData={'Method':clientAnswer['Method'], 'FilePath':'/'.join([pathFormat.changePathWindowsToWsl(path=windowsAddress),augmentationLabel.generateTensorFlowRecordLabel()])},
                                        )
-        
-        # adds information to JuctionAgumentation table
+
+        # adds information to JuctionAugmentation table
         juctionAugmentationTable=JunctionAugmentation(clientData={'PreprocessingID':clientAnswer['PreprocessingID'],'AugmentationID':augmentationTable[2]})
 
+        # adds information to table TFRecording
+        TFrecordingTable=TFRecording(
+              clientData={'Label':augmentationLabel.generateTensorFlowRecordLabel(),
+                          'FilePath':'/'.join([pathFormat.changePathWindowsToWsl(path=windowsAddress),augmentationLabel.generateTensorFlowRecordLabel()]),
+                          'AugmentationID': augmentationTable[2]
+              })
+        
         # returns results for updating the status of the database at fronend.
-        return [augmentationTable, juctionAugmentationTable]
+        return [augmentationTable, juctionAugmentationTable,TFrecordingTable]
 
-    
+    # generates augmented pictures in TRrecord format, in which the augmentation is color distortion.
     elif clientAnswer['Method'].lower()=='color distortion':
 
         # creates a ColorDistortion-Object for the augmentation of the photos
@@ -267,30 +274,4 @@ def AugmentationImages(clientAnswer:dict)->list:
         print('An error has ocurred. Please review the entry "Method" and try again.')
         
 
-    return 
 
-
-        # in this loop the transformations will be done
-        for i in range(0, timesPerFoto):
-
-            # flips the image two times randomly
-            if i==0 or i==1:
-                
-                # flips randomly the image
-                file=flip.flip(image=photoLocation)
-
-            # distors randomly the image several times.
-            # provides timesPerFoto-2 of these random distorsions
-            else:
-
-                # distors the image
-                file=colDis.distortColors(image=photoLocation)
-
-        # closes the file
-        photoLocation.close()
-
-        datenBank.addItemTFRecording(label=label, TFRecoding=file)
-        
-
-    # returns None
-    return None

@@ -4,8 +4,39 @@
 import tensorflow as tf
 import keras
 
+# defines the base model class that will be inherited by all the other models. It contains the common properties and methods for all the models, such as the training method.
+class BaseModel(keras.Model):
+
+    # space for the properties of the class
+    def trainModel(self, trainDataset, valDataset, epochs, checkpoint):
+        '''trains the model on the training dataset and validates it on the validation dataset for a specified number of epochs and saves the best model using the specified checkpoint
+        Args:
+            trainDataset: the training dataset to be used for training the model
+            valDataset: the validation dataset to be used for validating the model during training
+            epochs: the number of epochs to train the model for
+            checkpoint: the checkpoint to be used for saving the best model during training
+        Returns:
+            None
+        '''
+
+        # compiles the model with the Adam optimizer, categorical cross-entropy loss, and accuracy metric
+        self.compile(
+            optimizer="adam",
+            loss="categorical_crossentropy",
+            metrics=["accuracy"]
+        )
+
+        # trains the model on the training dataset and validates it on the validation dataset for the specified number of epochs and saves the best model using the specified checkpoint
+        self.fit(
+            trainDataset,
+            validation_data=valDataset,
+            epochs=epochs,
+            callbacks=[checkpoint]
+        )
+
+
 # defines the convolutional neural network AlexNet model
-class AlexNet(keras.Model):
+class AlexNet(BaseModel):
     
     # space for the properties of the class
 
@@ -32,24 +63,6 @@ class AlexNet(keras.Model):
         self.dropout7 = keras.layers.Dropout(rate=0.5)
         self.fc8 = keras.layers.Dense(units=self.numClasses, activation='softmax')
 
-
-    #module for training the model
-    def trainModel(self, trainDataset: tf.data.Dataset, valDataset: tf.data.Dataset, epochs: int, checkpoint: tf.keras.callbacks.ModelCheckpoint)-> None:
-        '''trains the model on the training dataset and validates it on the validation dataset for a specified number of epochs and saves the best model using the specified checkpoint
-        Args:
-            trainDataset: the training dataset to be used for training the model
-            valDataset: the validation dataset to be used for validating the model during training
-            epochs: the number of epochs to train the model for
-            checkpoint: the checkpoint to be used for saving the best model during training
-        Returns:
-            None
-        ''' 
-        # compiles the model with the Adam optimizer, categorical cross-entropy loss, and accuracy metric
-        self.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])   
-
-        # trains the model on the training dataset and validates it on the validation dataset for the specified number of epochs and saves the best model using the specified checkpoint
-        self.fit(trainDataset, validation_data=valDataset, epochs=epochs, callbacks=[checkpoint])
-
     # module for the forward pass of the model
     def call(self, inputs: tf.Tensor)-> tf.Tensor:
         '''performs a forward pass through the model and returns the output tensor
@@ -75,7 +88,7 @@ class AlexNet(keras.Model):
         return x   
 
 # defines the convolutional neural network VGG19 model
-class VGG19(keras.Model):
+class VGG19(BaseModel):
     # space for the properties of the class
 
     # module for the initialization of the class
@@ -113,23 +126,6 @@ class VGG19(keras.Model):
         self.fc7 = keras.layers.Dense(units=4096, activation='relu')
         self.dropout7 = keras.layers.Dropout(rate=0.5)
         self.fc8 = keras.layers.Dense(units=self.numClasses, activation='softmax')  
-
-    #module for training the model
-    def trainModel(self, trainDataset: tf.data.Dataset, valDataset: tf.data.Dataset, epochs: int, checkpoint: tf.keras.callbacks.ModelCheckpoint)-> None:
-        '''trains the model on the training dataset and validates it on the validation dataset for a specified number of epochs and saves the best model using the specified checkpoint
-        Args:
-            trainDataset: the training dataset to be used for training the model
-            valDataset: the validation dataset to be used for validating the model during training
-            epochs: the number of epochs to train the model for
-            checkpoint: the checkpoint to be used for saving the best model during training
-        Returns:
-            None
-        '''
-        # compiles the model with the Adam optimizer, categorical cross-entropy loss, and accuracy metric
-        self.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
-
-        # trains the model on the training dataset and validates it on the validation dataset for the specified number of epochs and saves the best model using the specified checkpoint
-        self.fit(trainDataset, validation_data=valDataset, epochs=epochs, callbacks=[checkpoint])
 
     # module for the forward pass of the model
     def call(self, inputs: tf.Tensor)-> tf.Tensor:  
@@ -169,7 +165,7 @@ class VGG19(keras.Model):
         return x
     
 # defines the convolutional neural network InceptionV3 model
-class InceptionV3(keras.Model):
+class InceptionV3(BaseModel):
     # space for the properties of the class
 
     # module for the initialization of the class
@@ -184,23 +180,6 @@ class InceptionV3(keras.Model):
         self.flatten = keras.layers.Flatten()
         self.fc = keras.layers.Dense(units=self.numClasses, activation='softmax')
 
-    # module for training the model
-    def trainModel(self, trainDataset: tf.data.Dataset, valDataset: tf.data.Dataset, epochs: int, checkpoint: tf.keras.callbacks.ModelCheckpoint)-> None:
-        '''trains the model on the training dataset and validates it on the validation dataset for a specified number of epochs and saves the best model using the specified checkpoint
-        Args:
-            trainDataset: the training dataset to be used for training the model
-            valDataset: the validation dataset to be used for validating the model during training
-            epochs: the number of epochs to train the model for
-            checkpoint: the checkpoint to be used for saving the best model during training
-        Returns:
-            None
-        '''
-        # compiles the model with the Adam optimizer, categorical cross-entropy loss, and accuracy metric
-        self.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
-
-        # trains the model on the training dataset and validates it on the validation dataset for the specified number of epochs and saves the best model using the specified checkpoint
-        self.fit(trainDataset, validation_data=valDataset, epochs=epochs, callbacks=[checkpoint])
-
     # module for the forward pass of the model
     def call(self, inputs: tf.Tensor)-> tf.Tensor:
         '''performs a forward pass through the model and returns the output tensor
@@ -213,101 +192,9 @@ class InceptionV3(keras.Model):
         x = self.flatten(x)
         x = self.fc(x)
         return x
-
-# defines the convolutional neural network squeeznet model
-class SqueezeNet(keras.Model):
-    # space for the properties of the class
-
-    # module for the initialization of the class
-    def __init__(self, numClasses: int):
-        super(SqueezeNet, self).__init__()
-
-        # initializes the properties of the class
-        self.numClasses = numClasses
-
-        # defines the layers of the model
-        self.squeezeNet = keras.applications.SqueezeNet(include_top=False, weights='imagenet', input_shape=(227, 227, 3))
-        self.flatten = keras.layers.Flatten()
-        self.fc = keras.layers.Dense(units=self.numClasses, activation='softmax')
-
-    # module for training the model
-    def trainModel(self, trainDataset: tf.data.Dataset, valDataset: tf.data.Dataset, epochs: int, checkpoint: tf.keras.callbacks.ModelCheckpoint)-> None:
-        '''trains the model on the training dataset and validates it on the validation dataset for a specified number of epochs and saves the best model using the specified checkpoint
-        Args:
-            trainDataset: the training dataset to be used for training the model
-            valDataset: the validation dataset to be used for validating the model during training
-            epochs: the number of epochs to train the model for
-            checkpoint: the checkpoint to be used for saving the best model during training
-        Returns:
-            None
-        '''
-        # compiles the model with the Adam optimizer, categorical cross-entropy loss, and accuracy metric
-        self.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
-
-        # trains the model on the training dataset and validates it on the validation dataset for the specified number of epochs and saves the best model using the specified checkpoint
-        self.fit(trainDataset, validation_data=valDataset, epochs=epochs, callbacks=[checkpoint])
-
-    # module for the forward pass of the model
-    def call(self, inputs: tf.Tensor)-> tf.Tensor:
-        '''performs a forward pass through the model and returns the output tensor
-        Args:
-            inputs: the input tensor to be passed through the model
-        Returns:
-            the output tensor of the model after performing a forward pass
-        '''
-        x = self.squeezeNet(inputs)
-        x = self.flatten(x)
-        x = self.fc(x)
-        return x
-    
-# defines the convolutional neural network ResNet50 model
-class ResNet50(keras.Model):
-    # space for the properties of the class
-
-    # module for the initialization of the class
-    def __init__(self, numClasses: int):
-        super(ResNet50, self).__init__()
-
-        # initializes the properties of the class
-        self.numClasses = numClasses
-
-        # defines the layers of the model
-        self.resNet50 = keras.applications.ResNet50(include_top=False, weights='imagenet', input_shape=(224, 224, 3))
-        self.flatten = keras.layers.Flatten()
-        self.fc = keras.layers.Dense(units=self.numClasses, activation='softmax')
-
-    # module for training the model
-    def trainModel(self, trainDataset: tf.data.Dataset, valDataset: tf.data.Dataset, epochs: int, checkpoint: tf.keras.callbacks.ModelCheckpoint)-> None:
-        '''trains the model on the training dataset and validates it on the validation dataset for a specified number of epochs and saves the best model using the specified checkpoint
-        Args:
-            trainDataset: the training dataset to be used for training the model
-            valDataset: the validation dataset to be used for validating the model during training
-            epochs: the number of epochs to train the model for
-            checkpoint: the checkpoint to be used for saving the best model during training
-        Returns:
-            None
-        '''
-        # compiles the model with the Adam optimizer, categorical cross-entropy loss, and accuracy metric
-        self.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
-
-        # trains the model on the training dataset and validates it on the validation dataset for the specified number of epochs and saves the best model using the specified checkpoint
-        self.fit(trainDataset, validation_data=valDataset, epochs=epochs, callbacks=[checkpoint])
-
-    # module for the forward pass of the model
-    def call(self, inputs: tf.Tensor)-> tf.Tensor:
-        '''performs a forward pass through the model and returns the output tensor
-        Args:
-            inputs: the input tensor to be passed through the model
-        Returns:
-            the output tensor of the model after performing a forward pass
-        '''
-        x = self.resNet50(inputs)
-        x = self.flatten(x)
-        x = self.fc(x)
-        return x
     
 # defines the convolutional neural network DenseNet121 model
-class DenseNet121(keras.Model):
+class DenseNet121(BaseModel):
     # space for the properties of the class
 
     # module for the initialization of the class
@@ -321,23 +208,6 @@ class DenseNet121(keras.Model):
         self.denseNet121 = keras.applications.DenseNet121(include_top=False, weights='imagenet', input_shape=(224, 224, 3))
         self.flatten = keras.layers.Flatten()
         self.fc = keras.layers.Dense(units=self.numClasses, activation='softmax')
-
-    # module for training the model
-    def trainModel(self, trainDataset: tf.data.Dataset, valDataset: tf.data.Dataset, epochs: int, checkpoint: tf.keras.callbacks.ModelCheckpoint)-> None:
-        '''trains the model on the training dataset and validates it on the validation dataset for a specified number of epochs and saves the best model using the specified checkpoint
-        Args:
-            trainDataset: the training dataset to be used for training the model
-            valDataset: the validation dataset to be used for validating the model during training
-            epochs: the number of epochs to train the model for
-            checkpoint: the checkpoint to be used for saving the best model during training
-        Returns:
-            None
-        '''
-        # compiles the model with the Adam optimizer, categorical cross-entropy loss, and accuracy metric
-        self.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
-
-        # trains the model on the training dataset and validates it on the validation dataset for the specified number of epochs and saves the best model using the specified checkpoint
-        self.fit(trainDataset, validation_data=valDataset, epochs=epochs, callbacks=[checkpoint])
 
     # module for the forward pass of the model
     def call(self, inputs: tf.Tensor)-> tf.Tensor:
@@ -353,7 +223,7 @@ class DenseNet121(keras.Model):
         return x
 
 # defines the convolutional neural network Xception model  
-class Xception(keras.Model):
+class Xception(BaseModel):
     # space for the properties of the class
 
     # module for the initialization of the class
@@ -367,23 +237,6 @@ class Xception(keras.Model):
         self.xception = keras.applications.Xception(include_top=False, weights='imagenet', input_shape=(299, 299, 3))
         self.flatten = keras.layers.Flatten()
         self.fc = keras.layers.Dense(units=self.numClasses, activation='softmax')
-
-    # module for training the model
-    def trainModel(self, trainDataset: tf.data.Dataset, valDataset: tf.data.Dataset, epochs: int, checkpoint: tf.keras.callbacks.ModelCheckpoint)-> None:
-        '''trains the model on the training dataset and validates it on the validation dataset for a specified number of epochs and saves the best model using the specified checkpoint
-        Args:
-            trainDataset: the training dataset to be used for training the model
-            valDataset: the validation dataset to be used for validating the model during training
-            epochs: the number of epochs to train the model for
-            checkpoint: the checkpoint to be used for saving the best model during training
-        Returns:
-            None
-        '''
-        # compiles the model with the Adam optimizer, categorical cross-entropy loss, and accuracy metric
-        self.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
-
-        # trains the model on the training dataset and validates it on the validation dataset for the specified number of epochs and saves the best model using the specified checkpoint
-        self.fit(trainDataset, validation_data=valDataset, epochs=epochs, callbacks=[checkpoint])
 
     # module for the forward pass of the model
     def call(self, inputs: tf.Tensor)-> tf.Tensor:
@@ -399,7 +252,7 @@ class Xception(keras.Model):
         return x
 
 # defines the convolutional neural network NASNEet model
-class NASNet(keras.Model):
+class NASNet(BaseModel):
     # space for the properties of the class
 
     # module for the initialization of the class
@@ -413,23 +266,6 @@ class NASNet(keras.Model):
         self.nasNet = keras.applications.NASNetMobile(include_top=False, weights='imagenet', input_shape=(224, 224, 3))
         self.flatten = keras.layers.Flatten()
         self.fc = keras.layers.Dense(units=self.numClasses, activation='softmax')
-
-    # module for training the model
-    def trainModel(self, trainDataset: tf.data.Dataset, valDataset: tf.data.Dataset, epochs: int, checkpoint: tf.keras.callbacks.ModelCheckpoint)-> None:
-        '''trains the model on the training dataset and validates it on the validation dataset for a specified number of epochs and saves the best model using the specified checkpoint
-        Args:
-            trainDataset: the training dataset to be used for training the model
-            valDataset: the validation dataset to be used for validating the model during training
-            epochs: the number of epochs to train the model for
-            checkpoint: the checkpoint to be used for saving the best model during training
-        Returns:
-            None
-        '''
-        # compiles the model with the Adam optimizer, categorical cross-entropy loss, and accuracy metric
-        self.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
-
-        # trains the model on the training dataset and validates it on the validation dataset for the specified number of epochs and saves the best model using the specified checkpoint
-        self.fit(trainDataset, validation_data=valDataset, epochs=epochs, callbacks=[checkpoint])
 
     # module for the forward pass of the model
     def call(self, inputs: tf.Tensor)-> tf.Tensor:
@@ -445,7 +281,7 @@ class NASNet(keras.Model):
         return x
     
 # defines the convolutional neural network MobileNetV2 model
-class MobileNetV2(keras.Model):
+class MobileNetV2(BaseModel):
     # space for the properties of the class
 
     # module for the initialization of the class
@@ -460,24 +296,7 @@ class MobileNetV2(keras.Model):
         self.flatten = keras.layers.Flatten()
         self.fc = keras.layers.Dense(units=self.numClasses, activation='softmax')
 
-    # module for training the model
-    def trainModel(self, trainDataset: tf.data.Dataset, valDataset: tf.data.Dataset, epochs: int, checkpoint: tf.keras.callbacks.ModelCheckpoint)-> None:
-        '''trains the model on the training dataset and validates it on the validation dataset for a specified number of epochs and saves the best model using the specified checkpoint
-        Args:
-            trainDataset: the training dataset to be used for training the model
-            valDataset: the validation dataset to be used for validating the model during training
-            epochs: the number of epochs to train the model for
-            checkpoint: the checkpoint to be used for saving the best model during training
-        Returns:
-            None
-        '''
-        # compiles the model with the Adam optimizer, categorical cross-entropy loss, and accuracy metric
-        self.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
-
-        # trains the model on the training dataset and validates it on the validation dataset for the specified number of epochs and saves the best model using the specified checkpoint
-        self.fit(trainDataset, validation_data=valDataset, epochs=epochs, callbacks=[checkpoint])
-
-    # module for the forward pass of the model
+      # module for the forward pass of the model
     def call(self, inputs: tf.Tensor)-> tf.Tensor:
         '''performs a forward pass through the model and returns the output tensor
         Args:
@@ -491,7 +310,7 @@ class MobileNetV2(keras.Model):
         return x
     
 # defines the convolutional neural network EfficientNetB0 model
-class EfficientNetB0(keras.Model):
+class EfficientNetB0(BaseModel):
     # space for the properties of the class
 
     # module for the initialization of the class
@@ -506,23 +325,6 @@ class EfficientNetB0(keras.Model):
         self.flatten = keras.layers.Flatten()
         self.fc = keras.layers.Dense(units=self.numClasses, activation='softmax')
 
-    # module for training the model
-    def trainModel(self, trainDataset: tf.data.Dataset, valDataset: tf.data.Dataset, epochs: int, checkpoint: tf.keras.callbacks.ModelCheckpoint)-> None:
-        '''trains the model on the training dataset and validates it on the validation dataset for a specified number of epochs and saves the best model using the specified checkpoint
-        Args:
-            trainDataset: the training dataset to be used for training the model
-            valDataset: the validation dataset to be used for validating the model during training
-            epochs: the number of epochs to train the model for
-            checkpoint: the checkpoint to be used for saving the best model during training
-        Returns:
-            None
-        '''
-        # compiles the model with the Adam optimizer, categorical cross-entropy loss, and accuracy metric
-        self.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
-
-        # trains the model on the training dataset and validates it on the validation dataset for the specified number of epochs and saves the best model using the specified checkpoint
-        self.fit(trainDataset, validation_data=valDataset, epochs=epochs, callbacks=[checkpoint])
-
     # module for the forward pass of the model
     def call(self, inputs: tf.Tensor)-> tf.Tensor:
         '''performs a forward pass through the model and returns the output tensor
@@ -536,8 +338,71 @@ class EfficientNetB0(keras.Model):
         x = self.fc(x)
         return x
 
+
+############################################################################################################
+########################### THESE MODELS DOWN HERE ARE SLOP FROM COPILOT ##################################
+############################################################################################################
+
+# defines the convolutional neural network squeeznet model
+class SqueezeNet(BaseModel):
+    # space for the properties of the class
+
+    # module for the initialization of the class
+    def __init__(self, numClasses: int):
+        super(SqueezeNet, self).__init__()
+
+        # initializes the properties of the class
+        self.numClasses = numClasses
+
+        # defines the layers of the model
+        self.squeezeNet = keras.applications.SqueezeNet(include_top=False, weights='imagenet', input_shape=(227, 227, 3))
+        self.flatten = keras.layers.Flatten()
+        self.fc = keras.layers.Dense(units=self.numClasses, activation='softmax')
+
+    # module for the forward pass of the model
+    def call(self, inputs: tf.Tensor)-> tf.Tensor:
+        '''performs a forward pass through the model and returns the output tensor
+        Args:
+            inputs: the input tensor to be passed through the model
+        Returns:
+            the output tensor of the model after performing a forward pass
+        '''
+        x = self.squeezeNet(inputs)
+        x = self.flatten(x)
+        x = self.fc(x)
+        return x
+    
+# defines the convolutional neural network ResNet50 model
+class ResNet50(BaseModel):
+    # space for the properties of the class
+
+    # module for the initialization of the class
+    def __init__(self, numClasses: int):
+        super(ResNet50, self).__init__()
+
+        # initializes the properties of the class
+        self.numClasses = numClasses
+
+        # defines the layers of the model
+        self.resNet50 = keras.applications.ResNet50(include_top=False, weights='imagenet', input_shape=(224, 224, 3))
+        self.flatten = keras.layers.Flatten()
+        self.fc = keras.layers.Dense(units=self.numClasses, activation='softmax')
+
+    # module for the forward pass of the model
+    def call(self, inputs: tf.Tensor)-> tf.Tensor:
+        '''performs a forward pass through the model and returns the output tensor
+        Args:
+            inputs: the input tensor to be passed through the model
+        Returns:
+            the output tensor of the model after performing a forward pass
+        '''
+        x = self.resNet50(inputs)
+        x = self.flatten(x)
+        x = self.fc(x)
+        return x
+
 # defines the convolutional neural network YoloV3 model
-class YoloV3(keras.Model):
+class YoloV3(BaseModel):
     # space for the properties of the class
 
     # module for the initialization of the class
@@ -551,23 +416,6 @@ class YoloV3(keras.Model):
         self.yoloV3 = keras.applications.YOLOV3(include_top=False, weights='imagenet', input_shape=(416, 416, 3))
         self.flatten = keras.layers.Flatten()
         self.fc = keras.layers.Dense(units=self.numClasses, activation='softmax')
-
-    # module for training the model
-    def trainModel(self, trainDataset: tf.data.Dataset, valDataset: tf.data.Dataset, epochs: int, checkpoint: tf.keras.callbacks.ModelCheckpoint)-> None:
-        '''trains the model on the training dataset and validates it on the validation dataset for a specified number of epochs and saves the best model using the specified checkpoint
-        Args:
-            trainDataset: the training dataset to be used for training the model
-            valDataset: the validation dataset to be used for validating the model during training
-            epochs: the number of epochs to train the model for
-            checkpoint: the checkpoint to be used for saving the best model during training
-        Returns:
-            None
-        '''
-        # compiles the model with the Adam optimizer, categorical cross-entropy loss, and accuracy metric
-        self.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
-
-        # trains the model on the training dataset and validates it on the validation dataset for the specified number of epochs and saves the best model using the specified checkpoint
-        self.fit(trainDataset, validation_data=valDataset, epochs=epochs, callbacks=[checkpoint])
 
     # module for the forward pass of the model
     def call(self, inputs: tf.Tensor)-> tf.Tensor:
@@ -583,7 +431,7 @@ class YoloV3(keras.Model):
         return x
 
 # defines the convolutional neural network RetinaNet model
-class RetinaNet(keras.Model):
+class RetinaNet(BaseModel):
     # space for the properties of the class
 
     # module for the initialization of the class
@@ -597,23 +445,6 @@ class RetinaNet(keras.Model):
         self.retinaNet = keras.applications.RetinaNet(include_top=False, weights='imagenet', input_shape=(512, 512, 3))
         self.flatten = keras.layers.Flatten()
         self.fc = keras.layers.Dense(units=self.numClasses, activation='softmax')
-
-    # module for training the model
-    def trainModel(self, trainDataset: tf.data.Dataset, valDataset: tf.data.Dataset, epochs: int, checkpoint: tf.keras.callbacks.ModelCheckpoint)-> None:
-        '''trains the model on the training dataset and validates it on the validation dataset for a specified number of epochs and saves the best model using the specified checkpoint
-        Args:
-            trainDataset: the training dataset to be used for training the model
-            valDataset: the validation dataset to be used for validating the model during training
-            epochs: the number of epochs to train the model for
-            checkpoint: the checkpoint to be used for saving the best model during training
-        Returns:
-            None
-        '''
-        # compiles the model with the Adam optimizer, categorical cross-entropy loss, and accuracy metric
-        self.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
-
-        # trains the model on the training dataset and validates it on the validation dataset for the specified number of epochs and saves the best model using the specified checkpoint
-        self.fit(trainDataset, validation_data=valDataset, epochs=epochs, callbacks=[checkpoint])
 
     # module for the forward pass of the model
     def call(self, inputs: tf.Tensor)-> tf.Tensor:
@@ -629,7 +460,7 @@ class RetinaNet(keras.Model):
         return x
 
 # defines the convolutional neural network Unet model
-class Unet(keras.Model):
+class Unet(BaseModel):
     # space for the properties of the class
 
     # module for the initialization of the class
@@ -644,23 +475,6 @@ class Unet(keras.Model):
         self.flatten = keras.layers.Flatten()
         self.fc = keras.layers.Dense(units=self.numClasses, activation='softmax')
 
-    # module for training the model
-    def trainModel(self, trainDataset: tf.data.Dataset, valDataset: tf.data.Dataset, epochs: int, checkpoint: tf.keras.callbacks.ModelCheckpoint)-> None:
-        '''trains the model on the training dataset and validates it on the validation dataset for a specified number of epochs and saves the best model using the specified checkpoint
-        Args:
-            trainDataset: the training dataset to be used for training the model
-            valDataset: the validation dataset to be used for validating the model during training
-            epochs: the number of epochs to train the model for
-            checkpoint: the checkpoint to be used for saving the best model during training
-        Returns:
-            None
-        '''
-        # compiles the model with the Adam optimizer, categorical cross-entropy loss, and accuracy metric
-        self.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
-
-        # trains the model on the training dataset and validates it on the validation dataset for the specified number of epochs and saves the best model using the specified checkpoint
-        self.fit(trainDataset, validation_data=valDataset, epochs=epochs, callbacks=[checkpoint])
-
     # module for the forward pass of the model
     def call(self, inputs: tf.Tensor)-> tf.Tensor:
         '''performs a forward pass through the model and returns the output tensor
@@ -673,3 +487,39 @@ class Unet(keras.Model):
         x = self.flatten(x)
         x = self.fc(x)
         return x
+
+# creates a model factory class to create instances of the different models
+class ModelFactory:
+
+    # properties of the class
+    _models = {
+            "alexnet": AlexNet,
+            "vgg19": VGG19,
+            "inceptionv3": InceptionV3,
+            "resnet50": ResNet50,
+            "densenet121": DenseNet121,
+            "xception": Xception,
+            "nasnet": NASNet,
+            "mobilenetv2": MobileNetV2,
+            "efficientnetb0": EfficientNetB0,
+        }
+
+    @staticmethod
+    def createModel(modelName: str, numClasses: int)-> keras.Model:
+        '''creates an instance of the specified model with the specified number of classes
+        Args:
+            modelName: the name of the model to be created
+            numClasses: the number of classes to be used for the output layer of the model
+        Returns:
+            an instance of the specified model with the specified number of classes
+        '''
+        
+        # gets the model class from the _models dictionary using the model name as the key
+        modelClass = ModelFactory._models.get(modelName.lower())
+
+        # if the model class is not found in the _models dictionary, raises a ValueError
+        if modelClass is None:
+            raise ValueError(f"Model '{modelName}' is not supported.")
+
+        # creates an instance of the model class with the specified number of classes and returns it
+        return modelClass(numClasses)

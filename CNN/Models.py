@@ -4,11 +4,12 @@
 import tensorflow as tf
 import keras
 
+
 # defines the base model class that will be inherited by all the other models. It contains the common properties and methods for all the models, such as the training method.
 class BaseModel(keras.Model):
 
     # space for the properties of the class
-    def trainModel(self, trainDataset, valDataset, epochs, checkpoint):
+    def trainModel(self, trainDataset: tf.data.Dataset, valDataset: tf.data.Dataset, epochs: int, checkpoint: keras.callbacks.ModelCheckpoint)-> None:
         '''trains the model on the training dataset and validates it on the validation dataset for a specified number of epochs and saves the best model using the specified checkpoint
         Args:
             trainDataset: the training dataset to be used for training the model

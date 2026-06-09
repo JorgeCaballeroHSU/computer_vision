@@ -1,7 +1,28 @@
 # import required libraries
+
+import keras
+
 from  Database.Tables.Tables import *
 from CNN.Models import ModelFactory
 import random
+
+# Samples the dataset for training and validation dataset formation according to the percentages given by the user in the frontend
+def datasetSampling(clientAnswer:dict)->list[list,list]:
+
+    # gets the sampleNameIntList from the database
+    sampleNameIntList=TFRecordingTable("your_database.db").fetchInfo(statement="SELECT FilePath FROM TFRecording")
+
+    # converst the percentages given by the user into numbers of samples for the training and validation datasets
+    validationSamplesNumber=int((clientAnswer.get('ValidationPercentage')/100)*len(sampleNameIntList))
+    trainingSamplesNumber=int((clientAnswer.get('TrainingPercentage')/100)*len(sampleNameIntList))
+
+    # gets the identification of the samples for the training, validation, and testing datasets according to the percentages given by the user
+    validationSamples=random.sample(sampleNameIntList, k=validationSamplesNumber)
+    trainingSamples=random.sample([x for x in sampleNameIntList if x not in validationSamples], k=trainingSamplesNumber)
+    
+    # returns the training and validation samples
+    return [trainingSamples, validationSamples]
+
 
 # trains the one architecture or version according the requirements of the user.
 # by architecture is meant to be the type of model, for example ResNet, VGG, etc. and by version is meant an specific set of hyperparameters or combination
@@ -32,13 +53,21 @@ def trainModel(clientAnswer:dict)->None:
             # creates an instance of the model to be trained
             modelToBeTrained=ModelFactory().createModel(modelName=clientAnswer.get('ModelName'), numClasses=clientAnswer.get('NumClasses'))
 
-            
+            # samples the dataset for training and validation dataset formation according to the percentages given by the user in the frontend
+            sampledDatasets=datasetSampling(clientAnswer=clientAnswer)
+
+            # defines the checkpoint for saving the best model during training
+            checkPoint=keras.callbacks.ModelCheckpoint(
+                filepath='{}_version_{}'.format(clientAnswer.get('ModelName'), clientAnswer.get('ModelVersion')), 
+                monitor='val_loss', 
+                save_best_only=True)
+            #####################------> I AM HERE <------#####################
 
             modelToBeTrained.trainModel(
-                trainDataset=clientAnswer.get('TrainDataset'),
-                validationDataset=clientAnswer.get('ValidationDataset'),
+                trainDataset=sampledDatasets[0],
+                validationDataset=sampledDatasets[1],
                 epochs=clientAnswer.get('Epochs'),
-                checkPoint=clientAnswer.get('CheckPoint')
+                checkpoint=checkPoint
             ) # number of classes to be defined by the user and it will be fixed for this project
 
             # gets the model ID of the model name given by the user
@@ -95,18 +124,7 @@ def trainModel(clientAnswer:dict)->None:
         sampleNameIntList.append(sampleNumber)
         materialTypeList.append(materiaType)
 
-    # converst the validation, testing, and training percentages given by the user into the number of samples for each dataset
-    validationSamplesNumber=int((clientAnswer.get('ValidationPercentage')/100)*len(sampleNameIntList))
-    testingSamplesNumber=int((clientAnswer.get('TestingPercentage')/100)*len(sampleNameIntList))
-    trainingSamplesNumber=int((clientAnswer.get('TrainingPercentage')/100)*len(sampleNameIntList))
-
-    # gets the identification of the samples for the training, validation, and testing datasets according to the percentages given by the user
-    validationSamples=random.sample(sampleNameIntList, k=validationSamplesNumber)
-    testingSamples=random.sample([x for x in sampleNameIntList if x not in validationSamples], k=testingSamplesNumber)
-    trainingSamples=[x for x in sampleNameIntList if x not in validationSamples and x not in testingSamples]
-
-    # store the sampleNameInt in a list for the sampling of the datasets
-    #HSU-HH_K_001
+    
 
     if clientAnswer.get('')
 

@@ -68,7 +68,7 @@ class TFRecorder:
         # returns the image tensor
         return image
     
-    # module for the reading of TensorFlow records
+    # module for the reading of TensorFlow records and obtaining the image, label, and labelInit from the record
     def readTFRecord(self, fileName: str)-> tf.data.Dataset:
         '''reads a TFRecord file and returns a dataset of images, labels, and labelInit
         Args:
@@ -78,27 +78,72 @@ class TFRecorder:
         '''
 
         # creates a dataset from the TFRecord file
-        dataset = tf.data.TFRecordDataset(fileName)
+        Dataset = tf.data.TFRecordDataset(fileName)
 
         # defines the feature description for parsing the TFRecord
         featureDescription = {
             'image': tf.io.VarLenFeature(tf.float32),
-            'shape': tf.io.FixedLenFeature(tf.int64),
-            'label': tf.io.FixedLenFeature([], tf.string, default_value=''),
-            'label_init': tf.io.FixedLenFeature([], tf.int64, default_value=0)
+            'shape': tf.io.FixedLenFeature([3], tf.int64),
+            'label': tf.io.FixedLenFeature([], tf.string),
+            'label_init': tf.io.FixedLenFeature([], tf.int64)
         }
 
-        # parses the TFRecord and returns the dataset
-        rec=tf.io.parse_single_example(fileName, featureDescription)
+        # defines the parsing function for the TFRecord
+        def parseFunction(example):
+            rec = tf.io.parse_single_example(example, featureDescription)
 
-        # gets the image, label, and labelInit from the parsed record
-        shape = rec['shape']
-        image = tf.sparse.to_dense(rec['image'],shape=shape)
-        label = rec['label']
-        labelInit = rec['label_init']
+            image = tf.reshape(tf.sparse.to_dense(rec['image']), rec['shape'])
+            label = rec['label']
+            labelInit = rec['label_init']
 
-        # returns the image, label, and labelInit
-        return image, label, labelInit
+            return image, label, labelInit
+
+        # maps the parsing function to the dataset and returns the dataset
+        dataset = dataset.map(parseFunction, num_parallel_calls=tf.data.AUTOTUNE)
+
+        # returns the dataset
+        return dataset
+    
+    # reads multiple TFRecord files and returns a dataset of images, labels, and labelInit
+    def readMultipleTFRecords(self, fileNames: list)-> tf.data.Dataset:
+        '''reads multiple TFRecord files and returns a dataset of images, labels, and labelInit
+        Args:
+            fileNames: a list of file names of the TFRecords to be read
+        Returns:
+            a dataset of images, labels, and labelInit
+        '''
+
+        # creates a dataset from the TFRecord files
+        filesDataset = tf.data.Dataset.from_tensor_slices(fileNames)
+
+        # reads multiple files in parallel
+        dataset = filesDataset.interleave(lambda file: tf.data.TFRecordDataset(file),
+                                          cycle_length=tf.data.AUTOTUNE,
+                                          num_parallel_calls=tf.data.AUTOTUNE)
+
+        # defines the feature description for parsing the TFRecord
+        featureDescription = {
+            'image': tf.io.VarLenFeature(tf.float32),
+            'shape': tf.io.FixedLenFeature([3], tf.int64),
+            'label': tf.io.FixedLenFeature([], tf.string),
+            'label_init': tf.io.FixedLenFeature([], tf.int64)
+        }
+
+        # defines the parsing function for the TFRecord
+        def parseFunction(example):
+            rec = tf.io.parse_single_example(example, featureDescription)
+
+            image = tf.reshape(tf.sparse.to_dense(rec['image']), rec['shape'])
+            label = rec['label']
+            labelInit = rec['label_init']
+
+            return image, label, labelInit
+
+        # maps the parsing function to the dataset and returns the dataset
+        dataset = dataset.map(parseFunction, num_parallel_calls=tf.data.AUTOTUNE)
+
+        # returns the dataset
+        return dataset
     
     # saves the TFRecord in the indicated location
     def saveTFRecord(self,fileName:str,filePath:str, TFRecord:bytes)->None:

@@ -9,7 +9,7 @@ import keras
 class BaseModel(keras.Model):
 
     # space for the properties of the class
-    def trainModel(self, trainDataset: tf.data.Dataset, valDataset: tf.data.Dataset, epochs: int, checkpoint: keras.callbacks.ModelCheckpoint)-> None:
+    def trainModel(self, trainDataset: tf.data.Dataset, valDataset: tf.data.Dataset, epochs: int, checkpoint: keras.callbacks.ModelCheckpoint)-> tf.keras.callbacks.History:
         '''trains the model on the training dataset and validates it on the validation dataset for a specified number of epochs and saves the best model using the specified checkpoint
         Args:
             trainDataset: the training dataset to be used for training the model
@@ -17,23 +17,26 @@ class BaseModel(keras.Model):
             epochs: the number of epochs to train the model for
             checkpoint: the checkpoint to be used for saving the best model during training
         Returns:
-            None
+            history: the history of the training process
         '''
 
         # compiles the model with the Adam optimizer, categorical cross-entropy loss, and accuracy metric
         self.compile(
             optimizer="adam",
             loss="categorical_crossentropy",
-            metrics=["accuracy"]
+            metrics=["accuracy","mse"]
         )
 
         # trains the model on the training dataset and validates it on the validation dataset for the specified number of epochs and saves the best model using the specified checkpoint
-        self.fit(
+        history = self.fit(
             trainDataset,
             validation_data=valDataset,
             epochs=epochs,
             callbacks=[checkpoint]
         )
+
+        # resturns history of the training process
+        return history
 
 
 # defines the convolutional neural network AlexNet model

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Menu Dashboard</title>
+  <style>
+
+    /* HEADER */
+    header {
+        display: flex;
+        align-items: center;
+        background: white;
+        padding: 10px;
+        border-bottom: 1px solid #ccc;
+    }
+
+    header h1 {
+        text-align: center;
+        flex: 1;
+    }
+    header img {
+        height: 70px;
+        margin-right: 10px;
+        margin-left: 10px;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f4f6f8;
+      text-align: center;
+    }
+
+    h1 {
+      margin: 40px 0;
+      color: #333;
+    }
+
+    .container {
+      display: flex;
+      justify-content: center;
+      gap: 40px;
+      flex-wrap: wrap;
+    }
+
+    .card {
+      width: 600px;
+      height: 300px;
+      border-radius: 20px;
+      overflow: hidden;
+      cursor: pointer;
+      position: relative;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    }
+
+    .card img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .card-title {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      background: rgba(0,0,0,0.6);
+      color: white;
+      padding: 10px;
+      font-size: 20px;
+    }
+  </style>
+</head>
+
+<body>
+    <!-- This is the header of the web page. Logo of the department title and logo of the university-->
+    <header>
+
+        <!--This contains the logo of the department-->
+        <img src="../static/Geotechnical Department.png">
+        
+        <!--Here is the titel of the web page-->
+        <h1>GrainLens</h1>
+        
+        <!-- here goes the logo of the university-->
+        <img src="../static/Uni-Logo.jpeg">
+    
+    </header>
+
+  <h1>Wählen eine Option aus</h1>
+
+  <div class="container">
+    
+    <div class="card" onclick=location.href="annotation.html">
+        <img src="../static/Annotierenwerkzeug.jpeg" alt="">
+        <div class="card-title">Datenannotation</div>
+    </div>
+
+    <div class="card" onclick=location.href="training.html">
+        <div class="card-title">Training</div>
+    </div>
+
+    <div class="card" onclick=location.href="prediction.html">
+        <div class="card-title">Schätzung</div>
+    </div>
+
+  </div>

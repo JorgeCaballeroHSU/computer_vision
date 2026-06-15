@@ -293,7 +293,7 @@ uvicorn main2:app --reload
  source /home/computer_vision/.venv/bin/activate
  source /home/computer_vision/.venv/bin/activate
  source /home/computer_vision/.venv/bin/activate
-                                                                                                   source /home/computer_vision/.venv/bin/activate
+ source /home/computer_vision/.venv/bin/activate
  source /home/computer_vision/.venv/bin/activate
  source /home/computer_vision/.venv/bin/activate
  /usr/bin/env /home/computer_vision/.venv/bin/python /home/computer_vision/.vscode-server/extensions/ms-python.debugpy-2026.6.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher 43399 -- /home/computer_vision/main.py 
@@ -310,4 +310,13 @@ uvicorn main2:app --reload
  source /home/computer_vision/.venv/bin/activate
  source /home/computer_vision/.venv/bin/activate
  source /home/computer_vision/.venv/bin/activate
+ source /home/computer_vision/.venv/bin/activate
+ source /home/computer_vision/.venv/bin/activate
+ source /home/computer_vision/.venv/bin/activate
+ source /home/computer_vision/.venv/bin/activate
+ source /home/computer_vision/.venv/bin/activate
+ source /home/computer_vision/.venv/bin/activate
+ source /home/computer_vision/.venv/bin/activate
+ source /home/computer_vision/.venv/bin/activate
+npm run compile
  source /home/computer_vision/.venv/bin/activate

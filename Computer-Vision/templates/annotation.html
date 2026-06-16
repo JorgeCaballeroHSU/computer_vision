@@ -239,11 +239,101 @@ input, textarea {
 
     </div>
 
-    <div id="Material Type" title="Material Type">
+    <!-- This is the form to add or modify the camera/setup information -->
+    <div id="CameraInfo" title="Camera Info">
 
+        <!--here goes the parameters that are going to be captured by this database-->
+        <label>
+            Manufactures:
+            <input type="text" placeholder="Fujifilm">
+        </label>
+        
+        <label>
+            Camera Model:
+            <input type="text" placeholder="GFX 100 II EU">
+        </label>
+
+        <label>
+            ISO:
+            <input type="ISO">
+            
+            <!-- here goes the list of possible iso settings -->
+            <datalist id="ISO">
+                <option value="80"></option>
+                <option value="100"></option>
+                <option value="200"></option>
+                <option value="400"></option>
+                <option value="800"></option>
+                <option value="1600"></option>
+                <option value="3200"></option>
+                <option value="6400"></option>
+                <option value="12800"></option>
+
+            </datalist>
+        </label>
+
+        <label>
+            Focus:
+            <input type="text">
+        </label>
+
+        <label>
+            Exposure Time:
+            <input type="Exposure Time">
+
+            <!-- here goes the list of possible exposure time settings -->
+             <datalist id="Exposure Time">
+                <option value="1 Second"></option>
+                <option value="2 Seconds"></option>
+                <option value="4 Seconds"></option>
+                <option value="8 Seconds"></option>
+                <option value="15 Seconds"></option>
+                <option value="30 Seconds"></option>
+                <option value="60 Seconds"></option>
+
+             </datalist>
+        </label>
+
+        <label>
+            Flash Mode:
+            <input type="text">
+        </label>
+
+        <label>
+            Focal length:
+            <input type="text">
+        </label>
+
+        <label>
+            Objective:
+            <input type="text" placeholder="Fujifilm GF 120/4,0 R LM OIS WR macro">
+        </label>
+
+        <label>
+            Extension:
+            <input type="text" placeholder="Fujifilm Zwischenring Makro MCEX-45G WR">
+        </label>
 
     </div>
+    
+    <!-- This is the form to add information to the table sample -->
+     <div id="Sample" title="Sample">
 
+        <label>
+            Label:
+            <input type="text" placeholder="">
+        </label>
+
+        <label>
+            File Path:
+            <input type="text" placeholder="">
+        </label>
+
+        <label>
+            Capture Time:
+            <input type="datetime" placeholder="DD.MM.YYYY HH:mm:ss">
+        </label>
+     </div>
     <button>Save</button>
 </div>
 

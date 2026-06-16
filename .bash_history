@@ -320,3 +320,31 @@ uvicorn main2:app --reload
  source /home/computer_vision/.venv/bin/activate
 npm run compile
  source /home/computer_vision/.venv/bin/activate
+ source /home/computer_vision/.venv/bin/activate
+ source /home/computer_vision/.venv/bin/activate
+/home/computer_vision/.venv/bin/python /home/computer_vision/trainModel.py
+git add
+git add .
+git commit
+git push
+clear
+ source /home/computer_vision/.venv/bin/activate
+ /usr/bin/env /home/computer_vision/.venv/bin/python /home/computer_vision/.vscode-server/extensions/ms-python.debugpy-2026.6.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher 43495 -- /home/computer_vision/Computer-Vision/templates/index.html 
+ cd /home/computer_vision ; /usr/bin/env /home/computer_vision/.venv/bin/python /home/computer_vision/.vscode-server/extensions/ms-python.debugpy-2026.6.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher 52465 -- /home/computer_vision/Computer-Vision/templates/index.html 
+ cd /home/computer_vision ; /usr/bin/env /home/computer_vision/.venv/bin/python /home/computer_vision/.vscode-server/extensions/ms-python.debugpy-2026.6.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher 41153 -- /home/computer_vision/Computer-Vision/templates/index.html 
+ cd /home/computer_vision ; /usr/bin/env /home/computer_vision/.venv/bin/python /home/computer_vision/.vscode-server/extensions/ms-python.debugpy-2026.6.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher 50281 -- /home/computer_vision/Computer-Vision/templates/index.html 
+ cd /home/computer_vision ; /usr/bin/env /home/computer_vision/.venv/bin/python /home/computer_vision/.vscode-server/extensions/ms-python.debugpy-2026.6.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher 57505 -- /home/computer_vision/Computer-Vision/templates/index.html 
+ cd /home/computer_vision ; /usr/bin/env /home/computer_vision/.venv/bin/python /home/computer_vision/.vscode-server/extensions/ms-python.debugpy-2026.6.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher 58805 -- /home/computer_vision/Computer-Vision/templates/index.html 
+ cd /home/computer_vision ; /usr/bin/env /home/computer_vision/.venv/bin/python /home/computer_vision/.vscode-server/extensions/ms-python.debugpy-2026.6.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher 51609 -- /home/computer_vision/Computer-Vision/templates/index.html 
+git status
+rm -rf .git
+git init
+git remote add origin https://github.com/JorgeCaballeroHSU/computer_vision.git
+git fetch
+git checkout main
+git merge master
+git checkout main
+git merge master
+git checkout main
+git merge master --allow-unrelated-histories
+ source /home/computer_vision/.venv/bin/activate

@@ -1,438 +1,537 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>Annotation</title>
+    <head>
+        <meta charset="UTF-8">
+        <title>Bildanmerkung</title>
 
-<style>
-body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-    display: flex;
-    height: 100vh;
-    background: #f4f4f4;
-}
+        <style>
+            body {
+                margin: 0;
+                font-family: Arial, sans-serif;
+                display: flex;
+                height: 100vh;
+                background: #f4f4f4;
+            }
 
-/* ===== SIDEBAR ===== */
-#sidebar {
-    width: 220px;
-    background: #8a1538;
-    color: white;
-    overflow-y: auto;
-    padding: 10px;
-}
+            /* ===== SIDEBAR ===== */
+            #sidebar {
+                width: 220px;
+                background: #8a1538;
+                color: white;
+                overflow-y: auto;
+                padding: 10px;
+            }
 
-.thumbnail {
-    width: 100%;
-    cursor: pointer;
-    margin-bottom: 10px;
-    border: 2px solid transparent;
-}
+            .thumbnail {
+                width: 100%;
+                cursor: pointer;
+                margin-bottom: 10px;
+                border: 2px solid transparent;
+            }
 
-.thumbnail:hover {
-    border: 2px solid white;
-}
+            .thumbnail:hover {
+                border: 2px solid white;
+            }
 
-/* ===== MAIN ===== */
-#main {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-}
+            /* ===== MAIN ===== */
+            #main {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+            }
 
-/* HEADER */
-header {
-    display: flex;
-    align-items: center;
-    background: white;
-    padding: 10px;
-    border-bottom: 1px solid #ccc;
-}
+            /* HEADER */
+            header {
+                display: flex;
+                align-items: center;
+                background: white;
+                padding: 10px;
+                border-bottom: 1px solid #ccc;
+            }
 
-header h1 {
-    text-align: center;
-    flex: 1;
-}
-header img {
-    height: 70px;
-    margin-right: 10px;
-    margin-left: 10px;
-}
+            header h1 {
+                text-align: center;
+                flex: 1;
+            }
+            header img {
+                height: 70px;
+                margin-right: 10px;
+                margin-left: 10px;
+            }
 
 
-/* IMAGE AREA */
-#viewer {
-    flex: 1;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background: #ddd;
-}
+            /* IMAGE AREA */
+            #viewer {
+                flex: 1;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                background: #ddd;
+            }
 
-#viewer img {
-    max-width: 90%;
-    max-height: 90%;
-}
+            #viewer img {
+                max-width: 90%;
+                max-height: 90%;
+            }
 
-/* CONTROLS */
-#controls {
-    padding: 10px;
-    background: white;
-    border-top: 1px solid #ccc;
-}
+            /* CONTROLS */
+            #controls {
+                padding: 10px;
+                background: white;
+                border-top: 1px solid #ccc;
+            }
 
-button {
-    padding: 8px 12px;
-    margin-right: 5px;
-    background: #8a1538;
-    color: white;
-    border: none;
-    cursor: pointer;
-}
+            button {
+                padding: 8px 12px;
+                margin-right: 5px;
+                background: #8a1538;
+                color: white;
+                border: none;
+                cursor: pointer;
+            }
 
-button:hover {
-    background: #a61d46;
-}
+            button:hover {
+                background: #a61d46;
+            }
 
-/* METADATA */
-#metadata {
-    font-size: 14px;
-    margin-top: 5px;
-}
+            /* METADATA */
+            #metadata {
+                font-size: 14px;
+                margin-top: 5px;
+            }
 
-/* FORM */
-#form {
-    display: none;
-    margin-top: 10px;
-}
+            /* FORM */
+            #form {
+                display: none;
+                margin-top: 10px;
+            }
 
-input, textarea {
-    width: 100%;
-    margin-bottom: 8px;
-}
-</style>
-</head>
+            input, textarea {
+                width: 100%;
+                margin-bottom: 8px;
+            }
 
-<body>
-
-<!-- SIDEBAR -->
-<div id="sidebar"></div>
-
-<!-- MAIN -->
-<div id="main">
-
-<header>
-    <img src="../static/Geotechnical Department.png">
-
-    <h1>Bildanmerkung</h1>
-
-    <img src="../static/Uni-Logo.jpeg">
-    
-</header>
-
-<div id="viewer">
-    <img id="mainImage">
-</div>
-
-<div id="controls">
-    <button onclick="openFolder()">Open Folder</button>
-    <button onclick="prev()">◀</button>
-    <button onclick="next()">▶</button>
-    <button onclick="toggleForm()">Annotate</button>
-
-    <div id="metadata"></div>
-
-    <div id="Dataset" title="Dataset">
-        <label>
-            Project Name:
-            <input type="text" placeholder="Project Name">
-        </label>
-
-        <label>
-            Material Type:
-            <input list="Types">
-
-            <!-- list of possible material types -->
-            <datalist id="Types">
-                <option value="Fusch"></option>
-                <option value="Sand"></option>
-                <option value="Kies"></option>
-                <option value="Misch"></option>
-            </datalist>
-        </label>
-
-        <label>
-            Created:
-            <input type="datetime" placeholder="DD.MM.YYYY">
-        </label>
-
-        <label>
-            Description:
-            <input type="text" placeholder="Here come the description of thise dataset/project">
-        </label>
-        
-    </div>
-
-    <!--Here goes the form for samples-->
-    <div id="Material Type" title="Material Type">
-
-        <!--here goes the fractions-->
-        <label>
-            Fraction 0.063 mm  [%]:
-            <input type="number" placeholder="0.00">
-        </label>
-
-        <label>
-            Fraction 0.125 mm [%]:
-            <input type="number" placeholder="0.00">
-        </label>
-
-        <label>
-            Fraction 0.250 mm [%]:
-            <input type="number" placeholder="0.00">
-        </label>
-
-        <label>
-            Fraction 0.400 mm [%]:
-            <input type="number" placeholder="0.00">
-        </label>
-
-        <label>
-            Fraction 0.500 mm [%]:
-            <input type="number" placeholder="0.00">
-        </label>
-
-        <label>
-            Fraction 1.000 mm [%]:
-            <input type="number" placeholder="0.00">
-        </label>
-
-        <label>
-            Fraction 2.000 mm [%]:
-            <input type="number" placeholder="0.00">
-        </label>
-
-        <label>
-            Fraction 4.000 mm [%]:
-            <input type="number" placeholder="0.00">
-        </label>
-
-        <label>
-            Fraction 6.000 mm [%]:
-            <input type="number" placeholder="0.00">
-        </label>
-
-        <label>
-            Fraction 8.000 mm [%]:
-            <input type="number" placeholder="0.00">
-        </label>
-
-        <label>
-            Fraction 16.00 mm [%]:
-            <input type="number" placeholder="0.00">
-        </label>
-
-        <label>
-            Fraction 32.00 mm [%]:
-            <input type="number" placeholder="0.00">
-        </label>
-
-    </div>
-
-    <!-- This is the form to add or modify the camera/setup information -->
-    <div id="CameraInfo" title="Camera Info">
-
-        <!--here goes the parameters that are going to be captured by this database-->
-        <label>
-            Manufactures:
-            <input type="text" placeholder="Fujifilm">
-        </label>
-        
-        <label>
-            Camera Model:
-            <input type="text" placeholder="GFX 100 II EU">
-        </label>
-
-        <label>
-            ISO:
-            <input type="ISO">
+            /*=== RIGHT SIDEBAR ===*/
             
-            <!-- here goes the list of possible iso settings -->
-            <datalist id="ISO">
-                <option value="80"></option>
-                <option value="100"></option>
-                <option value="200"></option>
-                <option value="400"></option>
-                <option value="800"></option>
-                <option value="1600"></option>
-                <option value="3200"></option>
-                <option value="6400"></option>
-                <option value="12800"></option>
+            #rightSidebar {
+                position: fixed;
+                top: 0;
+                right: -400px; /* hidden initially */
+                width: 400px;
+                height: 100%;
+                background: #fff;
+                box-shadow: -2px 0 5px rgba(0,0,0,0.3);
+                transition: right 0.3s ease;
+                z-index: 1000;
+            }
 
-            </datalist>
-        </label>
+            #rightSidebar.open {
+                right: 0;
+            }
 
-        <label>
-            Focus:
-            <input type="text">
-        </label>
+            .sidebar-content {
+                padding: 20px;
+            }
 
-        <label>
-            Exposure Time:
-            <input type="Exposure Time">
+            .close-btn {
+                cursor: pointer;
+                float: right;
+                font-size: 20px;
+            }
 
-            <!-- here goes the list of possible exposure time settings -->
-             <datalist id="Exposure Time">
-                <option value="1 Second"></option>
-                <option value="2 Seconds"></option>
-                <option value="4 Seconds"></option>
-                <option value="8 Seconds"></option>
-                <option value="15 Seconds"></option>
-                <option value="30 Seconds"></option>
-                <option value="60 Seconds"></option>
+        </style>
 
-             </datalist>
-        </label>
+        <!-- EXIF -->
+        <script src="https://cdn.jsdelivr.net/npm/exif-js"></script>
 
-        <label>
-            Flash Mode:
-            <input type="text">
-        </label>
+        <script>
+        let files = [];
+        let index = 0;
+        let directoryHandle = null;
 
-        <label>
-            Focal length:
-            <input type="text">
-        </label>
 
-        <label>
-            Objective:
-            <input type="text" placeholder="Fujifilm GF 120/4,0 R LM OIS WR macro">
-        </label>
-
-        <label>
-            Extension:
-            <input type="text" placeholder="Fujifilm Zwischenring Makro MCEX-45G WR">
-        </label>
-
-    </div>
-    
-    <!-- This is the form to add information to the table sample -->
-     <div id="Sample" title="Sample">
-
-        <label>
-            Label:
-            <input type="text" placeholder="">
-        </label>
-
-        <label>
-            File Path:
-            <input type="text" placeholder="">
-        </label>
-
-        <label>
-            Capture Time:
-            <input type="datetime" placeholder="DD.MM.YYYY HH:mm:ss">
-        </label>
-     </div>
-    <button>Save</button>
-</div>
-
-</div>
-
-<!-- EXIF -->
-<script src="https://cdn.jsdelivr.net/npm/exif-js"></script>
-
-<script>
-let files = [];
-let index = 0;
-let directoryHandle = null;
-
-/* ===== OPEN FOLDER ===== */
-async function openFolder() {
-    directoryHandle = await window.showDirectoryPicker();
-
-    localStorage.setItem("folderAccess", "granted"); // flag
-
-    files = [];
-
-    for await (const entry of directoryHandle.values()) {
-        if (entry.kind === "file" && entry.name.match(/\.(jpg|jpeg|png)$/i)) {
-            const file = await entry.getFile();
-            files.push(file);
+        /* ===== CREATE SPACE FOR FORMS =====*/
+        function rightSideBar(){
+            const rightSidebar=document.getElementById()
         }
-    }
 
-    showThumbnails();
-    index = 0;
-    showImage();
-}
+        /* ===== OPEN FOLDER ===== */
+        async function openFolder() {
+            directoryHandle = await window.showDirectoryPicker();
 
-/* ===== LOAD PREVIOUS FOLDER ===== */
-async function tryRestoreFolder() {
-    if (localStorage.getItem("folderAccess")) {
-        // user must still re-confirm access — browser restriction
-        console.log("Folder access previously granted");
-    }
-}
+            localStorage.setItem("folderAccess", "granted"); // flag
 
-function showThumbnails() {
-    const sidebar = document.getElementById("sidebar");
-    sidebar.innerHTML = "";
+            files = [];
 
-    files.forEach((file, i) => {
-        const img = document.createElement("img");
-        img.src = URL.createObjectURL(file);
-        img.className = "thumbnail";
+            for await (const entry of directoryHandle.values()) {
+                if (entry.kind === "file" && entry.name.match(/\.(jpg|jpeg|png)$/i)) {
+                    const file = await entry.getFile();
+                    files.push(file);
+                }
+            }
 
-        img.onclick = () => {
-            index = i;
+            showThumbnails();
+            index = 0;
             showImage();
+        }
+
+        /* ===== LOAD PREVIOUS FOLDER ===== */
+        async function tryRestoreFolder() {
+            if (localStorage.getItem("folderAccess")) {
+                // user must still re-confirm access — browser restriction
+                console.log("Folder access previously granted");
+            }
+        }
+
+        function showThumbnails() {
+            const sidebar = document.getElementById("sidebar");
+            sidebar.innerHTML = "";
+
+            files.forEach((file, i) => {
+                const img = document.createElement("img");
+                img.src = URL.createObjectURL(file);
+                img.className = "thumbnail";
+
+                img.onclick = () => {
+                    index = i;
+                    showImage();
+                };
+
+                sidebar.appendChild(img);
+            });
+        }
+
+        /* ===== SHOW IMAGE ===== */
+        function showImage() {
+            if (files.length === 0) return;
+
+            const file = files[index];
+            const img = document.getElementById("mainImage");
+            img.src = URL.createObjectURL(file);
+
+            img.onload = function () {
+                EXIF.getData(img, function () {
+                    const make = EXIF.getTag(this, "Make");
+                    const model = EXIF.getTag(this, "Model");
+                    const focal = EXIF.getTag(this, "FocalLength");
+
+                    document.getElementById("metadata").innerHTML =
+                        `Camera: ${make || "-"} ${model || ""} | Focal: ${focal || "-"}`;
+                });
+            };
+        }
+
+        /* ===== NAVIGATION ===== */
+        function next() {
+            index = (index + 1) % files.length;
+            showImage();
+        }
+
+        function prev() {
+            index = (index - 1 + files.length) % files.length;
+            showImage();
+        }
+
+        /* ===== FORM ===== */
+        function toggleForm() {
+            const form = document.getElementById("form");
+            form.style.display = (form.style.display === "none") ? "block" : "none";
+        }
+
+        tryRestoreFolder();
+
+        /*===== RIGHT SIDEBAR =====*/
+        
+        const forms = {
+        
+        
+        /*Here goes the configuration of the project as Dataset*/
+        form1: `
+        <div id="Dataset" title="Dataset">
+            <label>
+                Project Name:
+                <input type="text" placeholder="Project Name">
+            </label>
+
+            <label>
+                Material Type:
+                <input list="Types">
+
+                <!-- list of possible material types -->
+                <datalist id="Types">
+                    <option value="Fusch"></option>
+                    <option value="Sand"></option>
+                    <option value="Kies"></option>
+                    <option value="Misch"></option>
+                </datalist>
+            </label>
+
+            <label>
+                Created:
+                <input type="datetime" placeholder="DD.MM.YYYY">
+            </label>
+
+            <label>
+                Description:
+                <input type="text" placeholder="Here come the description of thise dataset/project">
+            </label>
+            
+        </div>
+        `,
+        
+        /*This is the form to add or modify the camera/setup information -->*/
+        form2: `
+        <div id="CameraInfo" title="Camera Info">
+
+            <!--here goes the parameters that are going to be captured by this database-->
+            <label>
+                Manufactures:
+                <input type="text" placeholder="Fujifilm">
+            </label>
+            
+            <label>
+                Camera Model:
+                <input type="text" placeholder="GFX 100 II EU">
+            </label>
+
+            <label>
+                ISO:
+                <input type="ISO">
+                
+                <!-- here goes the list of possible iso settings -->
+                <datalist id="ISO">
+                    <option value="80"></option>
+                    <option value="100"></option>
+                    <option value="200"></option>
+                    <option value="400"></option>
+                    <option value="800"></option>
+                    <option value="1600"></option>
+                    <option value="3200"></option>
+                    <option value="6400"></option>
+                    <option value="12800"></option>
+
+                </datalist>
+            </label>
+
+            <label>
+                Focus:
+                <input type="text">
+            </label>
+
+            <label>
+                Exposure Time:
+                <input type="Exposure Time">
+
+                <!-- here goes the list of possible exposure time settings -->
+                <datalist id="Exposure Time">
+                    <option value="1 Second"></option>
+                    <option value="2 Seconds"></option>
+                    <option value="4 Seconds"></option>
+                    <option value="8 Seconds"></option>
+                    <option value="15 Seconds"></option>
+                    <option value="30 Seconds"></option>
+                    <option value="60 Seconds"></option>
+
+                </datalist>
+            </label>
+
+            <label>
+                Flash Mode:
+                <input type="text">
+            </label>
+
+            <label>
+                Focal length:
+                <input type="text">
+            </label>
+
+            <label>
+                Objective:
+                <input type="text" placeholder="Fujifilm GF 120/4,0 R LM OIS WR macro">
+            </label>
+
+            <label>
+                Extension:
+                <input type="text" placeholder="Fujifilm Zwischenring Makro MCEX-45G WR">
+            </label>
+
+        </div>
+        `,
+        
+        /* here goes the material type form*/
+        form3: `
+
+        <div id="Material Type" title="Material Type">
+
+            <!--here goes the fractions-->
+            <label>
+                Fraction 0.063 mm  [%]:
+                <input type="number" placeholder="0.00">
+            </label>
+
+            <label>
+                Fraction 0.125 mm [%]:
+                <input type="number" placeholder="0.00">
+            </label>
+
+            <label>
+                Fraction 0.250 mm [%]:
+                <input type="number" placeholder="0.00">
+            </label>
+
+            <label>
+                Fraction 0.400 mm [%]:
+                <input type="number" placeholder="0.00">
+            </label>
+
+            <label>
+                Fraction 0.500 mm [%]:
+                <input type="number" placeholder="0.00">
+            </label>
+
+            <label>
+                Fraction 1.000 mm [%]:
+                <input type="number" placeholder="0.00">
+            </label>
+
+            <label>
+                Fraction 2.000 mm [%]:
+                <input type="number" placeholder="0.00">
+            </label>
+
+            <label>
+                Fraction 4.000 mm [%]:
+                <input type="number" placeholder="0.00">
+            </label>
+
+            <label>
+                Fraction 6.000 mm [%]:
+                <input type="number" placeholder="0.00">
+            </label>
+
+            <label>
+                Fraction 8.000 mm [%]:
+                <input type="number" placeholder="0.00">
+            </label>
+
+            <label>
+                Fraction 16.00 mm [%]:
+                <input type="number" placeholder="0.00">
+            </label>
+
+            <label>
+                Fraction 32.00 mm [%]:
+                <input type="number" placeholder="0.00">
+            </label>
+
+        </div>
+        `
         };
 
-        sidebar.appendChild(img);
-    });
-}
+        
+        // Open sidebar with selected form
+        function openForm(formName) {
+            const sidebar = document.getElementById("rightSidebar");
+            const container = document.getElementById("formContainer");
 
-/* ===== SHOW IMAGE ===== */
-function showImage() {
-    if (files.length === 0) return;
+            container.innerHTML = forms[formName] || "<p>Form not found</p>";
+            sidebar.classList.add("open");
+        }
 
-    const file = files[index];
-    const img = document.getElementById("mainImage");
-    img.src = URL.createObjectURL(file);
+        // Save button action (you can extend logic here)
+        function saveForm() {
+            console.log("Form saved!");
+        
+        // Add your form data handling here
 
-    img.onload = function () {
-        EXIF.getData(img, function () {
-            const make = EXIF.getTag(this, "Make");
-            const model = EXIF.getTag(this, "Model");
-            const focal = EXIF.getTag(this, "FocalLength");
+        closeSidebar();
+        }
 
-            document.getElementById("metadata").innerHTML =
-                `Camera: ${make || "-"} ${model || ""} | Focal: ${focal || "-"}`;
-        });
-    };
-}
+        // Close sidebar
+        function closeSidebar() {
+            document.getElementById("rightSidebar").classList.remove("open");
+        }
 
-/* ===== NAVIGATION ===== */
-function next() {
-    index = (index + 1) % files.length;
-    showImage();
-}
 
-function prev() {
-    index = (index - 1 + files.length) % files.length;
-    showImage();
-}
+        </script>
 
-/* ===== FORM ===== */
-function toggleForm() {
-    const form = document.getElementById("form");
-    form.style.display = (form.style.display === "none") ? "block" : "none";
-}
+    </head>
 
-tryRestoreFolder();
-</script>
+    <body>
 
-</body>
+        <!-- LEFT SIDEBAR -->
+        <div id="sidebar">
+
+        </div>
+
+        <!-- MAIN -->
+        <div id="main">
+
+            <header>
+                <img src="../static/Geotechnical Department.png">
+
+                <h1>Bildanmerkung</h1>
+
+                <img src="../static/Uni-Logo.jpeg">
+                
+            </header>
+
+            <div id="viewer"> 
+                <img id="mainImage">
+            </div>
+
+            <div id="controls">
+        <button onclick="openFolder()">Open Folder</button>
+        <button onclick="prev()">◀</button>
+        <button onclick="next()">▶</button>
+        <!-- <button onclick="toggleForm()">Annotate</button> -->
+        
+        <!-- to call dataset form -->
+        <button onclick="openForm('form1')">Configure Project</button>
+
+        <!-- to call Camera Information form -->
+        <button onclick="openForm('form2')">Camara Information</button>
+
+        <!--to call material type form-->
+        <button onclick="openForm('form3')">Annotate</button>
+
+        <div id="metadata"></div>  
+        
+        <!-- This is the form to add information to the table sample -->
+        <div id="Sample" title="Sample">
+
+            <label>
+                Label:
+                <input type="text" placeholder="">
+            </label>
+
+            <label>
+                File Path:
+                <input type="text" placeholder="">
+            </label>
+
+            <label>
+                Capture Time:
+                <input type="datetime" placeholder="DD.MM.YYYY HH:mm:ss">
+            </label>
+        </div>
+        <button>Save</button>
+        </div>
+
+        <!--RIGHT SIDEBAR-->
+        <div id="rightSidebar" class="sidebar">
+
+            <div class="sidebar-content">
+
+                <span class="close-btn" onclick="closeSidebar()">×</span>
+
+                <div id="formContainer"></div>
+
+            </div>
+        </div>
+
+    </body>    
+    
+    
 </html>
 `

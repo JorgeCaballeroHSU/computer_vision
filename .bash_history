@@ -348,3 +348,5 @@ git merge master
 git checkout main
 git merge master --allow-unrelated-histories
  source /home/computer_vision/.venv/bin/activate
+ source /home/computer_vision/.venv/bin/activate
+ source /home/computer_vision/.venv/bin/activate

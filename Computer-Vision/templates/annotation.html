@@ -208,17 +208,6 @@
             const file = files[index];
             const img = document.getElementById("mainImage");
             img.src = URL.createObjectURL(file);
-
-            img.onload = function () {
-                EXIF.getData(img, function () {
-                    const make = EXIF.getTag(this, "Make");
-                    const model = EXIF.getTag(this, "Model");
-                    const focal = EXIF.getTag(this, "FocalLength");
-
-                    document.getElementById("metadata").innerHTML =
-                        `Camera: ${make || "-"} ${model || ""} | Focal: ${focal || "-"}`;
-                });
-            };
         }
 
         /* ===== NAVIGATION ===== */
@@ -248,6 +237,8 @@
         /*Here goes the configuration of the project as Dataset*/
         form1: `
         <div id="Dataset" title="Dataset">
+            <h2>Project Configuration</h2>
+
             <label>
                 Project Name:
                 <input type="text" placeholder="Project Name">
@@ -275,6 +266,9 @@
                 Description:
                 <input type="text" placeholder="Here come the description of thise dataset/project">
             </label>
+
+            
+            <button id="save">Save</button>
             
         </div>
         `,
@@ -284,6 +278,8 @@
         <div id="CameraInfo" title="Camera Info">
 
             <!--here goes the parameters that are going to be captured by this database-->
+            <h2>Camera Characteristics</h2>
+
             <label>
                 Manufactures:
                 <input type="text" placeholder="Fujifilm">
@@ -355,15 +351,19 @@
                 <input type="text" placeholder="Fujifilm Zwischenring Makro MCEX-45G WR">
             </label>
 
+            <button id="save">Save</button>
+
         </div>
         `,
         
         /* here goes the material type form*/
         form3: `
 
-        <div id="Material Type" title="Material Type">
+        <div id="Material Fractions" title="Material Type">
 
             <!--here goes the fractions-->
+            <h2>Material Type</h2>
+
             <label>
                 Fraction 0.063 mm  [%]:
                 <input type="number" placeholder="0.00">
@@ -424,8 +424,35 @@
                 <input type="number" placeholder="0.00">
             </label>
 
+            <button id="save">Save</button>
+
         </div>
-        `
+        `,
+
+        /*<!-- This form is to see the name and location of the files -->*/
+        form4:`
+        <h2>Sample Dataset</h2>
+
+        <div id="Sample" title="Sample">
+            
+            <label>
+                Label:
+                <input type="text" placeholder="">
+            </label>
+
+            <label>
+                File Path:
+                <input type="text" placeholder="">
+            </label>
+
+            <label>
+                Capture Time:
+                <input type="datetime" placeholder="">
+            </label>
+
+            <button>Save</button>
+
+        </div>`
         };
 
         
@@ -481,42 +508,24 @@
             </div>
 
             <div id="controls">
-        <button onclick="openFolder()">Open Folder</button>
-        <button onclick="prev()">◀</button>
-        <button onclick="next()">▶</button>
-        <!-- <button onclick="toggleForm()">Annotate</button> -->
-        
-        <!-- to call dataset form -->
-        <button onclick="openForm('form1')">Configure Project</button>
+                <button onclick="openFolder()">Open Folder</button>
+                <button onclick="prev()">◀</button>
+                <button onclick="next()">▶</button>
+                <!-- <button onclick="toggleForm()">Annotate</button> -->
+                
+                <!-- to call dataset form -->
+                <button onclick="openForm('form1')">Project Configuration</button>
 
-        <!-- to call Camera Information form -->
-        <button onclick="openForm('form2')">Camara Information</button>
+                <!-- to call Camera Charachteristics form -->
+                <button onclick="openForm('form2')">Camara Characteristics</button>
 
-        <!--to call material type form-->
-        <button onclick="openForm('form3')">Annotate</button>
+                <!--to call material type form-->
+                <button onclick="openForm('form3')">Add Material Fractions</button>
 
-        <div id="metadata"></div>  
-        
-        <!-- This is the form to add information to the table sample -->
-        <div id="Sample" title="Sample">
+                <!--to call the content of the table Sample-->
+                <button onclick="openForm('form4')">Label and Location</button>
 
-            <label>
-                Label:
-                <input type="text" placeholder="">
-            </label>
-
-            <label>
-                File Path:
-                <input type="text" placeholder="">
-            </label>
-
-            <label>
-                Capture Time:
-                <input type="datetime" placeholder="DD.MM.YYYY HH:mm:ss">
-            </label>
-        </div>
-        <button>Save</button>
-        </div>
+            </div>
 
         <!--RIGHT SIDEBAR-->
         <div id="rightSidebar" class="sidebar">

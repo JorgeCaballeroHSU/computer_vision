@@ -25,10 +25,14 @@
     }
 
     body {
+    
       margin: 0;
       font-family: Arial, sans-serif;
       background: #f4f6f8;
       text-align: center;
+      display: flex;           
+      flex-direction: column;  
+      min-height: 100vh;       
     }
 
     h1 {
@@ -37,10 +41,13 @@
     }
 
     .container {
+
       display: flex;
       justify-content: center;
       gap: 40px;
       flex-wrap: wrap;
+      flex: 1; 
+
     }
 
     .card {
@@ -73,23 +80,48 @@
       padding: 10px;
       font-size: 20px;
     }
+
+    /* ===== FOOTER ===== */
+    #footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: #8a1538;
+        color: white;
+        padding: 10px 20px;
+        font-size: 14px;
+    }
+
+    /* Left / Right sections */
+    .footer-left,
+    .footer-right {
+        width: 30%;
+    }
+
+    /* Center section */
+    .footer-center {
+        text-align: center;
+        width: 40%;
+        font-weight: bold;
+        font-size: 16px;
+    }
   </style>
 </head>
 
 <body>
     <!-- This is the header of the web page. Logo of the department title and logo of the university-->
-    <header>
+  <header>
 
-        <!--This contains the logo of the department-->
-        <img src="../static/Geotechnical Department.png">
-        
-        <!--Here is the titel of the web page-->
-        <h1>Grainlens</h1>
-        
-        <!-- here goes the logo of the university-->
-        <img src="../static/Uni-Logo.jpeg">
-    
-    </header>
+      <!--This contains the logo of the department-->
+      <img src="../static/Geotechnical Department.png">
+      
+      <!--Here is the titel of the web page-->
+      <h1>Grainlens</h1>
+      
+      <!-- here goes the logo of the university-->
+      <img src="../static/Uni-Logo.jpeg">
+  
+  </header>
 
   <h1>Wählen eine Option aus</h1>
 
@@ -109,3 +141,28 @@
     </div>
 
   </div>
+
+  
+  <footer id="footer">
+      <div class="footer-left">
+          <strong>Betreuer</strong><br>
+          Sascha Henke<br>
+          Univ.-Prof. Dr.–Ing. habil <br>
+          📧 sascha.henke@hsu-hh.de <br>
+          📞 +49406541-3351
+      </div>
+
+      <div class="footer-center">
+          Computer Vision Projekt
+      </div>
+
+      <div class="footer-right">
+          <strong>Wissenschaftlicher Mitarbeiter</strong><br>
+          Jorge Enrique Caballero Castillo<br>
+          M.Sc.KI (Student), M.Sc. Geologie, B.Sc. Computerwissenschaft, B.Sc.Geoingenieurwesen  <br>
+          📧 caballej@hsu-hh.de <br>
+          📞 +49406541-2927
+      </div>
+  </footer>
+
+</body>

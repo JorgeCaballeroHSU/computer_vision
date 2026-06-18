@@ -9,14 +9,24 @@
                 margin: 0;
                 font-family: Arial, sans-serif;
                 display: flex;
+                flex-direction: column;
                 height: 100vh;
                 background: #f4f4f4;
             }
 
+            
+            /* NEW container */
+            #app {
+                display: flex;
+                flex: 1; /* take full height except footer */
+                overflow: hidden;
+            }
+
+
             /* ===== SIDEBAR ===== */
             #sidebar {
                 width: 220px;
-                background: #8a1538;
+                background:  #f4f4f4;
                 color: white;
                 overflow-y: auto;
                 padding: 10px;
@@ -35,9 +45,11 @@
 
             /* ===== MAIN ===== */
             #main {
+                
                 flex: 1;
                 display: flex;
                 flex-direction: column;
+
             }
 
             /* HEADER */
@@ -70,8 +82,8 @@
             }
 
             #viewer img {
-                max-width: 90%;
-                max-height: 90%;
+                max-height: 600px;
+                max-width: 1500px;
             }
 
             /* CONTROLS */
@@ -137,6 +149,31 @@
                 cursor: pointer;
                 float: right;
                 font-size: 20px;
+            }
+
+            /* ===== FOOTER ===== */
+            #footer {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                background: #8a1538;
+                color: white;
+                padding: 10px 20px;
+                font-size: 14px;
+            }
+
+            /* Left / Right sections */
+            .footer-left,
+            .footer-right {
+                width: 30%;
+            }
+
+            /* Center section */
+            .footer-center {
+                text-align: center;
+                width: 40%;
+                font-weight: bold;
+                font-size: 16px;
             }
 
         </style>
@@ -486,58 +523,85 @@
 
     <body>
 
-        <!-- LEFT SIDEBAR -->
-        <div id="sidebar">
+        <div id="app">
+            <!-- LEFT SIDEBAR -->
+            <div id="sidebar">
+
+            </div>
+
+            <!-- MAIN -->
+            <div id="main">
+
+                <header>
+                    <img src="../static/Geotechnical Department.png">
+
+                    <h1>Bildanmerkung</h1>
+
+                    <img src="../static/Uni-Logo.jpeg">
+                    
+                </header>
+
+                <div id="viewer"> 
+                    <img id="mainImage">
+                </div>
+
+                <div id="controls">
+                    <button onclick="openFolder()">Open Folder</button>
+                    <button onclick="prev()">◀</button>
+                    <button onclick="next()">▶</button>
+                    <!-- <button onclick="toggleForm()">Annotate</button> -->
+                    
+                    <!-- to call dataset form -->
+                    <button onclick="openForm('form1')">Project Configuration</button>
+
+                    <!-- to call Camera Charachteristics form -->
+                    <button onclick="openForm('form2')">Camara Characteristics</button>
+
+                    <!--to call material type form-->
+                    <button onclick="openForm('form3')">Add Material Fractions</button>
+
+                    <!--to call the content of the table Sample-->
+                    <button onclick="openForm('form4')">Label and Location</button>
+
+                </div>
+            </div>
+
+            <!--RIGHT SIDEBAR-->
+            <div id="rightSidebar" class="sidebar">
+
+                <div class="sidebar-content">
+
+                    <span class="close-btn" onclick="closeSidebar()">×</span>
+
+                    <div id="formContainer"></div>
+
+                </div>
+            </div>
 
         </div>
 
-        <!-- MAIN -->
-        <div id="main">
-
-            <header>
-                <img src="../static/Geotechnical Department.png">
-
-                <h1>Bildanmerkung</h1>
-
-                <img src="../static/Uni-Logo.jpeg">
-                
-            </header>
-
-            <div id="viewer"> 
-                <img id="mainImage">
+        <footer id="footer">
+            <div class="footer-left">
+                <strong>Betreuer</strong><br>
+                Sascha Henke<br>
+                Univ.-Prof. Dr.–Ing. habil <br>
+                📧 sascha.henke@hsu-hh.de <br>
+                📞 +49406541-3351
             </div>
 
-            <div id="controls">
-                <button onclick="openFolder()">Open Folder</button>
-                <button onclick="prev()">◀</button>
-                <button onclick="next()">▶</button>
-                <!-- <button onclick="toggleForm()">Annotate</button> -->
-                
-                <!-- to call dataset form -->
-                <button onclick="openForm('form1')">Project Configuration</button>
-
-                <!-- to call Camera Charachteristics form -->
-                <button onclick="openForm('form2')">Camara Characteristics</button>
-
-                <!--to call material type form-->
-                <button onclick="openForm('form3')">Add Material Fractions</button>
-
-                <!--to call the content of the table Sample-->
-                <button onclick="openForm('form4')">Label and Location</button>
-
+            <div class="footer-center">
+                Computer Vision Projekt
             </div>
 
-        <!--RIGHT SIDEBAR-->
-        <div id="rightSidebar" class="sidebar">
-
-            <div class="sidebar-content">
-
-                <span class="close-btn" onclick="closeSidebar()">×</span>
-
-                <div id="formContainer"></div>
-
+            <div class="footer-right">
+                <strong>Wissenschaftlicher Mitarbeiter</strong><br>
+                Jorge Enrique Caballero Castillo<br>
+                M.Sc.KI (Student), M.Sc. Geologie, B.Sc. Computerwissenschaft, B.Sc.Geoingenieurwesen  <br>
+                📧 caballej@hsu-hh.de <br>
+                📞 +49406541-2927
             </div>
-        </div>
+        </footer>
+
 
     </body>    
     

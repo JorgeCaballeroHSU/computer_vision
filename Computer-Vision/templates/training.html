@@ -53,11 +53,16 @@
         .model-container {
             display: flex;
             gap: 20px;
-            flex-wrap: wrap;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            overflow-y: hidden;
+            scroll-behavior: smooth;
         }
 
         .model-card {
             width: 280px;
+            min-width: 280px;
+            flex-shrink: 0;
             padding: 15px;
             border-radius: 10px;
             background: #fafafa;
@@ -165,25 +170,61 @@
 
         <div class="model-container">
             <div class="model-card">
-                <h3>CNN</h3>
+                <h3>AlexNet</h3>
                 <p>Simple convolutional model</p>
                 <p><strong>Metrics:</strong> MSE, R²</p>
-                <button onclick="selectModel('CNN')">Select</button>
+                <button onclick="selectModel('AlexNet')">Select</button>
             </div>
 
             <div class="model-card">
-                <h3>ResNet</h3>
-                <p>Deep residual network</p>
-                <p><strong>Metrics:</strong> Loss, Accuracy</p>
-                <button onclick="selectModel('ResNet')">Select</button>
+                <h3>VGG19</h3>
+                <p>Simple convolutional model</p>
+                <p><strong>Metrics:</strong> MSE, R²</p>
+                <button onclick="selectModel('VGG19')">Select</button>
             </div>
 
             <div class="model-card">
-                <h3>U-Net</h3>
-                <p>Segmentation model</p>
-                <p><strong>Metrics:</strong> IoU</p>
-                <button onclick="selectModel('UNet')">Select</button>
+                <h3>InceptionV3</h3>
+                <p>Simple convolutional model</p>
+                <p><strong>Metrics:</strong> MSE, R²</p>
+                <button onclick="selectModel('InceptionV3')">Select</button>
             </div>
+
+            <div class="model-card">
+                <h3>DenseNet121</h3>
+                <p>Simple convolutional model</p>
+                <p><strong>Metrics:</strong> MSE, R²</p>
+                <button onclick="selectModel('DenseNet121')">Select</button>
+            </div>
+
+            <div class="model-card">
+                <h3>Xception</h3>
+                <p>Simple convolutional model</p>
+                <p><strong>Metrics:</strong> MSE, R²</p>
+                <button onclick="selectModel('Xception')">Select</button>
+            </div>
+
+            <div class="model-card">
+                <h3>NASNet</h3>
+                <p>Simple convolutional model</p>
+                <p><strong>Metrics:</strong> MSE, R²</p>
+                <button onclick="selectModel('NASNet')">Select</button>
+            </div>
+
+            <div class="model-card">
+                <h3>MobileNetV2</h3>
+                <p>Simple convolutional model</p>
+                <p><strong>Metrics:</strong> MSE, R²</p>
+                <button onclick="selectModel('MobileNetV2')">Select</button>
+            </div>
+
+            <div class="model-card">
+                <h3>EfficientNetB0</h3>
+                <p>Simple convolutional model</p>
+                <p><strong>Metrics:</strong> MSE, R²</p>
+                <button onclick="selectModel('EfficientNetB0')">Select</button>
+            </div>
+
         </div>
     </div>
 

@@ -270,226 +270,221 @@
         
         const forms = {
         
+            /*Here goes the configuration of the project as Dataset*/
+            form1: `
+            <div id="Dataset">
+                <h2>Project Configuration</h2>
+
+                <label>
+                    Project Name:
+                    <input type="text" name="project_name">
+                </label>
+
+                <label>
+                    Material Type:
+                    <input list="Types" name="material_type">
+                    <datalist id="Types">
+                        <option value="Fusch"></option>
+                        <option value="Sand"></option>
+                        <option value="Kies"></option>
+                        <option value="Misch"></option>
+                    </datalist>
+                </label>
+
+                <label>
+                    Created:
+                    <input type="date" name="created">
+                </label>
+
+                <label>
+                    Description:
+                    <input type="text" name="description">
+                </label>
+
+                <button onclick="submitDataset()">Save</button>
+            </div>
+            `,
         
-        /*Here goes the configuration of the project as Dataset*/
-        form1: `
-        <div id="Dataset" title="Dataset">
-            <h2>Project Configuration</h2>
+            //*This is the form to add or modify the camera/setup information -->*/
+            form2: `
+            <div id="CameraInfo" title="Camera Info">
 
-            <label>
-                Project Name:
-                <input type="text" placeholder="Project Name">
-            </label>
+                <!--here goes the parameters that are going to be captured by this database-->
+                <h2>Camera Characteristics</h2>
 
-            <label>
-                Material Type:
-                <input list="Types">
-
-                <!-- list of possible material types -->
-                <datalist id="Types">
-                    <option value="Fusch"></option>
-                    <option value="Sand"></option>
-                    <option value="Kies"></option>
-                    <option value="Misch"></option>
-                </datalist>
-            </label>
-
-            <label>
-                Created:
-                <input type="datetime" placeholder="DD.MM.YYYY">
-            </label>
-
-            <label>
-                Description:
-                <input type="text" placeholder="Here come the description of thise dataset/project">
-            </label>
-
-            
-            <button id="save">Save</button>
-            
-        </div>
-        `,
-        
-        /*This is the form to add or modify the camera/setup information -->*/
-        form2: `
-        <div id="CameraInfo" title="Camera Info">
-
-            <!--here goes the parameters that are going to be captured by this database-->
-            <h2>Camera Characteristics</h2>
-
-            <label>
-                Manufactures:
-                <input type="text" placeholder="Fujifilm">
-            </label>
-            
-            <label>
-                Camera Model:
-                <input type="text" placeholder="GFX 100 II EU">
-            </label>
-
-            <label>
-                ISO:
-                <input type="ISO">
+                <label>
+                    Manufactures:
+                    <input type="text" placeholder="Fujifilm">
+                </label>
                 
-                <!-- here goes the list of possible iso settings -->
-                <datalist id="ISO">
-                    <option value="80"></option>
-                    <option value="100"></option>
-                    <option value="200"></option>
-                    <option value="400"></option>
-                    <option value="800"></option>
-                    <option value="1600"></option>
-                    <option value="3200"></option>
-                    <option value="6400"></option>
-                    <option value="12800"></option>
+                <label>
+                    Camera Model:
+                    <input type="text" placeholder="GFX 100 II EU">
+                </label>
 
-                </datalist>
-            </label>
+                <label>
+                    ISO:
+                    <input type="ISO">
+                    
+                    <!-- here goes the list of possible iso settings -->
+                    <datalist id="ISO">
+                        <option value="80"></option>
+                        <option value="100"></option>
+                        <option value="200"></option>
+                        <option value="400"></option>
+                        <option value="800"></option>
+                        <option value="1600"></option>
+                        <option value="3200"></option>
+                        <option value="6400"></option>
+                        <option value="12800"></option>
 
-            <label>
-                Focus:
-                <input type="text">
-            </label>
+                    </datalist>
+                </label>
 
-            <label>
-                Exposure Time:
-                <input type="Exposure Time">
+                <label>
+                    Focus:
+                    <input type="text">
+                </label>
 
-                <!-- here goes the list of possible exposure time settings -->
-                <datalist id="Exposure Time">
-                    <option value="1 Second"></option>
-                    <option value="2 Seconds"></option>
-                    <option value="4 Seconds"></option>
-                    <option value="8 Seconds"></option>
-                    <option value="15 Seconds"></option>
-                    <option value="30 Seconds"></option>
-                    <option value="60 Seconds"></option>
+                <label>
+                    Exposure Time:
+                    <input type="Exposure Time">
 
-                </datalist>
-            </label>
+                    <!-- here goes the list of possible exposure time settings -->
+                    <datalist id="Exposure Time">
+                        <option value="1 Second"></option>
+                        <option value="2 Seconds"></option>
+                        <option value="4 Seconds"></option>
+                        <option value="8 Seconds"></option>
+                        <option value="15 Seconds"></option>
+                        <option value="30 Seconds"></option>
+                        <option value="60 Seconds"></option>
 
-            <label>
-                Flash Mode:
-                <input type="text">
-            </label>
+                    </datalist>
+                </label>
 
-            <label>
-                Focal length:
-                <input type="text">
-            </label>
+                <label>
+                    Flash Mode:
+                    <input type="text">
+                </label>
 
-            <label>
-                Objective:
-                <input type="text" placeholder="Fujifilm GF 120/4,0 R LM OIS WR macro">
-            </label>
+                <label>
+                    Focal length:
+                    <input type="text">
+                </label>
 
-            <label>
-                Extension:
-                <input type="text" placeholder="Fujifilm Zwischenring Makro MCEX-45G WR">
-            </label>
+                <label>
+                    Objective:
+                    <input type="text" placeholder="Fujifilm GF 120/4,0 R LM OIS WR macro">
+                </label>
 
-            <button id="save">Save</button>
+                <label>
+                    Extension:
+                    <input type="text" placeholder="Fujifilm Zwischenring Makro MCEX-45G WR">
+                </label>
 
-        </div>
-        `,
-        
-        /* here goes the material type form*/
-        form3: `
+                <button id="save">Save</button>
 
-        <div id="Material Fractions" title="Material Type">
-
-            <!--here goes the fractions-->
-            <h2>Material Type</h2>
-
-            <label>
-                Fraction 0.063 mm  [%]:
-                <input type="number" placeholder="0.00">
-            </label>
-
-            <label>
-                Fraction 0.125 mm [%]:
-                <input type="number" placeholder="0.00">
-            </label>
-
-            <label>
-                Fraction 0.250 mm [%]:
-                <input type="number" placeholder="0.00">
-            </label>
-
-            <label>
-                Fraction 0.400 mm [%]:
-                <input type="number" placeholder="0.00">
-            </label>
-
-            <label>
-                Fraction 0.500 mm [%]:
-                <input type="number" placeholder="0.00">
-            </label>
-
-            <label>
-                Fraction 1.000 mm [%]:
-                <input type="number" placeholder="0.00">
-            </label>
-
-            <label>
-                Fraction 2.000 mm [%]:
-                <input type="number" placeholder="0.00">
-            </label>
-
-            <label>
-                Fraction 4.000 mm [%]:
-                <input type="number" placeholder="0.00">
-            </label>
-
-            <label>
-                Fraction 6.000 mm [%]:
-                <input type="number" placeholder="0.00">
-            </label>
-
-            <label>
-                Fraction 8.000 mm [%]:
-                <input type="number" placeholder="0.00">
-            </label>
-
-            <label>
-                Fraction 16.00 mm [%]:
-                <input type="number" placeholder="0.00">
-            </label>
-
-            <label>
-                Fraction 32.00 mm [%]:
-                <input type="number" placeholder="0.00">
-            </label>
-
-            <button id="save">Save</button>
-
-        </div>
-        `,
-
-        /*<!-- This form is to see the name and location of the files -->*/
-        form4:`
-        <h2>Sample Dataset</h2>
-
-        <div id="Sample" title="Sample">
+            </div>
+            `,
             
-            <label>
-                Label:
-                <input type="text" placeholder="">
-            </label>
+            /* here goes the material type form*/
+            form3: `
 
-            <label>
-                File Path:
-                <input type="text" placeholder="">
-            </label>
+            <div id="Material Fractions" title="Material Type">
 
-            <label>
-                Capture Time:
-                <input type="datetime" placeholder="">
-            </label>
+                <!--here goes the fractions-->
+                <h2>Material Type</h2>
 
-            <button>Save</button>
+                <label>
+                    Fraction 0.063 mm  [%]:
+                    <input type="number" placeholder="0.00">
+                </label>
 
-        </div>`
+                <label>
+                    Fraction 0.125 mm [%]:
+                    <input type="number" placeholder="0.00">
+                </label>
+
+                <label>
+                    Fraction 0.250 mm [%]:
+                    <input type="number" placeholder="0.00">
+                </label>
+
+                <label>
+                    Fraction 0.400 mm [%]:
+                    <input type="number" placeholder="0.00">
+                </label>
+
+                <label>
+                    Fraction 0.500 mm [%]:
+                    <input type="number" placeholder="0.00">
+                </label>
+
+                <label>
+                    Fraction 1.000 mm [%]:
+                    <input type="number" placeholder="0.00">
+                </label>
+
+                <label>
+                    Fraction 2.000 mm [%]:
+                    <input type="number" placeholder="0.00">
+                </label>
+
+                <label>
+                    Fraction 4.000 mm [%]:
+                    <input type="number" placeholder="0.00">
+                </label>
+
+                <label>
+                    Fraction 6.000 mm [%]:
+                    <input type="number" placeholder="0.00">
+                </label>
+
+                <label>
+                    Fraction 8.000 mm [%]:
+                    <input type="number" placeholder="0.00">
+                </label>
+
+                <label>
+                    Fraction 16.00 mm [%]:
+                    <input type="number" placeholder="0.00">
+                </label>
+
+                <label>
+                    Fraction 32.00 mm [%]:
+                    <input type="number" placeholder="0.00">
+                </label>
+
+                <button id="save">Save</button>
+
+            </div>
+            `,
+
+            /*<!-- This form is to see the name and location of the files -->*/
+            form4:`
+            <h2>Sample Dataset</h2>
+
+            <div id="Sample" title="Sample">
+                
+                <label>
+                    Label:
+                    <input type="text" placeholder="">
+                </label>
+
+                <label>
+                    File Path:
+                    <input type="text" placeholder="">
+                </label>
+
+                <label>
+                    Capture Time:
+                    <input type="datetime" placeholder="">
+                </label>
+
+                <button>Save</button>
+
+            </div>`
         };
 
         
@@ -515,7 +510,60 @@
         function closeSidebar() {
             document.getElementById("rightSidebar").classList.remove("open");
         }
+        
+        // Reads form data
+        function getDatasetProjectConfiguration() {
+            const form = document.getElementById("Dataset");
 
+            return {
+                project_name: form.querySelector('[name="project_name"]').value,
+                material_type: form.querySelector('[name="material_type"]').value,
+                created: form.querySelector('[name="created"]').value,
+                description: form.querySelector('[name="description"]').value
+            };
+        }
+
+
+        // Sends data to backend
+        async function sendDataset(formType, action = "create") {
+            try {
+                let clientDataset;
+
+                if (formType === "dataset") {
+                    clientDataset = getDatasetProjectConfiguration();
+                } else {
+                    console.error("Unknown form type");
+                    return;
+                }
+
+                const response = await fetch("http://localhost:8000/dataset", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        action: action,
+                        clientDataset: clientDataset
+                    })
+                });
+
+                const result = await response.json();
+
+                console.log("Server response:", result);
+
+                if (result.success) {
+                    console.log("✅ Success:", result.data);
+                    console.log("Last ID:", result.lastID);
+                } else {
+                    console.error("❌ Operation failed");
+                }
+
+                return result;
+
+            } catch (error) {
+                console.error("❌ Error:", error);
+            }
+        }
 
         </script>
 

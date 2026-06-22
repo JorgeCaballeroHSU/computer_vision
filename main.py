@@ -1,27 +1,62 @@
 # main.py
 
 # imports required libraries for endpoint creation
-from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi import FastAPI, File, HTTPException, UploadFile 
 from pydantic import BaseModel
 from typing import Optional
+import os
+
+from fastapi.templating import Jinja2Templates
+from fastapi.responses import HTMLResponse, FileResponse
+from fastapi.requests import Request
+from fastapi.staticfiles import StaticFiles
 
 
-from Sockets.SocketServer import SocketServer
+
+#from app.Sockets.SocketServer import SocketServer
 from Tools.ChangePath import ChangePath
-from dataBaseFill import dataBaseFill, PreprocessingImages, AugmentationImages
-from trainModel import trainModel
-from prediction import prediction
+from app.dataBaseFill import dataBaseFill, PreprocessingImages, AugmentationImages
+from app.trainModel import trainModel
+from app.prediction import prediction
 
 # imports libraries for the creation of the squema and the managament of the tables
-from Database.Database import Schema
-from Database.Tables.Tables import *
+from app.Database.Database import Schema
+from app.Database.Tables.Tables import *
 
 
 # defines the variable app that will be used to call functions. Backend application object
 app=FastAPI()
 
+# gets the base directory
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# calls index.html
+@app.get("/")
+def loadPage():
+    return FileResponse(os.path.join(BASE_DIR, "templates", "index.html"))
+
+# calls annotation.html
+@app.get("/annotation")
+def annotation():
+    return FileResponse(os.path.join(BASE_DIR, "templates", "annotation.html"))
+
+# calls training.html
+@app.get("/training")
+def annotation():
+    return FileResponse(os.path.join(BASE_DIR, "templates", "training.html"))
+
+app.mount("/static", StaticFiles(directory="static", html=True), name="static")
+
+# calls prediction.html
+@app.get("/prediction")
+def annotation():
+    return FileResponse(os.path.join(BASE_DIR, "templates", "prediction.html"))
+
+app.mount("/static", StaticFiles(directory="static", html=True), name="static")
+
+
 # defines the location of the database
-databaseLocation=r'/home/helmut-schmidt-universitaet/Documents/Computer Vision Project/Database/database.db' #---> to be corrected
+databaseLocation=r'\\wsl.localhost\Ubuntu\home\computer_vision\Computer-Vision\database.db' #---> to be corrected
 
 # windows-formatted address to store the pictures
 windowsAddress=r'C:\Users\Admin\OneDrive - Helmut-Schmidt-Universität\Dokumente\Computer Vision Project\01 Pictures'
@@ -31,7 +66,7 @@ pathFormat=ChangePath()
 
 # creates the database schema of the application
 schemaCreation=Schema(dbFile=databaseLocation) 
-schemaCreation.closeConnection() # ---> Closes the connection
+
 
 ####### GETS THE PCITURES FROM CLIENT #######
 # gets the pictures from the frontend and saves them in a folder
@@ -68,11 +103,21 @@ class TableRequest(BaseModel):
 @app.post("/dataset")
 def handleDataset(request:TableRequest):
 
+    # checks if the client is actually sending data
+    if request.clientDataset is None:
+        raise HTTPException(status_code=400, detail="clientDataset is required")
+
     # creates an instance of the table Dataset
-    table=DatasetTable()
+    table=DatasetTable(dbFile=databaseLocation)
+
+    # opens connection to table
+    table.openConnection()
 
     # executes the function
     results=Dataset(clientDataset=request.clientDataset, table=table,action=request.action)
+
+    # closes connection
+    table.closeConnection()
 
     # returns results
     return {
@@ -81,22 +126,22 @@ def handleDataset(request:TableRequest):
         'lastID': results[2]
     }
 
-# gets a list of items in the table dataset
-@app.get("/dataset")
-def handleDataset():
+# # gets a list of items in the table dataset
+# @app.get("/dataset")
+# def handleDataset():
 
-    # creates an instance of the table Dataset
-    table=DatasetTable()
+#     # creates an instance of the table Dataset
+#     table=DatasetTable()
 
-    # returns results
-    return table.fetchDataset()
+#     # returns results
+#     return table.fetchDataset()
 
 
 ################## CAMERA INFO ################
 # writes, updates, and deletes an item of the CameraInfo table
 @app.post("/camera-info")
 def handleCameraInfo(request: TableRequest):
-
+       
     # creates an instance of the table CameraInfo
     table = CameraInfoTable("your_database.db")
 

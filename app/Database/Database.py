@@ -15,7 +15,7 @@ class Database:
         :param db_file: database file
         :return: Connection object or None
         """
-        # initialize the connection variable to None
+        # stores the path file where the database is located
         self._filePath=dbFile
 
         #return nothing
@@ -147,10 +147,16 @@ class Schema(Database):
     def __init__(self, dbFile: str)->None:
         super().__init__(dbFile)
 
+        # opens the connection
+        self.openConnection()
+
         # creates the tables in the database
         self.__createTables(self.TableSchemaRawData())
         self.__createTables(self.TableSchemaDerivedArtifacts())
         self.__createTables(self.TableSchemaModel())
+
+        # closes connection
+        self.closeConnection()
 
     # creates the tables in the database
     def __createTables(self, tableStatements:list)->None:
@@ -396,7 +402,7 @@ class CameraInfoTable(Database):
     def fetchCameraInfo(self)-> dict:
 
         # fetches the dataset from the database
-        dataset=self.fetchInfo(query='''SELECT * FROM CameraInfo''')
+        dataset=self.fetchInfo(statete='''SELECT * FROM CameraInfo''')
 
         # returns the dataset
         return dataset
@@ -406,6 +412,7 @@ class DatasetTable(Database):
 
     def __init__(self, dbFile: str)->None:
         super().__init__(dbFile)
+        
 
     # inserts the Dataset table. It has to be tested if the inf to be added is already there. If that is the case, no change is needed.
     def insertDatasetTable(self, clientAnswer:dict)->int:
@@ -452,7 +459,7 @@ class DatasetTable(Database):
     def fetchDataset(self)-> dict:
 
         # fetches the dataset from the database
-        dataset=self.fetchInfo(query='''SELECT * FROM Dataset''')
+        dataset=self.fetchInfo(statement='''SELECT * FROM Dataset''')
 
         # returns the dataset
         return dataset

@@ -2,7 +2,7 @@
 # It is used to label the files that reside in a separated folder
 
 # import the necessary libraries
-from Database.Database import DatasetTable, PreprocessingTable, JunctionPreTable, SampleTable
+from app.Database.Database import DatasetTable, PreprocessingTable, JunctionPreTable, SampleTable
 
 # # creates class for the labelling of the photographs
 class LabelSample(DatasetTable):

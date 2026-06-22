@@ -179,7 +179,7 @@
         </style>
 
         <!-- EXIF -->
-        <script src="https://cdn.jsdelivr.net/npm/exif-js"></script>
+        <script src="../templates/exif-js.js"></script>
 
         <script>
         let files = [];
@@ -301,7 +301,7 @@
                     <input type="text" name="description">
                 </label>
 
-                <button onclick="sendDataset()">Save</button>
+                <button onclick="sendDataset('dataset')">Save</button>
             </div>
             `,
         
@@ -515,17 +515,31 @@
         function getDatasetProjectConfiguration() {
             const form = document.getElementById("Dataset");
 
-            return {
+            console.log("FORM:",form)
+
+            if (!form){
+                
+                console.error("Dataset form NOT found!");
+                return null;
+
+            }
+
+            const data= {
                 project_name: form.querySelector('[name="project_name"]').value,
                 material_type: form.querySelector('[name="material_type"]').value,
                 created: form.querySelector('[name="created"]').value,
                 description: form.querySelector('[name="description"]').value
             };
+
+            
+            console.log("Extracted data:", data);
+
+            return data;
         }
 
 
         // Sends data to backend
-        async function sendDataset(formType, action = "create") {
+        async function sendDataset(formType, action = "add") {
             try {
                 let clientDataset;
 
@@ -535,8 +549,13 @@
                     console.error("Unknown form type");
                     return;
                 }
+                            
+            if (!clientDataset) {
+                console.error("clientDataset is NULL → not sending");
+                return;
+            }
 
-                const response = await fetch("http://localhost:8000/dataset", {
+                const response = await fetch("http://localhost:5000/dataset", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json"

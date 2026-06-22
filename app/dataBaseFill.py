@@ -3,10 +3,10 @@ from importlib.resources import path
 
 from Tools.ChangePath import ChangePath
 from Tools.Format import addDataType
-from Files.Path import Path
-from Files.Label import LabelPreprocessing, LabelSample
-from Database.Tables.Tables import *
-from Preprocessing.TFRecorder import TFRecorder
+from app.Files.Path import Path
+from app.Files.Label import LabelPreprocessing, LabelSample
+from app.Database.Tables.Tables import *
+from app.Preprocessing.TFRecorder import TFRecorder
 import os
 import numpy as np
 
@@ -124,7 +124,7 @@ def generateTensorFlowRecords(path:Path, database:Database, tfRecorder:TFRecorde
 
 
 # imports required libraries
-from Preprocessing import Tailing
+from app.Preprocessing import Tailing
 
 # Preprocesses the images by applying tailing
 def PreprocessingImages(clientAnswer:dict)->list:
@@ -179,8 +179,8 @@ def PreprocessingImages(clientAnswer:dict)->list:
         return [PreproTable, JuctionTable]
 
 # imports more required libraries
-from Preprocessing.DataAugmentation import Flipping, ColorDistortion
-from Files.Label import LabelTFRecording
+from app.Preprocessing.DataAugmentation import Flipping, ColorDistortion
+from app.Files.Label import LabelTFRecording
 
 # defines the function augmentation that generate augmented version of available images. 
 # Two kind of augmentation techniques will be considered: flipping and color distortion

@@ -1,5 +1,5 @@
 # imports required variables
-from Database.Database import *
+from app.Database.Database import *
 
 # changes in the dataset table. Returns bool indicating if the process was a success (True) or something failed (False)
 def Dataset(clientDataset:dict|None, table:DatasetTable, action: str='add')->list[bool, dict,int |None]:

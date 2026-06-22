@@ -2,8 +2,8 @@
 import keras
 from datetime import datetime
 
-from  Database.Tables.Tables import *
-from CNN.Models import ModelFactory
+from  app.Database.Tables.Tables import *
+from app.CNN.Models import ModelFactory
 import random
 
 # Samples the dataset for training and validation dataset formation according to the percentages given by the user in the frontend

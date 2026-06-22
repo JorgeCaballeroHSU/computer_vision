@@ -418,7 +418,7 @@ class DatasetTable(Database):
     def insertDatasetTable(self, clientAnswer:dict)->int:
 
         # inserts the Dataset table. It has to be tested if the inf to be added is already there. If that is the case, no change is needed.
-        lastRowID,=self.insertItemsTable(
+        lastRowID,otherValue=self.insertItemsTable(
             query='''INSERT INTO Dataset (ProjectName, MaterialType, Created, Description) VALUES (?, ?, ?, ?) ''',
             values=(clientAnswer.get('ProjectName'), clientAnswer.get('MaterialType'), clientAnswer.get('Created'), clientAnswer.get('Description'))
         )

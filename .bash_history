@@ -409,3 +409,5 @@ In Zeile:1 Zeichen:1
 PS Microsoft.PowerShell.Core\FileSystem::\\wsl.localhost\Ubuntu\home\computer_vision>cleart
 clear
 uvicorn main:app --host 0.0.0.0 --port 5000 --reload
+npm run compile
+ source /home/computer_vision/.venv/bin/activate

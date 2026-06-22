@@ -6,7 +6,6 @@ from pydantic import BaseModel
 from typing import Optional
 import os
 
-from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, FileResponse
 from fastapi.requests import Request
 from fastapi.staticfiles import StaticFiles
@@ -14,7 +13,7 @@ from fastapi.staticfiles import StaticFiles
 
 
 #from app.Sockets.SocketServer import SocketServer
-from Tools.ChangePath import ChangePath
+from app.Tools.ChangePath import ChangePath
 from app.dataBaseFill import dataBaseFill, PreprocessingImages, AugmentationImages
 from app.trainModel import trainModel
 from app.prediction import prediction
@@ -56,7 +55,7 @@ app.mount("/static", StaticFiles(directory="static", html=True), name="static")
 
 
 # defines the location of the database
-databaseLocation=r'\\wsl.localhost\Ubuntu\home\computer_vision\Computer-Vision\database.db' #---> to be corrected
+databaseLocation=r'\\wsl.localhost\Ubuntu\home\computer_vision\database' #---> to be corrected
 
 # windows-formatted address to store the pictures
 windowsAddress=r'C:\Users\Admin\OneDrive - Helmut-Schmidt-Universität\Dokumente\Computer Vision Project\01 Pictures'

@@ -1,8 +1,8 @@
 #imports required libraries
 from importlib.resources import path
 
-from Tools.ChangePath import ChangePath
-from Tools.Format import addDataType
+from app.Tools.ChangePath import ChangePath
+from app.Tools.Format import addDataType
 from app.Files.Path import Path
 from app.Files.Label import LabelPreprocessing, LabelSample
 from app.Database.Tables.Tables import *

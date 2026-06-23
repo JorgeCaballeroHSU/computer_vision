@@ -411,3 +411,47 @@ clear
 uvicorn main:app --host 0.0.0.0 --port 5000 --reload
 npm run compile
  source /home/computer_vision/.venv/bin/activate
+ source /home/computer_vision/.venv/bin/activate
+uvicorn main:app --host 0.0.0.0 --port 5000
+uvicorn main:app --host 0.0.0.0 --port 5000
+uvicorn main:app --host 0.0.0.0 --port 5000
+uvicorn main:app --host 0.0.0.0 --port 5000
+uvicorn main:app --host 0.0.0.0 --port 5000
+uvicorn main:app --host 0.0.0.0 --port 5000
+uvicorn main:app --host 0.0.0.0 --port 5000
+uvicorn main:app --host 0.0.0.0 --port 8080
+ source /home/computer_vision/.venv/bin/activate
+ /usr/bin/env /home/computer_vision/.venv/bin/python /home/computer_vision/.vscode-server/extensions/ms-python.debugpy-2026.6.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher 34101 -- /home/computer_vision/app/Sockets/SocketServer.py 
+ cd /home/computer_vision ; /usr/bin/env /home/computer_vision/.venv/bin/python /home/computer_vision/.vscode-server/extensions/ms-python.debugpy-2026.6.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher 43585 -- /home/computer_vision/app/Sockets/SocketServer.py 
+uvicorn main:app --host 0.0.0.0 --port 5000 --reload
+uvicorn main:app --host 0.0.0.0 --port 5000 --reload
+uvicorn main:app --host 0.0.0.0 --port 5000 --reload
+clear
+ cd /home/computer_vision ; /usr/bin/env /home/computer_vision/.venv/bin/python /home/computer_vision/.vscode-server/extensions/ms-python.debugpy-2026.6.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher 55795 -- /home/computer_vision/main.py 
+clear
+ cd /home/computer_vision ; /usr/bin/env /home/computer_vision/.venv/bin/python /home/computer_vision/.vscode-server/extensions/ms-python.debugpy-2026.6.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher 52691 -- -m uvicorn main:app --host 0.0.0.0 --port 5000 --reload 
+ cd /home/computer_vision ; /usr/bin/env /home/computer_vision/.venv/bin/python /home/computer_vision/.vscode-server/extensions/ms-python.debugpy-2026.6.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher 49469 -- -m uvicorn main:app --host 0.0.0.0 --port 5000 --reload 
+ cd /home/computer_vision ; /usr/bin/env /home/computer_vision/.venv/bin/python /home/computer_vision/.vscode-server/extensions/ms-python.debugpy-2026.6.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher 47429 -- -m uvicorn main:app --host 0.0.0.0 --port 5000 --reload 
+ cd /home/computer_vision ; /usr/bin/env /home/computer_vision/.venv/bin/python /home/computer_vision/.vscode-server/extensions/ms-python.debugpy-2026.6.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher 60507 -- -m uvicorn main:app --host 0.0.0.0 --port 5000 --reload 
+ cd /home/computer_vision ; /usr/bin/env /home/computer_vision/.venv/bin/python /home/computer_vision/.vscode-server/extensions/ms-python.debugpy-2026.6.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher 44185 -- -m uvicorn main:app --host 0.0.0.0 --port 5000 --reload 
+ cd /home/computer_vision ; /usr/bin/env /home/computer_vision/.venv/bin/python /home/computer_vision/.vscode-server/extensions/ms-python.debugpy-2026.6.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher 50095 -- -m uvicorn main:app --host 0.0.0.0 --port 5000 --reload 
+ cd /home/computer_vision ; /usr/bin/env /home/computer_vision/.venv/bin/python /home/computer_vision/.vscode-server/extensions/ms-python.debugpy-2026.6.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher 36345 -- -m uvicorn main:app --host 0.0.0.0 --port 5000 --reload 
+ cd /home/computer_vision ; /usr/bin/env /home/computer_vision/.venv/bin/python /home/computer_vision/.vscode-server/extensions/ms-python.debugpy-2026.6.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher 47767 -- -m uvicorn main:app --host 0.0.0.0 --port 5000 --reload 
+ cd /home/computer_vision ; /usr/bin/env /home/computer_vision/.venv/bin/python /home/computer_vision/.vscode-server/extensions/ms-python.debugpy-2026.6.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher 41509 -- -m uvicorn main:app --host 0.0.0.0 --port 5000 --reload 
+ cd /home/computer_vision ; /usr/bin/env /home/computer_vision/.venv/bin/python /home/computer_vision/.vscode-server/extensions/ms-python.debugpy-2026.6.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher 52691 -- -m uvicorn main:app --host 0.0.0.0 --port 5000 --reload 
+ cd /home/computer_vision ; /usr/bin/env /home/computer_vision/.venv/bin/python /home/computer_vision/.vscode-server/extensions/ms-python.debugpy-2026.6.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher 60749 -- -m uvicorn main:app --host 0.0.0.0 --port 5000 --reload 
+ cd /home/computer_vision ; /usr/bin/env /home/computer_vision/.venv/bin/python /home/computer_vision/.vscode-server/extensions/ms-python.debugpy-2026.6.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher 39489 -- -m uvicorn main:app --host 0.0.0.0 --port 5000 --reload 
+ cd /home/computer_vision ; /usr/bin/env /home/computer_vision/.venv/bin/python /home/computer_vision/.vscode-server/extensions/ms-python.debugpy-2026.6.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher 45693 -- -m uvicorn main:app --host 0.0.0.0 --port 5000 --reload 
+ cd /home/computer_vision ; /usr/bin/env /home/computer_vision/.venv/bin/python /home/computer_vision/.vscode-server/extensions/ms-python.debugpy-2026.6.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher 38687 -- -m uvicorn main:app --host 0.0.0.0 --port 5000 --reload 
+ cd /home/computer_vision ; /usr/bin/env /home/computer_vision/.venv/bin/python /home/computer_vision/.vscode-server/extensions/ms-python.debugpy-2026.6.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher 60731 -- -m uvicorn main:app --host 0.0.0.0 --port 5000 --reload 
+ cd /home/computer_vision ; /usr/bin/env /home/computer_vision/.venv/bin/python /home/computer_vision/.vscode-server/extensions/ms-python.debugpy-2026.6.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher 36577 -- -m uvicorn main:app --host 0.0.0.0 --port 5000 --reload 
+ cd /home/computer_vision ; /usr/bin/env /home/computer_vision/.venv/bin/python /home/computer_vision/.vscode-server/extensions/ms-python.debugpy-2026.6.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher 34007 -- -m uvicorn main:app --host 0.0.0.0 --port 5000 --reload 
+ cd /home/computer_vision ; /usr/bin/env /home/computer_vision/.venv/bin/python /home/computer_vision/.vscode-server/extensions/ms-python.debugpy-2026.6.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher 40311 -- -m uvicorn main:app --host 0.0.0.0 --port 5000 --reload 
+ cd /home/computer_vision ; /usr/bin/env /home/computer_vision/.venv/bin/python /home/computer_vision/.vscode-server/extensions/ms-python.debugpy-2026.6.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher 57685 -- -m uvicorn main:app --host 0.0.0.0 --port 5000 --reload 
+ cd /home/computer_vision ; /usr/bin/env /home/computer_vision/.venv/bin/python /home/computer_vision/.vscode-server/extensions/ms-python.debugpy-2026.6.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher 50753 -- -m uvicorn main:app --host 0.0.0.0 --port 5000 --reload 
+ cd /home/computer_vision ; /usr/bin/env /home/computer_vision/.venv/bin/python /home/computer_vision/.vscode-server/extensions/ms-python.debugpy-2026.6.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher 51395 -- -m uvicorn main:app --host 0.0.0.0 --port 5000 --reload 
+ cd /home/computer_vision ; /usr/bin/env /home/computer_vision/.venv/bin/python /home/computer_vision/.vscode-server/extensions/ms-python.debugpy-2026.6.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher 53681 -- -m uvicorn main:app --host 0.0.0.0 --port 5000 --reload 
+ cd /home/computer_vision ; /usr/bin/env /home/computer_vision/.venv/bin/python /home/computer_vision/.vscode-server/extensions/ms-python.debugpy-2026.6.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher 45953 -- -m uvicorn main:app --host 0.0.0.0 --port 5000 --reload 
+ cd /home/computer_vision ; /usr/bin/env /home/computer_vision/.venv/bin/python /home/computer_vision/.vscode-server/extensions/ms-python.debugpy-2026.6.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher 41897 -- -m uvicorn main:app --host 0.0.0.0 --port 5000 --reload 
+ source /home/computer_vision/.venv/bin/activate
+ /usr/bin/env /home/computer_vision/.venv/bin/python /home/computer_vision/.vscode-server/extensions/ms-python.debugpy-2026.6.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher 51639 -- -m uvicorn main:app --host 0.0.0.0 --port 5000 --reload 

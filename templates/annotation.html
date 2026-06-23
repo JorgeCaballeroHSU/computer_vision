@@ -495,6 +495,12 @@
 
             container.innerHTML = forms[formName] || "<p>Form not found</p>";
             sidebar.classList.add("open");
+
+            // Loads data ONLY for dataset form
+            if (formName === "form1") {
+                setTimeout(loadLatestDataset, 50); // small delay so DOM is ready
+            }
+
         }
 
         // Save button action (you can extend logic here)
@@ -531,7 +537,6 @@
                 Description: form.querySelector('[name="description"]').value
             };
 
-            
             console.log("Extracted data:", data);
 
             return data;
@@ -583,6 +588,31 @@
                 console.error("❌ Error:", error);
             }
         }
+
+        // gets the dataset dabase and loads it into the form
+        async function loadLatestDataset() {
+            try {
+                const response = await fetch("http://localhost:5000/dataset/latest");
+                const data = await response.json();
+
+                console.log("Loaded dataset:", data);
+
+                if (!data) return;
+
+                const form = document.getElementById("Dataset");
+
+                if (!form) return;
+
+                form.querySelector('[name="project_name"]').value = data.ProjectName || "";
+                form.querySelector('[name="material_type"]').value = data.MaterialType || "";
+                form.querySelector('[name="created"]').value = data.Created || "";
+                form.querySelector('[name="description"]').value = data.Description || "";
+
+            } catch (error) {
+                console.error("Error loading dataset:", error);
+            }
+        }
+
 
         </script>
 

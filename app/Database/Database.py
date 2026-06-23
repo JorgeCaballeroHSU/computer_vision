@@ -190,7 +190,7 @@ class Schema(Database):
         """
         # defines the sql-command for the creation of the table Dataset
         dataset="CREATE TABLE IF NOT EXISTS Dataset (datasetID INTEGER PRIMARY KEY, ProjectName TEXT NOT NULL, MaterialType TEXT NOT NULL,"\
-        "created DATE, description TEXT NOT NULL);"
+        "Created DATE, Description TEXT NOT NULL, UNIQUE (ProjectName, MaterialType, Created, Description));"
 
         # defines the sql-command for the creation of the table CameraInfo
         cameraInfo= "CREATE TABLE IF NOT EXISTS CameraInfo (CameraInfoID INTEGER PRIMARY KEY, Manufacturer TEXT NOT NULL," \

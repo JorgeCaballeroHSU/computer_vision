@@ -29,6 +29,9 @@ app=FastAPI()
 # gets the base directory
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
+# defines the location of the database
+databaseLocation=os.path.join(BASE_DIR,'database/database.db')
+
 # calls index.html
 @app.get("/")
 def loadPage():
@@ -54,8 +57,7 @@ def annotation():
 app.mount("/static", StaticFiles(directory="static", html=True), name="static")
 
 
-# defines the location of the database
-databaseLocation=r'\\wsl.localhost\Ubuntu\home\computer_vision\database' #---> to be corrected
+
 
 # windows-formatted address to store the pictures
 windowsAddress=r'C:\Users\Admin\OneDrive - Helmut-Schmidt-Universität\Dokumente\Computer Vision Project\01 Pictures'
@@ -125,15 +127,24 @@ def handleDataset(request:TableRequest):
         'lastID': results[2]
     }
 
-# # gets a list of items in the table dataset
-# @app.get("/dataset")
-# def handleDataset():
+# gets a list of items in the table dataset
+@app.get("/dataset/latest")
+def getDataset():
 
-#     # creates an instance of the table Dataset
-#     table=DatasetTable()
+    # creates an instance of the table Dataset
+    table=DatasetTable(dbFile=databaseLocation)
 
-#     # returns results
-#     return table.fetchDataset()
+    # opens conection to table
+    table.openConnection()
+
+    # fetches table Dataset
+    results=table.fetchDataset()
+
+    # closes connection to table
+    table.closeConnection()
+
+    # returns results. For now, the last result.
+    return results[-1] if results else None
 
 
 ################## CAMERA INFO ################

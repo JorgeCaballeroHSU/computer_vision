@@ -151,16 +151,25 @@ def getDataset():
 # writes, updates, and deletes an item of the CameraInfo table
 @app.post("/camera-info")
 def handleCameraInfo(request: TableRequest):
+
+    # checks if the client is actually sending data
+    if request.clientDataset is None:
+        raise HTTPException(status_code=400, detail="CameraInfo is required")
        
     # creates an instance of the table CameraInfo
-    table = CameraInfoTable("your_database.db")
+    table = CameraInfoTable(dbFile=databaseLocation)
+
+    # opens conection to table
+    table.openConnection()
+
+    # opens connection to table
+    table.openConnection()
 
     # executes the function
-    results = CameraInfo(
-        clientDataset=request.clientDataset,
-        table=table,
-        action=request.action
-    )
+    results = CameraInfo(clientDataset=request.clientDataset, table=table, action=request.action)
+    
+    # closes connection
+    table.closeConnection()
 
     # returns results
     return {
@@ -170,14 +179,23 @@ def handleCameraInfo(request: TableRequest):
     }
 
 # gets list of items in the CameraInfo table
-@app.get("/camera-info")
-def handleCameraInfo():
+@app.get("/camera-info/latest")
+def getCameraInfo():
 
     # creates an instance of the table CameraInfo
-    table = CameraInfoTable("your_database.db")
+    table = CameraInfoTable(dbFile=databaseLocation)
 
-    # returns results
-    return table.fetchCameraInfo()
+    # opens conection to table
+    table.openConnection()
+
+    # fetches table CameraInfo
+    results=table.fetchCameraInfo()
+
+    # closes connection to table
+    table.closeConnection()
+
+    # returns results. For now, the last result.
+    return results[-1] if results else None
 
 
 ############## MATERIAL TYPE#########################
@@ -185,17 +203,27 @@ def handleCameraInfo():
 @app.post("/material-type")
 def handleMaterialType(request: TableRequest):
 
-    # creates an instance of the table MaterialType
-    table = MaterialTypeTable("your_database.db")
+    
+    if request.clientDataset is None:
+        raise HTTPException(status_code=400, detail="MaterialType is required")
 
-    # executes the function
+    # creates an instance of the table MaterialType
+    table = MaterialTypeTable(dbFile=databaseLocation)
+
+    # opens connection to table
+    table.openConnection()
+
+    # gets the results from the table
     results = MaterialType(
         clientDataset=request.clientDataset,
         table=table,
         action=request.action
     )
 
-    # returns results
+    # closes connection to the table
+    table.closeConnection()
+
+    #returns results
     return {
         'success': results[0],
         'data': results[1],
@@ -204,14 +232,24 @@ def handleMaterialType(request: TableRequest):
 
 
 # gets list of items in the MaterialType table
-@app.get("/material-type")
+@app.get("/material-type/latest")
 def handleMaterialType():
 
     # creates an instance of the table MaterialType
-    table = MaterialTypeTable("your_database.db")
+    table = MaterialTypeTable(dbFile=databaseLocation)
+
+    # opens connection to table
+    table.openConnection()
+
+    # gets the database
+    results = table.fetchMaterialType()
+
+    # closes connection to the table
+    table.closeConnection()
 
     # returns results
-    return table.fetchMaterialType()
+    return results[-1] if results else None
+
 
 ####### SAMPLE #######
 
@@ -224,6 +262,11 @@ class SampleRequest(BaseModel):
 @app.post("/sample")
 def handleSample(request:SampleRequest):
 
+    # sends an error message back to front end when there is no data coming in
+    if request.clientDataset is None:
+        raise HTTPException(status_code=400, detail="Dataset is required")
+
+    ############-----> I AM HERE <------#############
     # gets the results from the function dataBaseFill
     results=dataBaseFill(clientDataset=request.clientDataset,image=request.image)
 

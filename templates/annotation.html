@@ -309,78 +309,73 @@
             form2: `
             <div id="CameraInfo" title="Camera Info">
 
-                <!--here goes the parameters that are going to be captured by this database-->
                 <h2>Camera Characteristics</h2>
 
                 <label>
-                    Manufactures:
-                    <input type="text" placeholder="Fujifilm">
+                    Manufacturer:
+                    <input type="text" name="Manufacturer" placeholder="Fujifilm">
                 </label>
                 
                 <label>
                     Camera Model:
-                    <input type="text" placeholder="GFX 100 II EU">
+                    <input type="text" name="CameraModel" placeholder="GFX 100 II EU">
                 </label>
 
                 <label>
                     ISO:
-                    <input type="ISO">
-                    
-                    <!-- here goes the list of possible iso settings -->
-                    <datalist id="ISO">
-                        <option value="80"></option>
-                        <option value="100"></option>
-                        <option value="200"></option>
-                        <option value="400"></option>
-                        <option value="800"></option>
-                        <option value="1600"></option>
-                        <option value="3200"></option>
-                        <option value="6400"></option>
-                        <option value="12800"></option>
-
-                    </datalist>
+                    <input list="ISOlist" name="ISO">
                 </label>
+
+                <datalist id="ISOlist">
+                    <option value="80"></option>
+                    <option value="100"></option>
+                    <option value="200"></option>
+                    <option value="400"></option>
+                    <option value="800"></option>
+                    <option value="1600"></option>
+                    <option value="3200"></option>
+                    <option value="6400"></option>
+                    <option value="12800"></option>
+                </datalist>
 
                 <label>
                     Focus:
-                    <input type="text">
+                    <input type="text" name="Focus">
                 </label>
 
                 <label>
                     Exposure Time:
-                    <input type="Exposure Time">
-
-                    <!-- here goes the list of possible exposure time settings -->
-                    <datalist id="Exposure Time">
-                        <option value="1 Second"></option>
-                        <option value="2 Seconds"></option>
-                        <option value="4 Seconds"></option>
-                        <option value="8 Seconds"></option>
-                        <option value="15 Seconds"></option>
-                        <option value="30 Seconds"></option>
-                        <option value="60 Seconds"></option>
-
-                    </datalist>
+                    <input list="ExposureList" name="ExposureTime">
                 </label>
+
+                <datalist id="ExposureList">
+                    <option value="1 Second"></option>
+                    <option value="2 Seconds"></option>
+                    <option value="4 Seconds"></option>
+                    <option value="8 Seconds"></option>
+                    <option value="15 Seconds"></option>
+                    <option value="30 Seconds"></option>
+                    <option value="60 Seconds"></option>
+                </datalist>
 
                 <label>
                     Flash Mode:
-                    <input type="text">
+                    <input type="text" name="FlashMode">
                 </label>
 
                 <label>
-                    Focal length:
-                    <input type="text">
+                    Focal Length:
+                    <input type="number" name="FocalLength">
                 </label>
 
                 <label>
                     Objective:
-                    <input type="text" placeholder="Fujifilm GF 120/4,0 R LM OIS WR macro">
+                    <input type="text" name="Objective" placeholder="Fujifilm GF 120/4.0">
                 </label>
 
                 <label>
                     Extension:
-                    <input type="text" placeholder="Fujifilm Zwischenring Makro MCEX-45G WR">
+                    <input type="text" name="Extension" placeholder="MCEX-45G WR">
                 </label>
 
                 <button id="save">Save</button>
@@ -391,72 +386,71 @@
             /* here goes the material type form*/
             form3: `
 
-            <div id="Material Fractions" title="Material Type">
+            <div id="MaterialType" title="Material Type">
 
-                <!--here goes the fractions-->
-                <h2>Material Type</h2>
+            <h2>Material Type</h2>
 
-                <label>
-                    Fraction 0.063 mm  [%]:
-                    <input type="number" placeholder="0.00">
-                </label>
+            <label>
+                Fraction 0.063 mm [%]:
+                <input type="number" step="0.01" name="mm0063" placeholder="0.00">
+            </label>
 
-                <label>
-                    Fraction 0.125 mm [%]:
-                    <input type="number" placeholder="0.00">
-                </label>
+            <label>
+                Fraction 0.125 mm [%]:
+                <input type="number" step="0.01" name="mm0125" placeholder="0.00">
+            </label>
 
-                <label>
-                    Fraction 0.250 mm [%]:
-                    <input type="number" placeholder="0.00">
-                </label>
+            <label>
+                Fraction 0.250 mm [%]:
+                <input type="number" step="0.01" name="mm0250" placeholder="0.00">
+            </label>
 
-                <label>
-                    Fraction 0.400 mm [%]:
-                    <input type="number" placeholder="0.00">
-                </label>
+            <label>
+                Fraction 0.400 mm [%]:
+                <input type="number" step="0.01" name="mm0400" placeholder="0.00">
+            </label>
 
-                <label>
-                    Fraction 0.500 mm [%]:
-                    <input type="number" placeholder="0.00">
-                </label>
+            <label>
+                Fraction 0.500 mm [%]:
+                <input type="number" step="0.01" name="mm0500" placeholder="0.00">
+            </label>
 
-                <label>
-                    Fraction 1.000 mm [%]:
-                    <input type="number" placeholder="0.00">
-                </label>
+            <label>
+                Fraction 1.000 mm [%]:
+                <input type="number" step="0.01" name="mm1000" placeholder="0.00">
+            </label>
 
-                <label>
-                    Fraction 2.000 mm [%]:
-                    <input type="number" placeholder="0.00">
-                </label>
+            <label>
+                Fraction 2.000 mm [%]:
+                <input type="number" step="0.01" name="mm2000" placeholder="0.00">
+            </label>
 
-                <label>
-                    Fraction 4.000 mm [%]:
-                    <input type="number" placeholder="0.00">
-                </label>
+            <label>
+                Fraction 4.000 mm [%]:
+                <input type="number" step="0.01" name="mm4000" placeholder="0.00">
+            </label>
 
-                <label>
-                    Fraction 6.000 mm [%]:
-                    <input type="number" placeholder="0.00">
-                </label>
+            <label>
+                Fraction 6.000 mm [%]:
+                <input type="number" step="0.01" name="mm6000" placeholder="0.00">
+            </label>
 
-                <label>
-                    Fraction 8.000 mm [%]:
-                    <input type="number" placeholder="0.00">
-                </label>
+            <label>
+                Fraction 8.000 mm [%]:
+                <input type="number" step="0.01" name="mm8000" placeholder="0.00">
+            </label>
 
-                <label>
-                    Fraction 16.00 mm [%]:
-                    <input type="number" placeholder="0.00">
-                </label>
+            <label>
+                Fraction 16.00 mm [%]:
+                <input type="number" step="0.01" name="mm1600" placeholder="0.00">
+            </label>
 
-                <label>
-                    Fraction 32.00 mm [%]:
-                    <input type="number" placeholder="0.00">
-                </label>
+            <label>
+                Fraction 32.00 mm [%]:
+                <input type="number" step="0.01" name="mm3200" placeholder="0.00">
+            </label>
 
-                <button id="save">Save</button>
+            <button id="save">Save</button>
 
             </div>
             `,
@@ -469,22 +463,23 @@
                 
                 <label>
                     Label:
-                    <input type="text" placeholder="">
+                    <input type="text" name="Label" placeholder="">
                 </label>
 
                 <label>
                     File Path:
-                    <input type="text" placeholder="">
+                    <input type="text" name="FilePath" placeholder="">
                 </label>
 
                 <label>
                     Capture Time:
-                    <input type="datetime" placeholder="">
+                    <input type="datetime-local" name="CaptureTime" placeholder="">
                 </label>
 
                 <button>Save</button>
 
-            </div>`
+            </div>
+            `
         };
 
         
@@ -517,7 +512,7 @@
             document.getElementById("rightSidebar").classList.remove("open");
         }
         
-        // Reads form data
+        // Reads form dataset/project configuration
         function getDatasetProjectConfiguration() {
             const form = document.getElementById("Dataset");
 
@@ -535,6 +530,35 @@
                 MaterialType: form.querySelector('[name="material_type"]').value,
                 Created: form.querySelector('[name="created"]').value,
                 Description: form.querySelector('[name="description"]').value
+            };
+
+            console.log("Extracted data:", data);
+
+            return data;
+        }
+
+        // reads from from camera characteristics
+        function getCameraInfo() {
+            const form = document.getElementById("Camera Info");
+
+            console.log("FORM:",form)
+
+            if (!form){
+                
+                console.error("Dataset form NOT found!");
+                return null;
+
+            }
+
+            const data= {
+                Manufacturer: form.querySelector('[name="project_name"]').value,
+                CameraModel: form.querySelector('[name="material_type"]').value,
+                Focus: form.querySelector('[name="created"]').value,
+                ExposureTime: form.querySelector('[name="description"]').value,
+                FlashMode:,
+                FocalLength:,
+                Objective:,
+                Extension:
             };
 
             console.log("Extracted data:", data);
@@ -612,8 +636,6 @@
                 console.error("Error loading dataset:", error);
             }
         }
-
-
         </script>
 
     </head>

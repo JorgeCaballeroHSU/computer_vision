@@ -195,13 +195,15 @@ class Schema(Database):
         # defines the sql-command for the creation of the table CameraInfo
         cameraInfo= "CREATE TABLE IF NOT EXISTS CameraInfo (CameraInfoID INTEGER PRIMARY KEY, Manufacturer TEXT NOT NULL," \
         "CameraModel TEXT NOT NULL, ISO TEXT NOT NULL, Focus TEXT NOT NULL, ExposureTime TEXT NOT NULL, FlashMode TEXT NOT NULL,"\
-        "FocalLength INTEGER NOT NULL, Objective TEXT NOT NULL, Extension TEXT NOT NULL);"
+        "FocalLength INTEGER NOT NULL, Objective TEXT NOT NULL, Extension TEXT NOT NULL, UNIQUE(Manufacturer, CameraModel, ISO," \
+        "Focus, ExposureTime, FlashMode, FocalLength, Objective, Extension));"
 
         # defines the table for the creation of the table Sample
         sample="CREATE TABLE IF NOT EXISTS Sample (SampleID INTEGER PRIMARY KEY, " \
         "Label TEXT NOT NULL,  FilePath TEXT NOT NULL," \
         "CaptureTime DATE NOT NULL, CameraInfoID INTEGER NOT NULL," \
         "DatasetID INTEGER NOT NULL, MaterialType INTEGER NOT NULL, JunctionPreID INTEGER," \
+        "UNIQUE (Label, FilePath, CaptureTime, CameraInfoID, DatasetID, MaterialType),"\
         "FOREIGN KEY(CameraInfoID) REFERENCES CameraInfo(CameraInfoID) ON DELETE CASCADE ON UPDATE CASCADE," \
         "FOREIGN KEY(DatasetID) REFERENCES Dataset(datasetID) ON DELETE CASCADE ON UPDATE CASCADE," \
         "FOREIGN KEY(MaterialType) REFERENCES MaterialType(MaterialTypeID) ON DELETE CASCADE ON UPDATE CASCADE," \
@@ -210,7 +212,8 @@ class Schema(Database):
         # defines the sql-command for the creation of the table MaterialType
         materialType="CREATE TABLE IF NOT EXISTS MaterialType (MaterialTypeID INTEGER PRIMARY KEY, mm0063 REAL, " \
         "mm0125 REAL, mm0250 REAL, mm0400 REAL, mm0500 REAL, mm1000 REAL, mm2000 REAL, mm4000 REAL," \
-        "mm8000 REAL, mm1600 REAL, mm3200 REAL);"
+        "mm8000 REAL, mm1600 REAL, mm3200 REAL, UNIQUE (mm0063, mm0125, mm0250, mm0400, mm0500,"\
+        "mm1000, mm2000, mm4000, mm8000, mm1600, mm3200));"
 
         # gets all the variables in one place to execute them
         tables = [
@@ -227,23 +230,27 @@ class Schema(Database):
         """
         # defines the sql-command for the creation of the table JunctionPre
         JunctionPre="CREATE TABLE IF NOT EXISTS JunctionPre (JunctionPreID INTEGER PRIMARY KEY, SampleID INTEGER, PreprocessingID INTEGER, " \
+        "UNIQUE(SampleID, PreprocessingID), "\
         "FOREIGN KEY(PreprocessingID) REFERENCES Preprocessing(PreprocessingID) ON DELETE CASCADE ON UPDATE CASCADE);"
 
         # defines the sql- statement for the creation of the table Preprocessing
         Preprocessing="CREATE TABLE IF NOT EXISTS Preprocessing (PreprocessingID INTEGER PRIMARY KEY, PreprocessingType TEXT NOT NULL, " \
-        "FilePath TEXT NOT NULL, Label TEXT NOT NULL);" \
+        "FilePath TEXT NOT NULL, Label TEXT NOT NULL, UNIQUE(PreprocessingType, FilePath, Label));"
+
         
         # defines the sql- statement for the creation of the table JunctionAugmentation
-        JunctionAugmentation="CREATE TABLE IF NOT EXISTS JunctionAugmentation (JunctionAugID INTEGER PRIMARY KEY, PreprocessingID INTEGER, AugmentationID INTEGER, " \
+        JunctionAugmentation="A CREATE TABLE IF NOT EXISTS JunctionAugmentation (JunctionAugID INTEGER PRIMARY KEY, PreprocessingID INTEGER, AugmentationID INTEGER, " \
+        "UNIQUE(PreprocessingID, AugmentationID), " \
         "FOREIGN KEY(PreprocessingID) REFERENCES Preprocessing(PreprocessingID) ON DELETE CASCADE ON UPDATE CASCADE," \
         "FOREIGN KEY(AugmentationID) REFERENCES Augmentation(AugmentationID) ON DELETE CASCADE ON UPDATE CASCADE);"
 
         # defines the sql-command for the creation of the table Augmentation
-        augmentation=" CREATE TABLE IF NOT EXISTS Augmentation (AugmentationID INTEGER PRIMARY KEY, Method TEXT NOT NULL, " \
-        "FilePath TEXT NOT NULL);" \
+        augmentation="CREATE TABLE IF NOT EXISTS Augmentation (AugmentationID INTEGER PRIMARY KEY, Method TEXT NOT NULL, " \
+        "FilePath TEXT NOT NULL, UNIQUE(Method, FilePath));" 
 
         # defines the sql-command for the creation of the table TFRecording
         TFRecording="CREATE TABLE IF NOT EXISTS TFRecording (TFRecordingID INTEGER PRIMARY KEY, Label TEXT NOT NULL, FilePath TEXT NOT NULL, AugmentationID INTEGER," \
+        "UNIQUE(Label, FilePath, AugmentationID)," \
         "FOREIGN KEY(AugmentationID) REFERENCES Augmentation(AugmentationID) ON DELETE CASCADE ON UPDATE CASCADE);"
         
         # returns the list of tables to be created
@@ -256,40 +263,43 @@ class Schema(Database):
         """
         # defines the sql-statement for the creation of the table Validation
         validation="CREATE TABLE IF NOT EXISTS Validation (ValidationID INTEGER PRIMARY KEY, TFRecordingID INTEGER, ModelID INTEGER, " \
+        "UNIQUE(TFRecordingID, ModelID), " \
         "FOREIGN KEY(TFRecordingID) REFERENCES TFRecording(TFRecordingID) ON DELETE CASCADE ON UPDATE CASCADE," \
         "FOREIGN KEY(ModelID) REFERENCES Model(ModelID) ON DELETE CASCADE ON UPDATE CASCADE);"
 
         # defines the sql-Statement for the creation of the table Testing
         testing="CREATE TABLE IF NOT EXISTS Testing (TestingID INTEGER PRIMARY KEY, TFRecordingID INTEGER, ModelID INTEGER, " \
+        "UNIQUE(TFRecordingID, ModelID), " \
         "FOREIGN KEY(TFRecordingID) REFERENCES TFRecording(TFRecordingID) ON DELETE CASCADE ON UPDATE CASCADE," \
         "FOREIGN KEY(ModelID) REFERENCES Model(ModelID) ON DELETE CASCADE ON UPDATE CASCADE);"
 
         # defines the sql-Statement for the creation of the table Training
         training="CREATE TABLE IF NOT EXISTS Training (TrainingID INTEGER PRIMARY KEY, TFRecordingID INTEGER, ModelID INTEGER, " \
+        "UNIQUE(TFRecordingID, ModelID), " \
         "FOREIGN KEY(TFRecordingID) REFERENCES TFRecording(TFRecordingID) ON DELETE CASCADE ON UPDATE CASCADE," \
         "FOREIGN KEY(ModelID) REFERENCES Model(ModelID) ON DELETE CASCADE ON UPDATE CASCADE);"
 
         # defines the sql-command for the creation of the table Model
         model= "CREATE TABLE IF NOT EXISTS Model (ModelID INTEGER PRIMARY KEY, ModelName TEXT NOT NULL, TrainingStatus TEXT NOT NULL, " \
-        "CreatedAt DATE NOT NULL, ModelVersionID INTEGER, " \
+        "CreatedAt DATE NOT NULL, ModelVersionID INTEGER, UNIQUE(ModelName, ModelVersionID), " \
         "FOREIGN KEY (ModelVersionID) REFERENCES ModelVersion(ModelVersionID) ON DELETE CASCADE ON UPDATE CASCADE);"
 
         # defines the sql-command for the creation of the table ModelVersion
         modelVersion="CREATE TABLE IF NOT EXISTS ModelVersion (ModelVersionID INTEGER PRIMARY KEY, ModelVersion INTEGER NOT NULL, CreatedAt DATE NOT NULL, " \
-        "ModelMetricID INTEGER, HyperparameterID INTEGER, ModelWeightsID INTEGER, " \
+        "ModelMetricID INTEGER, HyperparameterID INTEGER, ModelWeightsID INTEGER, UNIQUE(ModelVersion, CreatedAt), " \
         "FOREIGN KEY (ModelMetricID) REFERENCES ModelMetric(ModelMetricID) ON DELETE CASCADE ON UPDATE CASCADE," \
         "FOREIGN KEY (HyperparameterID) REFERENCES Hyperparameter(HyperparameterID) ON DELETE CASCADE ON UPDATE CASCADE," \
         "FOREIGN KEY (ModelWeightsID) REFERENCES ModelWeights(ModelWeightsID) ON DELETE CASCADE ON UPDATE CASCADE);"
 
         # defines the sql-command for the creation of the table ModelMetric
         modelMetric="CREATE TABLE IF NOT EXISTS ModelMetric (ModelMetricID INTEGER PRIMARY KEY, MSE REAL, r2 REAL, " \
-        "loss REAL);"
+        "loss REAL, UNIQUE(MSE, r2, loss));"
 
         # defines the sql-command for the creation of the table Hyperparameter
-        Hyperparameter= "CREATE TABLE IF NOT EXISTS Hyperparameter (HyperparameterID INTEGER PRIMARY KEY, Hyperparameters TEXT);"
+        Hyperparameter= "CREATE TABLE IF NOT EXISTS Hyperparameter (HyperparameterID INTEGER PRIMARY KEY, Hyperparameters TEXT, UNIQUE(Hyperparameters));"
 
         # defines the sql-command for the creation of the table ModelWeights
-        modelWeights= "CREATE TABLE IF NOT EXISTS ModelWeights(ModelWeightsID INTEGER PRIMARY KEY, ModelWeightsPath TEXT);"
+        modelWeights= "CREATE TABLE IF NOT EXISTS ModelWeights(ModelWeightsID INTEGER PRIMARY KEY, ModelWeightsPath TEXT, UNIQUE(ModelWeightsPath));"
 
         # returns the list of tables to be created
         return [modelMetric, Hyperparameter, modelWeights, model, modelVersion]

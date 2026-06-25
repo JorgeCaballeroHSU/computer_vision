@@ -159,9 +159,6 @@ def handleCameraInfo(request: TableRequest):
     # creates an instance of the table CameraInfo
     table = CameraInfoTable(dbFile=databaseLocation)
 
-    # opens conection to table
-    table.openConnection()
-
     # opens connection to table
     table.openConnection()
 

@@ -244,6 +244,7 @@
 
             const file = files[index];
             const img = document.getElementById("mainImage");
+
             img.src = URL.createObjectURL(file);
         }
 
@@ -450,7 +451,7 @@
                 <input type="number" step="0.01" name="mm3200" placeholder="0.00">
             </label>
 
-            <button id="save" onclick="sendBackEnd('MateriaType')">Save</button>
+            <button id="save" onclick="sendBackEnd('MaterialType')">Save</button>
 
             </div>
             `,
@@ -494,6 +495,16 @@
             // Loads data ONLY for dataset form
             if (formName === "form1") {
                 setTimeout(loadLatestDataset, 50); // small delay so DOM is ready
+            }
+
+            // loads the information of the last row from the CameraInfo table
+            else if (formName==='form2'){
+                setTimeout(loadCameraInfo,50);
+            }
+
+            // loads the information of the last row from the MaterialType table
+            else if (formName=="form3"){
+                setTimeout(loadMaterialType,50)
             }
 
         }
@@ -554,6 +565,7 @@
             const data = {
                 Manufacturer: form.querySelector('[name="Manufacturer"]').value,
                 CameraModel: form.querySelector('[name="CameraModel"]').value,
+                ISO:form.querySelector('[name="ISO"]').value,
                 Focus: form.querySelector('[name="Focus"]').value,
                 ExposureTime: form.querySelector('[name="ExposureTime"]').value,
                 FlashMode: form.querySelector('[name="FlashMode"]').value,
@@ -609,16 +621,23 @@
 
                 if (formType === "Dataset") {
                     clientDataset = getDatasetProjectConfiguration();
+
+                    whereToFetch="http://localhost:5000/dataset";
         
                 } 
                 
                 else if (formType==='CameraInfo'){
 
                     clientDataset=getCameraInfo();
+
+                    whereToFetch="http://localhost:5000/camera-info"
                 }
 
                 else if (formType==='MaterialType'){
+
                     clientDataset=getMaterialType();
+
+                    whereToFetch="http://localhost:5000/material-type"
                 }
 
                 else {
@@ -631,7 +650,7 @@
                 return;
             }
 
-                const response = await fetch("http://localhost:5000/dataset", {
+                const response = await fetch(whereToFetch, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json"
@@ -701,6 +720,7 @@
                 
                 form.querySelector('[name="Manufacturer"]').value = data.Manufacturer || "";
                 form.querySelector('[name="CameraModel"]').value = data.CameraModel || "";
+                form.querySelector('[name="ISO"]').value= data.ISO ||"";
                 form.querySelector('[name="Focus"]').value = data.Focus || "";
                 form.querySelector('[name="ExposureTime"]').value = data.ExposureTime || "";
                 form.querySelector('[name="FlashMode"]').value = data.FlashMode || "";
@@ -712,6 +732,111 @@
                 console.error("Error loading dataset:", error);
             }
         }
+
+        // gets the MaterialType dataset from the database and shows the latest row
+        async function loadMaterialType() {
+            try {
+                const response = await fetch("http://localhost:5000/material-type/latest");
+                const data = await response.json();
+
+                console.log("Loaded MaterialType:", data);
+
+                if (!data) return;
+
+                const form = document.getElementById("MaterialType");
+                if (!form) return;
+
+                form.querySelector('[name="mm0063"]').value = data.mm0063 || "";
+                form.querySelector('[name="mm0125"]').value = data.mm0125 || "";
+                form.querySelector('[name="mm0250"]').value = data.mm0250 || "";
+                form.querySelector('[name="mm0400"]').value = data.mm0400 || "";
+                form.querySelector('[name="mm0500"]').value = data.mm0500 || "";
+                form.querySelector('[name="mm1000"]').value = data.mm1000 || "";
+                form.querySelector('[name="mm2000"]').value = data.mm2000 || "";
+                form.querySelector('[name="mm4000"]').value = data.mm4000 || "";
+                form.querySelector('[name="mm8000"]').value = data.mm8000 || "";
+                form.querySelector('[name="mm1600"]').value = data.mm1600 || "";
+                form.querySelector('[name="mm3200"]').value = data.mm3200 || "";
+
+            } catch (error) {
+                console.error("Error loading MaterialType dataset:", error);
+            }
+        }
+
+        // function to fill CameraInfo Form
+        function fillCameraForm(data) {
+            const form = document.getElementById("CameraInfo");
+            if (!form) return;
+
+            if (data.Manufacturer)
+                form.querySelector('[name="Manufacturer"]').value = data.Manufacturer;
+
+            if (data.CameraModel)
+                form.querySelector('[name="CameraModel"]').value = data.CameraModel;
+
+            if (data.ISO)
+                form.querySelector('[name="ISO"]').value = data.ISO;
+
+            if (data.ExposureTime)
+                form.querySelector('[name="ExposureTime"]').value = data.ExposureTime;
+
+            if (data.FlashMode)
+                form.querySelector('[name="FlashMode"]').value = data.FlashMode;
+
+            if (data.FocalLength)
+                form.querySelector('[name="FocalLength"]').value = data.FocalLength;
+        }
+
+
+        // function to fill Sample form
+        
+        function fillSampleForm(data) {
+            const form = document.getElementById("Sample");
+            if (!form) return;
+
+            if (data.FilePath)
+                form.querySelector('[name="FilePath"]').value = data.FilePath;
+
+            if (data.CaptureTime) {
+                let date = new Date(data.CaptureTime);
+                let formatted = date.toISOString().slice(0,16);
+                form.querySelector('[name="CaptureTime"]').value = formatted;
+            }
+        }
+
+
+        // function to extract foto parameters from the image in display
+        function extractExifToForm() {
+            if (files.length === 0) return;
+
+            const file = files[index];
+            const img = document.getElementById("mainImage");
+
+            EXIF.getData(img, function () {
+
+                const exif = EXIF.getAllTags(this);
+
+                console.log("EXIF DATA:", exif);
+
+                // Map EXIF → your form fields
+                fillCameraForm({
+                    Manufacturer: exif.Make,
+                    CameraModel: exif.Model,
+                    ISO: exif.ISOSpeedRatings,
+                    ExposureTime: exif.ExposureTime,
+                    FlashMode: exif.Flash,
+                    FocalLength: exif.FocalLength ? exif.FocalLength.numerator / exif.FocalLength.denominator : "",
+                });
+
+                // File-related metadata (NOT EXIF)
+                fillSampleForm({
+                    FilePath: file.name,
+                    CaptureTime: exif.DateTimeOriginal || file.lastModified
+                });
+
+            });
+        }
+
         </script>
 
     </head>

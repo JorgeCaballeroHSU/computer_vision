@@ -357,13 +357,13 @@ class CameraInfoTable(Database):
     def insertCameraInfoTable(self, clientAnswer:dict)->int:
 
         # inserts the cameraInfo table. It has to be tested if the inf to be added is already there. If that is the case, no change is needed.
-        lastRowID,=self.insertItemsTable(# correct<<<-------
-            query='''INSERT INTO cameraInfo (Manufacturer, CameraModel, ISO, Focus, Exposuretime, FlashMode, FocalLength, Objective, Extension) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) ''',
+        lastRowID,otherValue=self.insertItemsTable(# correct<<<-------
+            query='''INSERT INTO cameraInfo (Manufacturer, CameraModel, ISO, Focus, ExposureTime, FlashMode, FocalLength, Objective, Extension) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) ''',
             values=(clientAnswer.get('Manufacturer'),       # Manufacturer corresponds to the manufacturer of the camera used to take the picture. It is obtained from the exif data of the picture.
                     clientAnswer.get('CameraModel'),        # CameraModel corresponds to the model of the camera used to take the picture. It is obtained from the exif data of the picture.
                     clientAnswer.get('ISO'),                # ISO corresponds to the ISO used to take the picture. It is obtained from the exif data of the picture.
                     clientAnswer.get('Focus'),              # Focus corresponds to the focus used to take the picture. It is obtained from the exif data of the picture.
-                    clientAnswer.get('Exposuretime'),       # Exposuretime corresponds to the exposure time used to take the picture. It is obtained from the exif data of the picture.
+                    clientAnswer.get('ExposureTime'),       # Exposuretime corresponds to the exposure time used to take the picture. It is obtained from the exif data of the picture.
                     clientAnswer.get('FlashMode'),          # FlashMode corresponds to the flash mode used to take the picture. It is obtained from the exif data of the picture.
                     clientAnswer.get('FocalLength'),        # FocalLength corresponds to the focal length used to take the picture. It is obtained from the exif data of the picture.
                     clientAnswer.get('Objective'),          # Objective corresponds to the objective used to take the picture. It is obtained from the exif data of the picture.
@@ -412,7 +412,7 @@ class CameraInfoTable(Database):
     def fetchCameraInfo(self)-> dict:
 
         # fetches the dataset from the database
-        dataset=self.fetchInfo(statete='''SELECT * FROM CameraInfo''')
+        dataset=self.fetchInfo(statement='''SELECT * FROM CameraInfo''')
 
         # returns the dataset
         return dataset
@@ -484,7 +484,7 @@ class MaterialTypeTable(Database):
     # inserts the MaterialType table. It has to be tested if the inf to be added is already there. If that is the case, no change is needed.
     def insertMaterialTypeTable(self, clientAnswer:dict)->int:
         # inserts the MaterialType table. It has to be tested if the inf to be added is already there. If that is the case, no change is needed.
-        lastRowID,=self.insertItemsTable(
+        lastRowID,otherValue=self.insertItemsTable(
             query='''INSERT INTO MaterialType (mm0063, mm0125, mm0250, mm0400, mm0500, mm1000, mm2000, mm4000, mm8000, mm1600, mm3200) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ''',
             values=(
                 clientAnswer.get('mm0063'),                 # mm0063 corresponds to the value of the material type for the size of 0.063 mm. It is obtained from the exif data of the picture.
@@ -544,7 +544,7 @@ class MaterialTypeTable(Database):
     def fetchMaterialType(self)-> dict:
 
         # fetches the materialType from the database
-        materialType=self.fetchInfo(query='''SELECT * FROM MaterialType''')
+        materialType=self.fetchInfo(statement='''SELECT * FROM MaterialType''')
 
         # returns the materialType
         return materialType

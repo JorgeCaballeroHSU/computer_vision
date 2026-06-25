@@ -477,7 +477,7 @@
                     <input type="datetime-local" name="CaptureTime" placeholder="">
                 </label>
 
-                <button>Save</button>
+                <button onclick="sendBackEnd('Sample')>Save</button>
 
             </div>
             `
@@ -505,6 +505,11 @@
             // loads the information of the last row from the MaterialType table
             else if (formName=="form3"){
                 setTimeout(loadMaterialType,50)
+            }
+
+            // loads the information of the last row from the Sample table
+            else if (formName==="form4"){
+                setTimeout(loadSample,50)
             }
 
         }
@@ -613,52 +618,128 @@
             return data;
         }
 
+        // reads from Sample form
+        async function getSample() {
 
+            const form = document.getElementById("Sample");
+
+            console.log("FORM:", form);
+
+            if (!form) {
+                console.error("Sample form NOT found!");
+                return null;
+            }
+
+            // collect dataset fields
+            const clientDataset = {
+                sampleName: form.querySelector('[name="sampleName"]')?.value || "",
+                description: form.querySelector('[name="description"]')?.value || "",
+                location: form.querySelector('[name="location"]')?.value || ""
+            };
+
+            // get file
+            const fileInput = form.querySelector('[name="image"]');
+            const file = fileInput?.files[0];
+
+            let base64Image = "";
+
+            if (file) {
+                base64Image = await convertToBase64(file);
+            }
+
+            const payload = {
+                clientDataset: clientDataset,
+                image: base64Image
+            };
+
+            console.log("Extracted Sample data:", payload);
+
+            return payload;
+        }
+
+        // converts the base to be able to send the files
+        function convertToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+
+                reader.readAsDataURL(file);
+
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+            });
+        }
+        
         // Sends data to backend
         async function sendBackEnd(formType, action = "add") {
             try {
                 let clientDataset;
+                let payload;
+                let whereToFetch;
 
                 if (formType === "Dataset") {
                     clientDataset = getDatasetProjectConfiguration();
+                    whereToFetch = "http://localhost:5000/dataset";
 
-                    whereToFetch="http://localhost:5000/dataset";
-        
+                    payload = {
+                        action: action,
+                        clientDataset: clientDataset
+                    };
                 } 
                 
-                else if (formType==='CameraInfo'){
+                else if (formType === "CameraInfo") {
+                    clientDataset = getCameraInfo();
+                    whereToFetch = "http://localhost:5000/camera-info";
 
-                    clientDataset=getCameraInfo();
-
-                    whereToFetch="http://localhost:5000/camera-info"
+                    payload = {
+                        action: action,
+                        clientDataset: clientDataset
+                    };
                 }
 
-                else if (formType==='MaterialType'){
+                else if (formType === "MaterialType") {
+                    clientDataset = getMaterialType();
+                    whereToFetch = "http://localhost:5000/material-type";
 
-                    clientDataset=getMaterialType();
+                    payload = {
+                        action: action,
+                        clientDataset: clientDataset
+                    };
+                }
 
-                    whereToFetch="http://localhost:5000/material-type"
+                else if (formType === "Sample") {
+                    const sampleData = await getSample();   // ✅ IMPORTANT (async)
+
+                    if (!sampleData) {
+                        console.error("Sample data is NULL → not sending");
+                        return;
+                    }
+
+                    whereToFetch = "http://localhost:5000/sample";
+
+                    // ✅ Match backend structure
+                    payload = {
+                        clientDataset: sampleData.clientDataset,
+                        image: sampleData.image
+                    };
                 }
 
                 else {
                     console.error("Unknown form type");
                     return;
                 }
-                            
-            if (!clientDataset) {
-                console.error("clientDataset is NULL → not sending");
-                return;
-            }
+
+                // ✅ Common validation (skip for Sample because already handled)
+                if (formType !== "Sample" && !clientDataset) {
+                    console.error("clientDataset is NULL → not sending");
+                    return;
+                }
 
                 const response = await fetch(whereToFetch, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({
-                        action: action,
-                        clientDataset: clientDataset
-                    })
+                    body: JSON.stringify(payload)
                 });
 
                 const result = await response.json();
@@ -761,6 +842,12 @@
             } catch (error) {
                 console.error("Error loading MaterialType dataset:", error);
             }
+        }
+
+        // gets the Sample table information from the database and shows the last row
+        async function loadSample() {
+
+            /// TO FILL UP///
         }
 
         // function to fill CameraInfo Form

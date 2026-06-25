@@ -261,7 +261,7 @@ def handleSample(request:SampleRequest):
 
     # sends an error message back to front end when there is no data coming in
     if request.clientDataset is None:
-        raise HTTPException(status_code=400, detail="Dataset is required")
+        raise HTTPException(status_code=400, detail="clientDataset and image are required")
 
     ############-----> I AM HERE <------#############
     # gets the results from the function dataBaseFill

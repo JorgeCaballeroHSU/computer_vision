@@ -180,12 +180,14 @@
 
         <!-- EXIF -->
         <script src="/static/exif-js.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/exif-js"></script>
 
         <script>
         let files = [];
         let index = 0;
         let directoryHandle = null;
         let currentObjectURL = null || "";
+        let captureTimes = {};
 
         /* ===== CREATE SPACE FOR FORMS =====*/
         function rightSideBar(){
@@ -629,12 +631,31 @@
 
             return data;
         }
+        
+        // gets the CaptureTime of the image
+        function getCaptureTime(file) {
+            return new Promise((resolve, reject) => {
+                EXIF.getData(file, function () {
+                    const date = EXIF.getTag(this, "DateTimeOriginal");
+
+                    if (!date) {
+                        resolve(null);
+                        return;
+                    }
+
+                    // format: "2025:06:25 12:30:00"
+                    const formatted = date.replace(/:/g, "-", 2);
+
+                    resolve(formatted);
+                });
+            });
+        }
+        
 
         // reads from Sample form
         async function getSample() {
 
             const form = document.getElementById("Sample");
-
             if (!form) return null;
 
             const clientDataset = {
@@ -643,32 +664,9 @@
                 CaptureTime: form.querySelector('[name="CaptureTime"]')?.value || ""
             };
 
-            let base64Image = "";
-
-            // ✅ Use current image from folder
-            if (files.length > 0) {
-
-                const file = files[index];   // current image
-
-                base64Image = await convertToBase64(file);
-            }
-
             return {
-                clientDataset,
-                image: base64Image
+                clientDataset
             };
-        }
-
-        // converts the base to be able to send the files
-        function convertToBase64(file) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-
-                reader.readAsDataURL(file);
-
-                reader.onload = () => resolve(reader.result);
-                reader.onerror = error => reject(error);
-            });
         }
         
         // Sends data to backend
@@ -707,23 +705,108 @@
                         clientDataset: clientDataset
                     };
                 }
-
+                
                 else if (formType === "Sample") {
-                    const sampleData = await getSample();   // ✅ IMPORTANT (async)
 
-                    if (!sampleData) {
-                        console.error("Sample data is NULL → not sending");
+                    const file = files[index];
+
+                    if (!file) {
+                        alert("No file selected");
                         return;
                     }
 
-                    whereToFetch = "http://localhost:5000/sample";
+                    // -----------------------------
+                    // ✅ Extract CaptureTime (optional)
+                    // -----------------------------
+                    function getCaptureTime(file) {
+                        return new Promise((resolve) => {
+                            EXIF.getData(file, function () {
+                                const date = EXIF.getTag(this, "DateTimeOriginal");
 
-                    // ✅ Match backend structure
-                    payload = {
-                        clientDataset: sampleData.clientDataset,
-                        action:action,
-                        image: sampleData.image
+                                if (date) {
+                                    // ✅ EXIF exists → use it
+                                    const formatted = date.replace(/:/g, "-", 2);
+                                    resolve(formatted);
+
+                                } else {
+                                    // ✅ fallback → file timestamp (stable)
+                                    const fallback = new Date(file.lastModified)
+                                        .toISOString()
+                                        .slice(0, 19)
+                                        .replace("T", " ");
+
+                                    resolve(fallback);
+                                }
+                            });
+                        });
+                    }
+
+
+                    const captureTime = await getCaptureTime(file);
+
+                    // -----------------------------
+                    // ✅ Build clientDataset (ONLY CaptureTime)
+                    // -----------------------------
+                    const clientDataset = {
+                        CaptureTime: captureTime
                     };
+
+                    // -----------------------------
+                    // ✅ FormData
+                    // -----------------------------
+                    const formData = new FormData();
+
+                    formData.append("file", file);
+                    formData.append("clientDataset", JSON.stringify(clientDataset));
+                    formData.append("action", "add");
+
+                    // -----------------------------
+                    // ✅ Upload with progress
+                    // -----------------------------
+                    const xhr = new XMLHttpRequest();
+
+                    xhr.open("POST", "http://localhost:5000/sample", true);
+
+                    const progressBar = document.getElementById("uploadProgress");
+                    const progressText = document.getElementById("progressText");
+
+                    xhr.upload.onprogress = function (e) {
+                        if (e.lengthComputable) {
+                            const percent = Math.round((e.loaded / e.total) * 100);
+
+                            const uploadedMB = (e.loaded / 1024 / 1024).toFixed(1);
+                            const totalMB = (e.total / 1024 / 1024).toFixed(1);
+
+                            progressBar.value = percent;
+                            progressText.textContent = `${percent}% (${uploadedMB}/${totalMB} MB)`;
+                        }
+                    };
+
+                    xhr.onload = function () {
+                        if (xhr.status === 200) {
+
+                            console.log("✅ Upload complete:", xhr.responseText);
+                            progressText.textContent = "Upload complete ✅";
+
+                            // ✅ Clear file from frontend memory
+                            document.getElementById("fileInput").value = "";
+                            files = [];
+
+                        } else {
+                            console.error("❌ Upload failed:", xhr.responseText);
+                            progressText.textContent = "Error ❌";
+                        }
+                    };
+
+                    xhr.onerror = function () {
+                        console.error("❌ Network error");
+                        progressText.textContent = "Network error ❌";
+                    };
+
+                    progressBar.value = 0;
+                    progressText.textContent = "0%";
+
+                    xhr.send(formData);
                 }
 
                 else {
@@ -973,6 +1056,11 @@
                     <!--to call the content of the table Sample-->
                     <button onclick="openForm('form4')">Label and Location</button>
 
+                </div>
+
+                    <div style="margin:10px;">
+                    <progress id="uploadProgress" value="0" max="100" style="width:100%;"></progress>
+                    <span id="progressText">0%</span>
                 </div>
             </div>
 

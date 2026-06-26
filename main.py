@@ -1,7 +1,7 @@
 # main.py
 
 # imports required libraries for endpoint creation
-from fastapi import FastAPI, File, HTTPException, UploadFile 
+from fastapi import FastAPI, File, HTTPException, UploadFile,Form
 from pydantic import BaseModel
 from typing import Optional
 import os
@@ -9,10 +9,9 @@ import os
 from fastapi.responses import HTMLResponse, FileResponse
 from fastapi.requests import Request
 from fastapi.staticfiles import StaticFiles
+import json
 
 
-
-#from app.Sockets.SocketServer import SocketServer
 from app.Tools.ChangePath import ChangePath
 from app.dataBaseFill import dataBaseFill, PreprocessingImages, AugmentationImages
 from app.trainModel import trainModel
@@ -55,7 +54,6 @@ def annotation():
     return FileResponse(os.path.join(BASE_DIR, "templates", "prediction.html"))
 
 app.mount("/static", StaticFiles(directory="static", html=True), name="static")
-
 
 
 
@@ -250,26 +248,39 @@ def handleMaterialType():
 
 ####### SAMPLE #######
 
-# defines the input format table Sample
-class SampleRequest(BaseModel):
-    clientDataset: dict
-    image: str
-    action: str
-
 # writes, updates, and deletes an item of the Sample table
 @app.post("/sample")
-def handleSample(request:SampleRequest):
+def handleSample(
+    clientDataset: str = Form(...),   # comes as string
+    action: str = Form(...),
+    file: UploadFile = File(...)
+):
+    try:
+        # Convert JSON string → dict
+        clientAnswer = json.loads(clientDataset)
 
-    # sends an error message back to front end when there is no data coming in
-    if request.clientDataset is None:
-        raise HTTPException(status_code=400, detail="clientDataset and image are required")
+    except Exception as e:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid JSON in clientDataset: {e}"
+        )
 
-    ############-----> I AM HERE <------#############
-    # gets the results from the function dataBaseFill
-    results=dataBaseFill(clientAnswer=request.clientDataset,action=request.action,image=request.image,dbFile=databaseLocation)
+    # Call backend
+    result = dataBaseFill(
+        clientAnswer=clientAnswer,
+        action=action,
+        file=file,
+        dbFile=databaseLocation
+    )
 
-    # returns results
-    return results
+    if not result.get("success"):
+        raise HTTPException(
+            status_code=500,
+            detail=result.get("message", "Unknown error")
+        )
+
+    return result
+
 
 ####### PREPROCESSING ########
 # defines the input format table preprocessing and junctionPre

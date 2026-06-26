@@ -16,77 +16,74 @@ pathFormat=ChangePath()
 
 
 # defines the function databaseFill to fill up date database of images for later training
-def dataBaseFill(clientAnswer:dict, action:str, image:str,dbFile:str)->dict:
-    
-    # gets the image from the client
-    # It assumes that the client will send the image as chucks that will be put together at the socket class
-    # it assumes that the picture will be received as binary that will be decoded at the socket class  
+def dataBaseFill(clientAnswer: dict, action: str, file, dbFile: str) -> dict:
+    """
+    Handles large image upload safely using streaming.
+    """
 
-    # creates the object label from class LabelSample
-    label=LabelSample(dbFile=dbFile)
+    try:
+        label = LabelSample(dbFile=dbFile)
+        pathManager = Path(dbFile=dbFile)
 
-    # creates the object path from the class Path
-    path=Path(dbFile=dbFile)
+        if action == "add":
 
-    # stores the file in the indicated address if the action is to "add" a new sample
-    if action=='add':
-        
-        # stores the image in the defined path
+            if file is None:
+                return {"success": False, "message": "File missing"}
 
-        # generates label for the picture
-        label.setLabelType(labelType=clientAnswer.get('labelType')) # sets the label type
-        labelFile=label.generateSampleLabel()
+            labelFile = label.generateSampleLabel()
+            if not labelFile:
+                return {"success": False, "message": "Label generation failed"}
 
-        # creates a file where the image is going to be saved
-        with open(
-            file=''.join(path.getPath(),addDataType(fileName=labelFile,dataType='jpeg')),
-            mode='wb'
-            ) as f:
+            basePath = pathManager.loadPath("image")
 
-            # saves the file
-            f.write(image) #-> client answer contains the image as binary
+            filePath = os.path.join(basePath,addDataType(labelFile, "jpg"))
 
-            # closes the file when is over
-            f.close()
+            # ✅ STREAM WRITE (CRITICAL FOR 200MB)
+            with open(filePath, "wb") as buffer:
+                while True:
+                    chunk = file.file.read(1024 * 1024)  # 1 MB chunks
+                    if not chunk:
+                        break
+                    buffer.write(chunk)
 
-        # generates the dict of data to add an item to the sample table
-        clientDataset={
-            'Label':labelFile,
-            'FilePath':path.getPath(),
-            'CaptureTime':clientAnswer['CaptureTime'],
-            'CameraID':clientAnswer['CameraID'],
-            'DatasetID':clientAnswer['DatasetID'],
-            'MaterialID':clientAnswer['MaterialID']
-        }
+            db = Database(dbFile=dbFile)
 
-        # updates the sample table
-        return Sample(clientDataset=clientDataset, table=SampleTable, action=action )
-    
-    # if the action is to delete a sample, then the file has to be deleted from the hard drive and the register from the database
-    elif action=='delete':
-        
-        # generates the file path
-        pathFile='{}/{}.jpeg'.format(clientAnswer['FilePath'],clientAnswer['Label'])
+            cameraInfoID = db.fetchLastID("CameraInfo", "CameraInfoID")
+            datasetID = db.fetchLastID("Dataset", "datasetID")
+            materialTypeID = db.fetchLastID("MaterialType", "MaterialTypeID")
 
-        # deletes the file in the hard drive
-        try:
-            os.remove(path=pathFile) #### ----> it has to be added handling of errors
-            
-            #returns results from the deletion of the database
-            return Sample(clientDataset=clientAnswer,table=SampleTable,action=action)
-        except OSError as e:
+            clientDataset = {
+                'Label': labelFile,
+                'FilePath': basePath,
+                'CaptureTime': clientAnswer.get('CaptureTime'),
+                'CameraInfoID': cameraInfoID,
+                'DatasetID': datasetID,
+                'MaterialTypeID': materialTypeID
+            }
 
-            # prints error
-            print('An error has accurred: {}'.format(e))
+            # manages sample table
+            table=SampleTable(dbFile=dbFile)
+            table.openConnection()
 
-            # indicates that the file cannot be deleted
-            print('File cannot be removed')
-    
-    # if the something in the database wants to be modified
-    elif action=='modify':
+            db_result = Sample(
+                clientDataset=clientDataset,
+                table=table,
+                action='add'
+            )
 
-        # returns results from table Sample modification
-        return Sample(clientDataset=clientAnswer,table=SampleTable,action=action)
+            table.closeConnection()
+
+            return {
+                "success": True,
+                "label": labelFile,
+                "path": filePath
+            }
+
+        return {"success": False}
+
+    except Exception as e:
+        print(f"[dataBaseFill] Error: {e}")
+        return {"success": False, "message": str(e)}
         
 
 # gets the pcitures into a TensorFlow record format for later use in the training of the model
@@ -144,7 +141,7 @@ def PreprocessingImages(clientAnswer:dict)->list:
     for file in filesAvailable:
         
         # generates the address of the file and opens it for use read only.
-        photoLocation= open('/'.join(fotosPath,file),mode='r')
+        photoLocation= open('\\'.join(fotosPath,file),mode='r')
 
         # applies tailing to the image to extract patches from the image
         tailedImages=tailing.tailing(image=photoLocation) 
@@ -159,7 +156,7 @@ def PreprocessingImages(clientAnswer:dict)->list:
 
             # saves the tailed image as numpy array in the indicated path to maintian the resolution of the image
             np.save(
-                file='/'.join(path.getPath(),addDataType(fileName=label,dataType='npy')),
+                file='\\'.join(path.getPath(),addDataType(fileName=label,dataType='npy')),
                 arr=tailedImages[i]
             )
 
@@ -217,7 +214,7 @@ def AugmentationImages(clientAnswer:dict)->list:
                                        TFRecord=augmentedImage)
         
         # adds information to the table Augmentation 
-        augmentationTable=Augmentation(clientData={'Method':clientAnswer['Method'], 'FilePath':'/'.join([pathFormat.changePathWindowsToWsl(path=windowsAddress),augmentationLabel.generateTensorFlowRecordLabel()])},
+        augmentationTable=Augmentation(clientData={'Method':clientAnswer['Method'], 'FilePath':'\\'.join([pathFormat.changePathWindowsToWsl(path=windowsAddress),augmentationLabel.generateTensorFlowRecordLabel()])},
                                        )
 
         # adds information to JuctionAugmentation table
@@ -226,7 +223,7 @@ def AugmentationImages(clientAnswer:dict)->list:
         # adds information to table TFRecording
         TFrecordingTable=TFRecording(
               clientData={'Label':augmentationLabel.generateTensorFlowRecordLabel(),
-                          'FilePath':'/'.join([pathFormat.changePathWindowsToWsl(path=windowsAddress),augmentationLabel.generateTensorFlowRecordLabel()]),
+                          'FilePath':'\\'.join([pathFormat.changePathWindowsToWsl(path=windowsAddress),augmentationLabel.generateTensorFlowRecordLabel()]),
                           'AugmentationID': augmentationTable[2]
               })
         
@@ -255,7 +252,7 @@ def AugmentationImages(clientAnswer:dict)->list:
                                        TFRecord=augmentedImage)
         
         # adds information to the table Augmentation 
-        augmentationTable=Augmentation(clientData={'Method':clientAnswer['Method'], 'FilePath':'/'.join([pathFormat.changePathWindowsToWsl(path=windowsAddress),augmentationLabel.generateTensorFlowRecordLabel()])},
+        augmentationTable=Augmentation(clientData={'Method':clientAnswer['Method'], 'FilePath':'\\'.join([pathFormat.changePathWindowsToWsl(path=windowsAddress),augmentationLabel.generateTensorFlowRecordLabel()])},
                                        )
         
         # adds information to JuctionAgumentation table

@@ -137,6 +137,25 @@ class Database:
         # return nothing
         return None
     
+    def fetchLastID(self, tableName: str, idColumn: str):
+        try:
+            self.openConnection()
+
+            result = self.fetchInfo(
+                f"SELECT MAX({idColumn}) as id FROM {tableName}"
+            )
+
+            self.closeConnection()
+
+            if result and result[0]["id"] is not None:
+                return result[0]["id"]
+
+            return None
+
+        except Exception as e:
+            print(f"Error fetching last ID from {tableName}: {e}")
+            return None
+    
 # class to create the tables
 class Schema(Database):
 
@@ -189,7 +208,7 @@ class Schema(Database):
         :return: list of SQL statements for creating tables 
         """
         # defines the sql-command for the creation of the table Dataset
-        dataset="CREATE TABLE IF NOT EXISTS Dataset (datasetID INTEGER PRIMARY KEY, ProjectName TEXT NOT NULL, MaterialType TEXT NOT NULL,"\
+        dataset="CREATE TABLE IF NOT EXISTS Dataset (DatasetID INTEGER PRIMARY KEY, ProjectName TEXT NOT NULL, MaterialType TEXT NOT NULL,"\
         "Created DATE, Description TEXT NOT NULL, UNIQUE (ProjectName, MaterialType, Created, Description));"
 
         # defines the sql-command for the creation of the table CameraInfo
@@ -202,11 +221,11 @@ class Schema(Database):
         sample="CREATE TABLE IF NOT EXISTS Sample (SampleID INTEGER PRIMARY KEY, " \
         "Label TEXT NOT NULL,  FilePath TEXT NOT NULL," \
         "CaptureTime DATE NOT NULL, CameraInfoID INTEGER NOT NULL," \
-        "DatasetID INTEGER NOT NULL, MaterialType INTEGER NOT NULL, JunctionPreID INTEGER," \
-        "UNIQUE (Label, FilePath, CaptureTime, CameraInfoID, DatasetID, MaterialType),"\
+        "DatasetID INTEGER NOT NULL, MaterialTypeID INTEGER NOT NULL, JunctionPreID INTEGER," \
+        "UNIQUE (FilePath, CaptureTime, CameraInfoID, DatasetID, MaterialTypeID),"\
         "FOREIGN KEY(CameraInfoID) REFERENCES CameraInfo(CameraInfoID) ON DELETE CASCADE ON UPDATE CASCADE," \
         "FOREIGN KEY(DatasetID) REFERENCES Dataset(datasetID) ON DELETE CASCADE ON UPDATE CASCADE," \
-        "FOREIGN KEY(MaterialType) REFERENCES MaterialType(MaterialTypeID) ON DELETE CASCADE ON UPDATE CASCADE," \
+        "FOREIGN KEY(MaterialTypeID) REFERENCES MaterialType(MaterialTypeID) ON DELETE CASCADE ON UPDATE CASCADE," \
         "FOREIGN KEY(JunctionPreID) REFERENCES JunctionPre(JunctionPreID) ON DELETE CASCADE ON UPDATE CASCADE);"
         
         # defines the sql-command for the creation of the table MaterialType
@@ -357,7 +376,7 @@ class CameraInfoTable(Database):
     def insertCameraInfoTable(self, clientAnswer:dict)->int:
 
         # inserts the cameraInfo table. It has to be tested if the inf to be added is already there. If that is the case, no change is needed.
-        lastRowID,otherValue=self.insertItemsTable(# correct<<<-------
+        lastRowID,_=self.insertItemsTable(# correct<<<-------
             query='''INSERT INTO cameraInfo (Manufacturer, CameraModel, ISO, Focus, ExposureTime, FlashMode, FocalLength, Objective, Extension) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) ''',
             values=(clientAnswer.get('Manufacturer'),       # Manufacturer corresponds to the manufacturer of the camera used to take the picture. It is obtained from the exif data of the picture.
                     clientAnswer.get('CameraModel'),        # CameraModel corresponds to the model of the camera used to take the picture. It is obtained from the exif data of the picture.
@@ -428,7 +447,7 @@ class DatasetTable(Database):
     def insertDatasetTable(self, clientAnswer:dict)->int:
 
         # inserts the Dataset table. It has to be tested if the inf to be added is already there. If that is the case, no change is needed.
-        lastRowID,otherValue=self.insertItemsTable(
+        lastRowID,_=self.insertItemsTable(
             query='''INSERT INTO Dataset (ProjectName, MaterialType, Created, Description) VALUES (?, ?, ?, ?) ''',
             values=(clientAnswer.get('ProjectName'), clientAnswer.get('MaterialType'), clientAnswer.get('Created'), clientAnswer.get('Description'))
         )
@@ -484,7 +503,7 @@ class MaterialTypeTable(Database):
     # inserts the MaterialType table. It has to be tested if the inf to be added is already there. If that is the case, no change is needed.
     def insertMaterialTypeTable(self, clientAnswer:dict)->int:
         # inserts the MaterialType table. It has to be tested if the inf to be added is already there. If that is the case, no change is needed.
-        lastRowID,otherValue=self.insertItemsTable(
+        lastRowID,_=self.insertItemsTable(
             query='''INSERT INTO MaterialType (mm0063, mm0125, mm0250, mm0400, mm0500, mm1000, mm2000, mm4000, mm8000, mm1600, mm3200) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ''',
             values=(
                 clientAnswer.get('mm0063'),                 # mm0063 corresponds to the value of the material type for the size of 0.063 mm. It is obtained from the exif data of the picture.
@@ -559,10 +578,10 @@ class SampleTable(Database):
     # inserts the sample table. It has to be tested if the inf to be added is already there. If that is the case, no change is needed.
     def insertSampleTable(self, clientAnswer:dict)->int:
         # inserts the sample table. It has to be tested if the inf to be added is already there. If that is the case, no change is needed.
-        lastRowID,=self.insertItemsTable(
+        lastRowID, _ =self.insertItemsTable(
             query='''INSERT INTO Sample (Label, FilePath, CaptureTime, CameraInfoID, DatasetID, MaterialTypeID) VALUES (?, ?, ?, ?, ?, ?) ''',
             values=(clientAnswer.get('Label'), clientAnswer.get('FilePath'), clientAnswer.get('CaptureTime'), 
-                    clientAnswer.get('cameraInfoID'), clientAnswer.get('datasetID'), clientAnswer.get('materialTypeID'))
+                    clientAnswer.get('CameraInfoID'), clientAnswer.get('DatasetID'), clientAnswer.get('MaterialTypeID'))
         )
 
         # returns the last id of the sample table.
@@ -597,9 +616,9 @@ class SampleTable(Database):
         return None
 
     # fetches all Sample rows
-    def fetchJunctionAugmentation(self) -> dict:
+    def fetchSample(self) -> dict:
         Sample = self.fetchInfo(
-            query='''SELECT * FROM Sample'''
+            statement='''SELECT * FROM Sample'''
         )
         return Sample
     
@@ -612,7 +631,7 @@ class JunctionPreTable(Database):
     # inserts the JunctionPre table. It has to be tested if the inf to be added is already there. If that is the case, no change is needed.
     def insertJunctionPreTable(self, clientAnswer:dict)->int:
         # inserts the JunctionPre table. It has to be tested if the inf to be added is already there. If that is the case, no change is needed.
-        lastRowID,=self.insertItemsTable(
+        lastRowID, _ =self.insertItemsTable(
             query='''INSERT INTO JunctionPre (SampleID, PreprocessingID) VALUES (?, ?) ''',
             values=(clientAnswer['SampleID'], clientAnswer['PreprocessingID'])
         )
@@ -665,7 +684,7 @@ class PreprocessingTable(Database):
     # inserts the Preprocessing table. It has to be tested if the inf to be added is already there. If that is the case, no change is needed.
     def insertPreprocessingTable(self, clientAnswer:dict)->int:
         # inserts the Preprocessing table. It has to be tested if the inf to be added is already there. If that is the case, no change is needed.
-        lastRowID,=self.insertItemsTable(
+        lastRowID, _ =self.insertItemsTable(
             query='''INSERT INTO Preprocessing (PreprocessingType, FilePath, Label) VALUES (?, ?, ?) ''',
             values=(clientAnswer.get('PreprocessingType'), clientAnswer.get('FilePath'), clientAnswer.get('Label'))
         )
@@ -720,7 +739,7 @@ class JunctionAugmentationTable(Database):
     # inserts the JunctionAugmentation table. It has to be tested if the inf to be added is already there. If that is the case, no change is needed.
     def insertJunctionAugmentationTable(self, clientAnswer:dict)->int:
         # inserts the JunctionAugmentation table. It has to be tested if the inf to be added is already there. If that is the case, no change is needed.
-        lastRowID,=self.insertItemsTable(
+        lastRowID, _ =self.insertItemsTable(
             query='''INSERT INTO JunctionAugmentation (PreprocessingID, AugmentationID) VALUES (?, ?) ''',
             values=(clientAnswer['PreprocessingID'],  clientAnswer['AugmentationID'])
         )
@@ -774,7 +793,7 @@ class AugmentationTable(Database):
     # inserts the Augmentation table. It has to be tested if the inf to be added is already there. If that is the case, no change is needed.
     def insertAugmentationTable(self, clientAnswer:dict)->int:
         # inserts the Augmentation table. It has to be tested if the inf to be added is already there. If that is the case, no change is needed.
-        lastRowID,=self.insertItemsTable(
+        lastRowID, _ =self.insertItemsTable(
             query='''INSERT INTO Augmentation (Method, FilePath) VALUES (?, ?) ''',
             values=(clientAnswer.get('Method'), clientAnswer.get('FilePath'))
         )
@@ -827,7 +846,7 @@ class TFRecordingTable(Database):
     # inserts the TFRecording table. It has to be tested if the inf to be added is already there. If that is the case, no change is needed.
     def insertTFRecordingTable(self, clientAnswer:dict)->int:
         # inserts the TFRecording table. It has to be tested if the inf to be added is already there. If that is the case, no change is needed.
-        lastRowID,=self.insertItemsTable(
+        lastRowID, _ =self.insertItemsTable(
             query='''INSERT INTO TFRecording (Label, FilePath, AugmentationID) VALUES (?, ?, ?) ''',
             values=(clientAnswer.get('Label'), clientAnswer.get('FilePath'), clientAnswer.get('AugmentationID'))
         )
@@ -878,7 +897,7 @@ class ValidationTable(Database):
     # inserts the Validation table. It has to be tested if the inf to be added is already there. If that is the case, no change is needed.
     def insertValidationTable(self, clientAnswer:dict)->int:
         # inserts the Validation table. It has to be tested if the inf to be added is already there. If that is the case, no change is needed.
-        lastRowID,=self.insertItemsTable(
+        lastRowID, _ =self.insertItemsTable(
             query='''INSERT INTO Validation (TFRecordingID, ModelID) VALUES (?, ?) ''',
             values=(clientAnswer['TFRecordingID'], clientAnswer['ModelID'])
         )
@@ -931,7 +950,7 @@ class TestingTable(Database):
     # inserts the Testing table. It has to be tested if the inf to be added is already there. If that is the case, no change is needed.
     def insertTestingTable(self, clientAnswer)->int:
         # inserts the Testing table. It has to be tested if the inf to be added is already there. If that is the case, no change is needed.
-        lastRowID,=self.insertItemsTable(
+        lastRowID, _ =self.insertItemsTable(
             query='''INSERT INTO Testing (TFRecordingID, ModelID) VALUES (?, ?) ''',
             values=(clientAnswer['TFRecordingID'], clientAnswer['ModelID'])
         )
@@ -984,7 +1003,7 @@ class TrainingTable(Database):
     # inserts the Training table. It has to be tested if the inf to be added is already there. If that is the case, no change is needed.
     def insertTrainingTable(self, clientAnswer:dict)->int:
         # inserts the Training table. It has to be tested if the inf to be added is already there. If that is the case, no change is needed.
-        lastRowID,=self.insertItemsTable(
+        lastRowID, _ =self.insertItemsTable(
             query='''INSERT INTO Training (TFRecordingID, ModelID) VALUES (?, ?) ''',
             values=(clientAnswer['TFRecordingID'], clientAnswer['ModelID'])
         )
@@ -1037,7 +1056,7 @@ class ModelTable(Database):
     # inserts the Model table. It has to be tested if the inf to be added is already there. If that is the case, no change is needed.
     def insertModelTable(self, clientAnswer:dict)->int:
         # inserts the Model table. It has to be tested if the inf to be added is already there. If that is the case, no change is needed.
-        lastRowID,=self.insertItemsTable(
+        lastRowID, _ =self.insertItemsTable(
             query='''INSERT INTO Model (ModelName, TrainingStatus, CreatedAt, ModelVersionID) VALUES (?, ?, ?, ?) ''',
             values=(clientAnswer.get('ModelName'), clientAnswer.get('TrainingStatus'), clientAnswer.get('CreatedAt'), clientAnswer.get('ModelVersionID'))
         )
@@ -1092,7 +1111,7 @@ class ModelVersionTable(Database):
     # inserts the ModelVersion table. It has to be tested if the inf to be added is already there. If that is the case, no change is needed.
     def insertModelVersionTable(self, clientAnswer:dict)->int:
         # inserts the ModelVersion table. It has to be tested if the inf to be added is already there. If that is the case, no change is needed.
-        lastRowID,=self.insertItemsTable(
+        lastRowID, _ =self.insertItemsTable(
             query='''INSERT INTO ModelVersion (ModelVersion, CreatedAt, ModelMetricID, HyperparameterID, ModelWeightsID) VALUES (?, ?, ?, ?, ?) ''',
             values=(clientAnswer.get('ModelVersion'), clientAnswer.get('CreatedAt'), clientAnswer.get('ModelMetricID'), clientAnswer.get('HyperparameterID'), clientAnswer.get('ModelWeightsID'))
         )
@@ -1148,7 +1167,7 @@ class ModelMetricTable(Database):
     # inserts the ModelMetric table. It has to be tested if the inf to be added is already there. If that is the case, no change is needed.
     def insertModelMetricTable(self, clientAnswer:dict)->int:
         # inserts the ModelMetric table. It has to be tested if the inf to be added is already there. If that is the case, no change is needed.
-        lastRowID,=self.insertItemsTable(
+        lastRowID, _ =self.insertItemsTable(
             query='''INSERT INTO ModelMetric (MSE, r2, loss) VALUES (?, ?, ?) ''',
             values=(clientAnswer.get('MSE'), clientAnswer.get('r2'), clientAnswer.get('loss'))
         )
@@ -1202,7 +1221,7 @@ class HyperparameterTable(Database):
     # inserts the Hyperparameter table. It has to be tested if the inf to be added is already there. If that is the case, no change is needed.
     def insertHyperparameterTable(self, clientAnswer:dict)->int:
         # inserts the Hyperparameter table. It has to be tested if the inf to be added is already there. If that is the case, no change is needed.
-        lastRowID,=self.insertItemsTable(
+        lastRowID, _ =self.insertItemsTable(
             query='''INSERT INTO Hyperparameter (Hyperparameters) VALUES (?) ''',
             values=(clientAnswer.get('Hyperparameters'),)
         )
@@ -1254,7 +1273,7 @@ class ModelWeightsTable(Database):
     # inserts the ModelWeights table. It has to be tested if the inf to be added is already there. If that is the case, no change is needed.
     def insertModelWeightsTable(self, clientAnswer:dict)->int:
         # inserts the ModelWeights table. It has to be tested if the inf to be added is already there. If that is the case, no change is needed.
-        lastRowID,=self.insertItemsTable(
+        lastRowID, _ =self.insertItemsTable(
             query='''INSERT INTO ModelWeights (ModelWeightsPath) VALUES (?) ''',
             values=(clientAnswer.get('ModelWeightsPath'),)
         )

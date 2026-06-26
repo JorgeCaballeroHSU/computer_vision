@@ -12,7 +12,7 @@ Key features:
 """
 
 import os
-from Database.Tables.Tables import DatasetTable
+from app.Database.Tables.Tables import DatasetTable
 
 
 class Path:
@@ -42,12 +42,12 @@ class Path:
         # Default base directories (can be overridden)
         self.windowsAddressPictures = os.getenv(
             "CV_PICTURES_PATH",
-            r"D:\Computer Vision Project\01 Pictures"
+            "/mnt/d/01 Picture"
         )
 
         self.windowsAddressTFRecords = os.getenv(
             "CV_TFRECORDS_PATH",
-            r"D:\Computer Vision Project\02. TCRecords"
+            "/mnt/d/02. TCRecords"
         )
 
         # Project metadata (lazy-loaded)
@@ -136,11 +136,14 @@ class Path:
             basePath = self._getBasePath(fileType)
 
             # Build safe path
-            fullPath = os.path.join(
-                basePath,
-                self._sanitize(self.projectName),
-                self._sanitize(self.materialType)
+            fullPath = os.path.normpath(
+                os.path.join(
+                    basePath,
+                    self._sanitize(self.projectName),
+                    self._sanitize(self.materialType)
+                )
             )
+
 
             # Create directory if needed
             os.makedirs(fullPath, exist_ok=True)

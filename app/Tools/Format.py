@@ -1,19 +1,17 @@
 # it contains a function that adds the data-tpye to the name of the file
+import os
 
-# adds the data type to the file name
-def addDataType(fileName:str,dataType:str='')->str:
+def addDataType(fileName: str, dataType: str) -> str:
+    """
+    Adds/overwrites file extension safely.
+    """
 
-    # checks if the dataType attribute is empty
-    if dataType=='':
+    if not dataType:
+        raise ValueError("Data type must be provided")
 
-        # informs that no data type was provided
-        print('No data type was provided. Please, provide one!')
+    dataType = dataType.lstrip(".")  # remove leading dots
 
-        # returns the fileName
-        return fileName
-    
-    # if the dataType attribute is not empty, then join it with the fileName
-    else:
+    name, _ = os.path.splitext(fileName)  # remove old extension
 
-        # returns the file name with its data type
-        return '.'.join(fileName,dataType)
+    return f"{name}.{dataType}"
+

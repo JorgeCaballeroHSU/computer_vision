@@ -149,7 +149,7 @@ class TFRecorder:
     def saveTFRecord(self,fileName:str,filePath:str, TFRecord:bytes)->None:
 
         # creates the file location where the TF record is to be saved
-        storeLocation=r'/'.join(filePath,fileName)
+        storeLocation=r'\\'.join(filePath,fileName)
 
         # saves file in the indicated location
         with open(file=storeLocation, mode='a') as file:

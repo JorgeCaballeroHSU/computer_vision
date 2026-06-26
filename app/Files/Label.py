@@ -69,34 +69,26 @@ class LabelSample(DatasetTable):
                 pass
 
     def _getSampleCount(self) -> int:
-        """Counts existing samples for this dataset."""
         try:
-            # OPEN connection
             self.openConnection()
 
             statement = f"""
-                SELECT COUNT(*) as count 
+                SELECT COUNT(*) as count
                 FROM Sample 
-                WHERE DatasetID={self._datasetID}
+                WHERE DatasetID = {self._datasetID}
             """
 
-            result = self.fetchInfo(statement=statement)
+            result = self.fetchInfo(statement)
 
-            if not result:
-                return 0
-
-            return result[0].get("count", 0)
+            return result[0]["count"] if result else 0
 
         except Exception as e:
             print(f"[LabelSample] Error counting samples: {e}")
             return 0
 
         finally:
-            # ALWAYS close connection
-            try:
-                self.closeConnection()
-            except:
-                pass
+            self.closeConnection()
+
 
     # =========================
     # Public API

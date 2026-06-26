@@ -1,6 +1,4 @@
 #imports required libraries
-from importlib.resources import path
-
 from app.Tools.ChangePath import ChangePath
 from app.Tools.Format import addDataType
 from app.Files.Path import Path
@@ -9,111 +7,190 @@ from app.Database.Tables.Tables import *
 from app.Preprocessing.TFRecorder import TFRecorder
 import os
 import numpy as np
+from threading import Thread
 
 
 # object to change the path formatting from windows to linux and viseversa
 pathFormat=ChangePath()
 
-
-# defines the function databaseFill to fill up date database of images for later training
 def dataBaseFill(clientAnswer: dict, action: str, file, dbFile: str) -> dict:
     """
-    Handles large image upload safely using streaming.
+    Safe pipeline:
+    DB first → file second → rollback if needed
     """
 
     try:
         label = LabelSample(dbFile=dbFile)
         pathManager = Path(dbFile=dbFile)
 
-        if action == "add":
+        if action != "add":
+            return {"success": False}
 
-            if file is None:
-                return {"success": False, "message": "File missing"}
+        if file is None:
+            return {"success": False, "message": "File missing"}
 
-            labelFile = label.generateSampleLabel()
-            if not labelFile:
-                return {"success": False, "message": "Label generation failed"}
+        # ✅ Generate label
+        labelFile = label.generateSampleLabel()
+        if not labelFile:
+            return {"success": False, "message": "Label generation failed"}
 
-            basePath = pathManager.loadPath("image")
+        basePath = pathManager.loadPath("image")
+        filePath = os.path.join(basePath, addDataType(labelFile, "jpg"))
 
-            filePath = os.path.join(basePath,addDataType(labelFile, "jpg"))
+        # ✅ Get IDs
+        db = Database(dbFile=dbFile)
+        cameraInfoID = db.fetchLastID("CameraInfo", "CameraInfoID")
+        datasetID = db.fetchLastID("Dataset", "datasetID")
+        materialTypeID = db.fetchLastID("MaterialType", "MaterialTypeID")
 
-            # ✅ STREAM WRITE (CRITICAL FOR 200MB)
+        # ✅ Prepare DB payload
+        clientDataset = {
+            'Label': labelFile,
+            'FilePath': filePath,  # ✅ FULL path (not basePath!)
+            'CaptureTime': clientAnswer.get('CaptureTime'),
+            'CameraInfoID': cameraInfoID,
+            'DatasetID': datasetID,
+            'MaterialTypeID': materialTypeID
+        }
+
+        table = SampleTable(dbFile=dbFile)
+
+        try:
+            # ✅ OPEN connection
+            table.openConnection()
+
+            # ✅ TRY INSERT FIRST
+            lastId = table.insertSampleTable(clientAnswer=clientDataset)
+
+            if lastId == -1:
+                raise Exception("Database insert failed")
+
+            # ✅ ONLY NOW WRITE FILE
             with open(filePath, "wb") as buffer:
                 while True:
-                    chunk = file.file.read(1024 * 1024)  # 1 MB chunks
+                    chunk = file.file.read(1024 * 1024)  # 1MB
                     if not chunk:
                         break
                     buffer.write(chunk)
 
-            db = Database(dbFile=dbFile)
-
-            cameraInfoID = db.fetchLastID("CameraInfo", "CameraInfoID")
-            datasetID = db.fetchLastID("Dataset", "datasetID")
-            materialTypeID = db.fetchLastID("MaterialType", "MaterialTypeID")
-
-            clientDataset = {
-                'Label': labelFile,
-                'FilePath': basePath,
-                'CaptureTime': clientAnswer.get('CaptureTime'),
-                'CameraInfoID': cameraInfoID,
-                'DatasetID': datasetID,
-                'MaterialTypeID': materialTypeID
-            }
-
-            # manages sample table
-            table=SampleTable(dbFile=dbFile)
-            table.openConnection()
-
-            db_result = Sample(
-                clientDataset=clientDataset,
-                table=table,
-                action='add'
-            )
-
-            table.closeConnection()
-
+            # ✅ COMMIT ALREADY DONE INSIDE insert
             return {
                 "success": True,
                 "label": labelFile,
                 "path": filePath
             }
 
-        return {"success": False}
+        except Exception as e:
+            print(f"[dataBaseFill] ERROR: {e}")
+
+            # ✅ ROLLBACK DB if file fails
+            try:
+                table.deleteSampleTable({'SampleID': lastId})
+            except:
+                pass
+
+            return {
+                "success": False,
+                "message": str(e)
+            }
+
+        finally:
+            table.closeConnection()
 
     except Exception as e:
-        print(f"[dataBaseFill] Error: {e}")
+        print(f"[dataBaseFill] Fatal Error: {e}")
         return {"success": False, "message": str(e)}
+
         
 
-# gets the pcitures into a TensorFlow record format for later use in the training of the model
-def generateTensorFlowRecords(path:Path, database:Database, tfRecorder:TFRecorder, labelFile:str)->None:
+def generateTensorFlowRecordsBackground(path: Path, database: Database, tfRecorder: TFRecorder):
+    """
+    Background worker that scans all samples and ensures each one has a TFRecord.
 
-    #creates a TensorFlow record
+    Behavior:
+    - Iterates over all samples in the database
+    - Checks if a TFRecord already exists
+    - If not → creates TFRecord
+    - Safe to run multiple times (idempotent)
 
-    # gets the file path of the file
-    filePath=''.join(path.getPath(),addDataType(fileName=labelFile,dataType='jpeg'))
+    This function is designed to run in the background.
+    """
 
-    # creates the TF record with the file path, the label and the labelInit
-    record=tfRecorder.createTFRecord(
-        fileName=filePath,
-        label=labelFile,
-        labelInit=database.fetchInfo(query='''SELECT LabelID FROM label WHERE name=?''', values=(labelFile, 
-        ))[0]['LabelID'])
-    
-    # saves the TF record in the indicated location
-    tfRecorder.saveTFRecord(
-        fileName=''.join(labelFile,'tfrec'),
-        filePath=path.getPath(),
-        TFRecord=record
-    )
+    def worker():
+        try:
+            database.openConnection()
 
-    # updates the table TFrecording the binary of the TF record.
-    database.insertItemsTable(
-        query='''INSERT INTO TFRecording (name, label, labelInit, filePath) VALUES (?, ?, ?, ?) ''',
-        values=(labelFile, labelFile, database.fetchInfo(query='''SELECT LabelID FROM label WHERE name=?''', values=(labelFile, 
-        ))[0]['LabelID'], ''.join(path.getPath(),addDataType(fileName=labelFile,dataType='tfrec')))
-    )
+            # ----------------------------------------
+            # ✅ 1. Get all samples
+            # ----------------------------------------
+            samples = database.fetchInfo("SELECT Label, FilePath FROM Sample")
+
+            for sample in samples:
+
+                label = sample["Label"]
+                imagePath = sample["FilePath"]
+
+                # ----------------------------------------
+                # ✅ 2. Check if TFRecord exists
+                # ----------------------------------------
+                existing = database.fetchInfo(
+                    "SELECT * FROM TFRecording WHERE Label = ?",
+                    (label,)
+                )
+
+                if existing:
+                    print(f"✅ TFRecord already exists for {label}")
+                    continue  # skip
+
+                print(f"⚙️ Creating TFRecord for {label}")
+
+                # ----------------------------------------
+                # ✅ 3. Create TFRecord
+                # ----------------------------------------
+                try:
+                    record = tfRecorder.createTFRecord(
+                        fileName=imagePath,
+                        label=label,
+                        labelInit=1  # your label logic here (or map)
+                    )
+
+                    tfRecordName = f"{label}.tfrec"
+                    tfRecordPath = os.path.join(path.getPath(), tfRecordName)
+
+                    # save to disk
+                    tfRecorder.saveTFRecord(
+                        fileName=tfRecordName,
+                        filePath=path.getPath(),
+                        TFRecord=record
+                    )
+
+                    # ----------------------------------------
+                    # ✅ 4. Insert into DB (mark as processed)
+                    # ----------------------------------------
+                    database.insertItemsTable(
+                        query='''
+                            INSERT INTO TFRecording (Label, FilePath)
+                            VALUES (?, ?)
+                        ''',
+                        values=(label, tfRecordPath)
+                    )
+
+                    print(f"✅ TFRecord created for {label}")
+
+                except Exception as e:
+                    print(f"❌ Failed for {label}: {e}")
+
+            database.closeConnection()
+
+        except Exception as e:
+            print(f"[Background TFRecord] Error: {e}")
+
+    # ----------------------------------------
+    # ✅ Run in background thread
+    # ----------------------------------------
+    thread = Thread(target=worker, daemon=True)
+    thread.start()
+
 
 
 # imports required libraries

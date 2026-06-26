@@ -241,7 +241,6 @@
         }
 
         /* ===== SHOW IMAGE ===== */
-        
         function showImage() {
             if (files.length === 0) return;
 
@@ -255,6 +254,9 @@
                     URL.revokeObjectURL(currentObjectURL);
                 }
                 currentObjectURL = newURL;
+
+                // ✅ UPDATE SAMPLE FORM AUTOMATICALLY
+                loadSample();
             };
 
             img.src = newURL;
@@ -472,28 +474,35 @@
 
             /*<!-- This form is to see the name and location of the files -->*/
             form4:`
+            
             <h2>Sample Dataset</h2>
 
             <div id="Sample" title="Sample">
-                
+
+                <label>
+                    Status:
+                    <input type="text" name="Status" readonly>
+                </label>
+
                 <label>
                     Label:
-                    <input type="text" name="Label" placeholder="">
+                    <input type="text" name="Label" readonly>
                 </label>
 
                 <label>
                     File Path:
-                    <input type="text" name="FilePath" placeholder="">
+                    <input type="text" name="FilePath" readonly>
                 </label>
 
                 <label>
                     Capture Time:
-                    <input type="datetime-local" name="CaptureTime" placeholder="">
+                    <input type="datetime-local" name="CaptureTime" readonly>
                 </label>
 
                 <button id="save" onclick="sendBackEnd('Sample')">Save</button>
 
             </div>
+
             `
         };
 
@@ -787,6 +796,9 @@
 
                             console.log("✅ Upload complete:", xhr.responseText);
                             progressText.textContent = "Upload complete ✅";
+                            
+                            // 🔥 refresh status immediately
+                            loadSample();   
 
                             // ✅ Clear file from frontend memory
                             document.getElementById("fileInput").value = "";
@@ -933,7 +945,64 @@
         // gets the Sample table information from the database and shows the last row
         async function loadSample() {
 
-            /// TO FILL UP///
+            if (files.length === 0) return;
+
+            const file = files[index];
+
+            // ✅ Get capture time (same logic as upload)
+            const captureTime = await (async () => {
+                return new Promise((resolve) => {
+                    EXIF.getData(file, function () {
+                        const date = EXIF.getTag(this, "DateTimeOriginal");
+
+                        if (date) {
+                            resolve(date.replace(/:/g, "-", 2));
+                        } else {
+                            resolve(
+                                new Date(file.lastModified)
+                                    .toISOString()
+                                    .slice(0, 19)
+                                    .replace("T", " ")
+                            );
+                        }
+                    });
+                });
+            })();
+
+            const form = document.getElementById("Sample");
+            if (!form) return;
+
+            // ✅ Always fill capture time
+            let formatted = new Date(captureTime).toISOString().slice(0,16);
+            form.querySelector('[name="CaptureTime"]').value = formatted;
+
+            try {
+                // ✅ Ask backend if exists
+                const response = await fetch(
+                    `http://localhost:5000/sample/by-capture-time?captureTime=${encodeURIComponent(captureTime)}`
+                );
+
+                const result = await response.json();
+
+                if (result.exists) {
+
+                    const data = result.data;
+
+                    form.querySelector('[name="Status"]').value = "✅ Already uploaded";
+                    form.querySelector('[name="Label"]').value = data.Label || "";
+                    form.querySelector('[name="FilePath"]').value = data.FilePath || "";
+
+                } else {
+
+                    form.querySelector('[name="Status"]').value = "⚠️ Not uploaded yet";
+                    form.querySelector('[name="Label"]').value = "";
+                    form.querySelector('[name="FilePath"]').value = "";
+
+                }
+
+            } catch (err) {
+                console.error("Error loading sample:", err);
+            }
         }
 
         // function to fill CameraInfo Form

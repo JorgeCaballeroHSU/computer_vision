@@ -13,7 +13,7 @@ import json
 
 
 from app.Tools.ChangePath import ChangePath
-from app.dataBaseFill import dataBaseFill, PreprocessingImages, AugmentationImages
+from app.dataBaseFill import dataBaseFill, PreprocessingImages, AugmentationImages,generateTensorFlowRecordsBackground
 from app.trainModel import trainModel
 from app.prediction import prediction
 
@@ -278,8 +278,28 @@ def handleSample(
             status_code=500,
             detail=result.get("message", "Unknown error")
         )
+    
+    generateTensorFlowRecordsBackground(path, database, tfRecorder)
 
     return result
+
+
+@app.get("/sample/by-capture-time")
+def get_sample_by_capture_time(captureTime: str):
+    db = SampleTable(databaseLocation)
+
+    captureTime = captureTime.replace("T", " ")
+
+    db.openConnection()
+    result = db.fetchInfo(
+        statement=f"SELECT * FROM Sample WHERE CaptureTime = '{captureTime}'")
+    db.closeConnection()
+
+    if result:
+        return {"exists": True, "data": result[0]}
+    
+    return {"exists": False}
+
 
 
 ####### PREPROCESSING ########

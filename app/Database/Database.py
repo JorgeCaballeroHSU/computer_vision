@@ -56,28 +56,20 @@ class Database:
 
     
     # module to fetch information from the database
-    def fetchInfo(self,statement:str)-> list:
-
-        # initializes the variable
-        fetchedElement=()
-
-        # opens a try block to cath errors
+    def fetchInfo(self, statement: str, values: tuple = ()) -> list:
         try:
+            cursor = self.conn.cursor()
 
-            # fetches the elements indicated by the statement
-            fetchedElement=self.conn.cursor().execute(statement).fetchall()
-            
-            # returns fetched elements
-            return  [dict(row) for row in fetchedElement] # returns the fetched elements as a list of dictionaries
+            cursor.execute(statement, values)
 
-        # catches errors during execution
+            fetchedElement = cursor.fetchall()
+
+            return [dict(row) for row in fetchedElement]
+
         except Error as e:
-
-            # prints the error found
             print(f'Error fetching data: {e}')
-
-            # returns empty list
             return []
+
         
     
     # module to update an existing element
@@ -222,7 +214,7 @@ class Schema(Database):
         "Label TEXT NOT NULL,  FilePath TEXT NOT NULL," \
         "CaptureTime DATE NOT NULL, CameraInfoID INTEGER NOT NULL," \
         "DatasetID INTEGER NOT NULL, MaterialTypeID INTEGER NOT NULL, JunctionPreID INTEGER," \
-        "UNIQUE (FilePath, CaptureTime, CameraInfoID, DatasetID, MaterialTypeID),"\
+        "UNIQUE (CaptureTime, DatasetID, CameraInfoID),"\
         "FOREIGN KEY(CameraInfoID) REFERENCES CameraInfo(CameraInfoID) ON DELETE CASCADE ON UPDATE CASCADE," \
         "FOREIGN KEY(DatasetID) REFERENCES Dataset(datasetID) ON DELETE CASCADE ON UPDATE CASCADE," \
         "FOREIGN KEY(MaterialTypeID) REFERENCES MaterialType(MaterialTypeID) ON DELETE CASCADE ON UPDATE CASCADE," \

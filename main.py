@@ -254,6 +254,7 @@ def handleMaterialType():
 class SampleRequest(BaseModel):
     clientDataset: dict
     image: str
+    action: str
 
 # writes, updates, and deletes an item of the Sample table
 @app.post("/sample")
@@ -265,7 +266,7 @@ def handleSample(request:SampleRequest):
 
     ############-----> I AM HERE <------#############
     # gets the results from the function dataBaseFill
-    results=dataBaseFill(clientDataset=request.clientDataset,image=request.image)
+    results=dataBaseFill(clientAnswer=request.clientDataset,action=request.action,image=request.image,dbFile=databaseLocation)
 
     # returns results
     return results

@@ -10,32 +10,28 @@ from app.Preprocessing.TFRecorder import TFRecorder
 import os
 import numpy as np
 
-# windows-formatted address to store the pictures
-windowsAddress=r'C:\Users\Admin\OneDrive - Helmut-Schmidt-Universität\Dokumente\Computer Vision Project\01 Pictures'
 
 # object to change the path formatting from windows to linux and viseversa
 pathFormat=ChangePath()
 
 
 # defines the function databaseFill to fill up date database of images for later training
-def dataBaseFill(clientAnswer:dict, action:str, image:str)->dict:
+def dataBaseFill(clientAnswer:dict, action:str, image:str,dbFile:str)->dict:
     
     # gets the image from the client
     # It assumes that the client will send the image as chucks that will be put together at the socket class
     # it assumes that the picture will be received as binary that will be decoded at the socket class  
 
     # creates the object label from class LabelSample
-    label=LabelSample()
+    label=LabelSample(dbFile=dbFile)
 
     # creates the object path from the class Path
-    path=Path()
+    path=Path(dbFile=dbFile)
 
     # stores the file in the indicated address if the action is to "add" a new sample
     if action=='add':
         
         # stores the image in the defined path
-        # sets the path to save the files
-        path.setPath(path=pathFormat.changePathWindowsToWsl(path=windowsAddress))
 
         # generates label for the picture
         label.setLabelType(labelType=clientAnswer.get('labelType')) # sets the label type

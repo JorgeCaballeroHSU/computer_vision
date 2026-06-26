@@ -1,172 +1,195 @@
-# # This python code is in charge of the labelling of the fotographs according to the conventions of the project. 
-# It is used to label the files that reside in a separated folder
+"""
+Label module
 
-# import the necessary libraries
-from app.Database.Database import DatasetTable, PreprocessingTable, JunctionPreTable, SampleTable
+Handles generation of labels for:
+- raw samples (images)
+- preprocessing outputs
+- TFRecord files
+"""
 
-# # creates class for the labelling of the photographs
+from app.Database.Database import DatasetTable
+
+
+# =========================
+# SAMPLE LABELING
+# =========================
+
 class LabelSample(DatasetTable):
+    """
+    Generates labels for raw samples based on:
+    - Project Name
+    - Material Type
+    - Incremental Sample Number
+    """
 
-    '''This class is in charge of the labelling of the photographs according to the conventions of the project. It is used to label the photographs with the name of the person and the date of the photograph.'''
-
-    # properties of the class
-    _projectName:str='' # that is the label name or the project name
-    _materialType:str='' # type of material. It can be S(sand), K (kies), T (ton), M (gemischt)
-    _dataSetID:int=0 # dataset ID, that is the ID of the Dataset table
-    _sampleNumber:int=0 # last sample number in the database
-    
-
-    # methods of the class
-    def __init__(self, dbFile:str) ->None:
-        '''This method is the constructor of the class. It initializes the properties of the class.'''
-
-        # calls the constructor of the parent class
+    def __init__(self, dbFile: str) -> None:
         super().__init__(dbFile=dbFile)
-        
-    
-    # sets the properties _projectName and _materialType
-    def setProperties(self) ->bool:
 
-        # calls the function to fetch the material type from the database
-        materialType=self.fetchDataset()
+        self._projectName = ""
+        self._materialType = ""
+        self._datasetID = 0
+        self._sampleNumber = 0
 
-        # Checks if the material type is empty.
-        if bool(materialType):
-            
-            # sets the material type parameter
-            self._materialType=materialType[0]['MaterialType'] # sets the material type
+    # =========================
+    # Internal utilities
+    # =========================
 
-            # sets the project name parameter
-            self._projectName=materialType[0]['ProjectName'] # sets the project name
+    def _sanitize(self, text: str) -> str:
+        """Make label safe and consistent."""
+        return str(text).strip().replace(" ", "-").replace("/", "-")
 
-            # sets the dataset ID parameter
-            self._dataSetID=materialType[0]['DatasetID'] # sets the dataset ID
-            
-            # returns True to indicate that the label type was set successfully
+    def _loadDataset(self) -> bool:
+        """Loads latest dataset from DB safely."""
+        try:
+            # OPEN connection
+            self.openConnection()
+
+            data = self.fetchDataset()
+
+            if not data:
+                raise ValueError("Dataset is empty")
+
+            last = data[-1]
+
+            self._projectName = self._sanitize(last.get("ProjectName", ""))
+            self._materialType = self._sanitize(last.get("MaterialType", ""))
+            self._datasetID = last.get("DatasetID", 0)
+
             return True
-        
-        # if the material type is empty, returns False to indicate that the label type was not set successfully
-        else:
 
-            self._materialType='' # sets the material type to empty string
-            self._projectName='' # sets the project name to empty string
-
-            # Returns False to indicate that te label properties were not set.
+        except Exception as e:
+            print(f"[LabelSample] Error loading dataset: {e}")
             return False
-    
-    # gets the sample number
-    def __getSampleNumber(self) ->int:
-        
-        '''This method gets the sample number. It is used to label the photographs with the name of the person and the date of the photograph.'''
 
-        # creates a new statement to download the sample ID
-        statement="SELECT DatasetID FROM Sample WHERE DatasetID={}".format(self._dataSetID)
+        finally:
+            # ALWAYS close connection
+            try:
+                self.closeConnection()
+            except:
+                pass
 
-        # downloads the values according to the statement
-        sampleLabelTable=self.fetchInfo(statement=statement)
+    def _getSampleCount(self) -> int:
+        """Counts existing samples for this dataset."""
+        try:
+            # OPEN connection
+            self.openConnection()
 
-        # checks if the list is empty
-        if not sampleLabelTable:
+            statement = f"""
+                SELECT COUNT(*) as count 
+                FROM Sample 
+                WHERE DatasetID={self._datasetID}
+            """
 
-            # if the list is empty returns 0, indicating no available information
+            result = self.fetchInfo(statement=statement)
+
+            if not result:
+                return 0
+
+            return result[0].get("count", 0)
+
+        except Exception as e:
+            print(f"[LabelSample] Error counting samples: {e}")
             return 0
-        
-        # if the table is not empty, fills up the required variables
-        else:
 
-            # returns the number of samples in the database, related to the DatasetID
-            return len(sampleLabelTable)
-        
-    # sets sampleNumber
-    def __setSampleNumber(self) ->bool:
-        '''This method sets the sample number. It is used to label the photographs with the name of the person and the date of the photograph.'''
-        
-        # gets the actual latest sample number in the database
-        dbSampleNumber=self.__getSampleNumber()
+        finally:
+            # ALWAYS close connection
+            try:
+                self.closeConnection()
+            except:
+                pass
 
-        # sets the sample number
-        self._sampleNumber=dbSampleNumber+1
+    # =========================
+    # Public API
+    # =========================
 
-        # returns True to indicate that the sample number was set successfully
-        return True
+    def generateSampleLabel(self) -> str | None:
+        """
+        Generates a new sample label.
 
-    # generates the label for the photograph.
-    def generateSampleLabel(self) ->str:
-        
-        '''This method generates the label for the photograph. It is used to label the photographs with the name of the person and the date of the photograph.'''
-        
-        # sets the sample number
-        self.__setSampleNumber()
+        Returns:
+            str: formatted label or None if failed
+        """
+        try:
+            # Load project info
+            if not self._loadDataset():
+                return None
 
-        # generates the label for the photograph
-        label ='_'.join( [self._projectName , self._materialType , str(self._sampleNumber).zfill(3)])
+            # Get next sample number
+            self._sampleNumber = self._getSampleCount() + 1
 
-        # expected output example: "ProjectName_MaterialType_SampleNumber", HSU-HH_K_001 where SampleNumber is a three digit number with leading zeros if necessary.
+            label = "_".join([
+                self._projectName,
+                self._materialType,
+                str(self._sampleNumber).zfill(3)
+            ])
 
-        # returns the label for the photograph
-        return label
-    
+            return label
 
-# class for the generation of the labels for the preprocessed files
-class LabelPreprocessing ():
+        except Exception as e:
+            print(f"[LabelSample] Error generating label: {e}")
+            return None
 
-    ''' This class is in charge of the label generation for the preprocessing files.'''
 
-    def __init__(self, sampleLabel:str,preprocessingType:str='None') ->None:
-        '''This method is the constructor of the class. It initializes the properties of the class.'''
+# =========================
+# PREPROCESSING LABELING
+# =========================
 
-        # defines content of the properties
-        self._sampleLabel=sampleLabel
-        self._preprocessingType=preprocessingType
+class LabelPreprocessing:
+    """
+    Generates labels for preprocessing outputs.
 
-    # sets the value of the properties
-    def setProperties(self, sampleLabel:str,preprocessingType:str=None)->None:
+    Example:
+    HSU-HH_K_001_F_01
+    """
 
-        # defines content of the properties
-        self._sampleLabel=sampleLabel
-        self._preprocessingType=preprocessingType
+    def __init__(self, sampleLabel: str, preprocessingType: str = "RAW") -> None:
+        self._sampleLabel = sampleLabel
+        self._preprocessingType = preprocessingType
 
-    # generates label for preprocessing files
-    def generatePreprocessingLabel(self, number:int)->str:
+    def setProperties(self, sampleLabel: str, preprocessingType: str = None) -> None:
+        """Update internal properties."""
+        self._sampleLabel = sampleLabel
+        if preprocessingType is not None:
+            self._preprocessingType = preprocessingType
 
-        # generates the label. Label example -> HSU-HH_S_001_F -> Project: HSU-HH. Sample type: S= Sand. 001 Sample one. Type of preprocessing: F=Flipping
-        label='_'.join([self._sampleLabel,self._preprocessingType,str(number).zfill(2)])
+    def generatePreprocessingLabel(self, number: int) -> str:
+        """
+        Generates preprocessing label.
 
-        # returns generated label as string
-        return label
-        
+        Example:
+            HSU-HH_K_001_F_01
+        """
+        return "_".join([
+            self._sampleLabel,
+            self._preprocessingType,
+            str(number).zfill(2)
+        ])
 
-# creates labels for the TFRecording files
-class LabelTFRecording():
-    ''''''
-    
-    # spaces for properties of the class
 
-    def __init__(self, preprocessingLabel:str, augmentationType:str)->None:
+# =========================
+# TF RECORD LABELING
+# =========================
 
-        # defines content of the class properties
-        self._preprocessingLabel= preprocessingLabel
-        self._augmentationType= augmentationType
+class LabelTFRecording:
+    """
+    Generates labels for TFRecord files.
 
-        # returns None
-        return None
-    
-    # sets properties 
-    def setProperties(self, preprocessingLabel:str, augmentationType:str)->None:
+    Example:
+    HSU-HH_K_001_F_01_ROT
+    """
 
-        # defines content of the class properties
-        self._preprocessingLabel= preprocessingLabel
-        self._augmentationType= augmentationType
+    def __init__(self, preprocessingLabel: str, augmentationType: str) -> None:
+        self._preprocessingLabel = preprocessingLabel
+        self._augmentationType = augmentationType
 
-        # returns None
-        return None
-    # generates the label for the TensorFlow Record
-    def generateTensorFlowRecordLabel(self)->str:
+    def setProperties(self, preprocessingLabel: str, augmentationType: str) -> None:
+        """Update internal properties."""
+        self._preprocessingLabel = preprocessingLabel
+        self._augmentationType = augmentationType
 
-        # joins the strings to generate the label
-        label='_'.join([self._preprocessingLabel,self._augmentationType])
-
-        # returns label
-        return label
-
-        
+    def generateTensorFlowRecordLabel(self) -> str:
+        """Generate TFRecord label."""
+        return "_".join([
+            self._preprocessingLabel,
+            self._augmentationType
+        ])

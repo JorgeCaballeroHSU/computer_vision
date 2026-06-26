@@ -1,68 +1,159 @@
-# this files is used to get and set the path of the photographs.
+"""
+Path module
 
-# imports the necessary libraries
+This module provides a class to manage filesystem paths for images and TFRecords
+based on project data stored in a database.
+
+Key features:
+- Builds paths from project + material
+- Automatically creates directories if they do not exist
+- Separates paths by file type (image / tfrecord)
+- Ensures safe and valid folder names
+"""
+
 import os
+from Database.Tables.Tables import DatasetTable
 
-# creates class for the path of the photographs
+
 class Path:
-    
-    '''This class is in charge of the path of the photographs according to the conventions of the project. It is used to get and set the path of the photographs.'''
+    """
+    Handles generation, storage, and retrieval of filesystem paths
+    for project-related files (images and TFRecords).
+    """
 
-    # properties of the class
-    __path: str = ""
+    # Valid file types
+    VALID_TYPES = {"image", "tfrecord"}
 
-    # methods of the class
-    def __init__(self) ->None:
+    def __init__(self, dbFile: str) -> None:
+        """
+        Initialize Path manager.
 
-        # checks if the properties of the class are empty
-        if self.__path == "":
-            
-            # if the properties of the class are empty, tries to download the properties of the class from the database
-            boolValue = self.downloadProperties()
+        Parameters:
+            dbFile (str): Path to the SQLite database file
+        """
+        self.dbFile = dbFile
 
-            #if self.downloadProperties() == False, then the properties are still empty
-            if boolValue == False:
-                pass
-            else:
-                # if the properties of the class are not empty, then the properties of the class are downloaded from the database
-                pass
-        pass
+        # Store paths per type to avoid overwriting
+        self._paths = {
+            "image": "",
+            "tfrecord": ""
+        }
 
-    # loads the path of the photographs from the database
-    def loadPath(self) ->None:
+        # Default base directories (can be overridden)
+        self.windowsAddressPictures = os.getenv(
+            "CV_PICTURES_PATH",
+            r"D:\Computer Vision Project\01 Pictures"
+        )
+
+        self.windowsAddressTFRecords = os.getenv(
+            "CV_TFRECORDS_PATH",
+            r"D:\Computer Vision Project\02. TCRecords"
+        )
+
+        # Project metadata (lazy-loaded)
+        self.projectName = None
+        self.materialType = None
+
+    # =========================
+    # Internal utilities
+    # =========================
+
+    def _sanitize(self, text: str) -> str:
+        """
+        Sanitizes a string to be filesystem-safe.
+
+        Parameters:
+            text (str): input string
+
+        Returns:
+            str: sanitized string
+        """
+        return str(text).strip().replace(" ", "_").replace("/", "-")
+
+    def _fetchProjectMaterial(self) -> bool:
+        """
+        Fetch project name and material type from database.
+
+        Returns:
+            bool: True if successful, False otherwise
+        """
+        try:
+            dataset = DatasetTable(dbFile=self.dbFile)
+            dataset.openConnection()
+
+            data = dataset.fetchDataset()
+
+            if not data:
+                raise ValueError("Dataset table is empty")
+
+            last_row = data[-1]
+
+            self.projectName = last_row.get("ProjectName")
+            self.materialType = last_row.get("MaterialType")
+
+            dataset.closeConnection()
+
+            return True
+
+        except Exception as e:
+            print(f"Error fetching project/material: {e}")
+            return False
+
+    def _getBasePath(self, fileType: str) -> str:
+        """
+        Returns base directory depending on file type.
+        """
+        if fileType == "image":
+            return self.windowsAddressPictures
+        elif fileType == "tfrecord":
+            return self.windowsAddressTFRecords
+
+        raise ValueError(f"Invalid fileType: {fileType}")
+
+    # =========================
+    # Public API
+    # =========================
+
+    def loadPath(self, fileType: str) -> str | None:
+        """
+        Builds and ensures a valid directory path for the given file type.
+
+        Parameters:
+            fileType (str): "image" or "tfrecord"
+
+        Returns:
+            str | None: Full path if successful, otherwise None
+        """
+        try:
+            if fileType not in self.VALID_TYPES:
+                raise ValueError(f"Invalid fileType: {fileType}")
+
+            # Load project info if missing
+            if not self.projectName or not self.materialType:
+                if not self._fetchProjectMaterial():
+                    return None
+
+            basePath = self._getBasePath(fileType)
+
+            # Build safe path
+            fullPath = os.path.join(
+                basePath,
+                self._sanitize(self.projectName),
+                self._sanitize(self.materialType)
+            )
+
+            # Create directory if needed
+            os.makedirs(fullPath, exist_ok=True)
+
+            # Store path
+            self._paths[fileType] = fullPath
+
+            return fullPath
         
-        '''This method loads the path of the photographs from the database. It is used to get and set the path of the photographs.'''
+        except Exception as e:
 
-        # code to load the path of the photographs from the database goes here
+            # informs about errors if they happen
+            print('An error has occured: {}'.format(e))
 
-        # returns nothing
-        return None
 
-    # saves the path of the photographs to the database
-    def savePath(self) ->None:
-        
-        '''This method saves the path of the photographs to the database. It is used to get and set the path of the photographs.'''
 
-        # code to save the path of the photographs to the database goes here
-
-        # returns nothing
-        return None
-
-    # gets the path of the photographs
-    def getPath(self) ->str:
-
-        '''This method gets the path of the photographs. It is used to get and set the path of the photographs.'''
-
-        # returns the path of the photographs
-        return self.__path
-
-    # sets the path of the photographs
-    def setPath(self, path: str) ->None:
-
-        '''This method sets the path of the photographs. It is used to get and set the path of the photographs.'''
-
-        # sets the path of the photographs
-        self.__path = path
-
-        # returns nothing
-        return None

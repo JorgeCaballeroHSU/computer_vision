@@ -185,7 +185,7 @@
         let files = [];
         let index = 0;
         let directoryHandle = null;
-
+        let currentObjectURL = null || "";
 
         /* ===== CREATE SPACE FOR FORMS =====*/
         function rightSideBar(){
@@ -239,14 +239,26 @@
         }
 
         /* ===== SHOW IMAGE ===== */
+        
         function showImage() {
             if (files.length === 0) return;
 
             const file = files[index];
             const img = document.getElementById("mainImage");
 
-            img.src = URL.createObjectURL(file);
+            const newURL = URL.createObjectURL(file);
+
+            img.onload = () => {
+                if (currentObjectURL) {
+                    URL.revokeObjectURL(currentObjectURL);
+                }
+                currentObjectURL = newURL;
+            };
+
+            img.src = newURL;
         }
+
+
 
         /* ===== NAVIGATION ===== */
         function next() {
@@ -477,7 +489,7 @@
                     <input type="datetime-local" name="CaptureTime" placeholder="">
                 </label>
 
-                <button onclick="sendBackEnd('Sample')>Save</button>
+                <button id="save" onclick="sendBackEnd('Sample')">Save</button>
 
             </div>
             `
@@ -623,38 +635,28 @@
 
             const form = document.getElementById("Sample");
 
-            console.log("FORM:", form);
+            if (!form) return null;
 
-            if (!form) {
-                console.error("Sample form NOT found!");
-                return null;
-            }
-
-            // collect dataset fields
             const clientDataset = {
-                sampleName: form.querySelector('[name="sampleName"]')?.value || "",
-                description: form.querySelector('[name="description"]')?.value || "",
-                location: form.querySelector('[name="location"]')?.value || ""
+                Label: form.querySelector('[name="Label"]')?.value || "",
+                FilePath: form.querySelector('[name="FilePath"]')?.value || "",
+                CaptureTime: form.querySelector('[name="CaptureTime"]')?.value || ""
             };
-
-            // get file
-            const fileInput = form.querySelector('[name="image"]');
-            const file = fileInput?.files[0];
 
             let base64Image = "";
 
-            if (file) {
+            // ✅ Use current image from folder
+            if (files.length > 0) {
+
+                const file = files[index];   // current image
+
                 base64Image = await convertToBase64(file);
             }
 
-            const payload = {
-                clientDataset: clientDataset,
+            return {
+                clientDataset,
                 image: base64Image
             };
-
-            console.log("Extracted Sample data:", payload);
-
-            return payload;
         }
 
         // converts the base to be able to send the files
@@ -719,6 +721,7 @@
                     // ✅ Match backend structure
                     payload = {
                         clientDataset: sampleData.clientDataset,
+                        action:action,
                         image: sampleData.image
                     };
                 }

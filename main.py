@@ -273,13 +273,37 @@ def handleSample(
         dbFile=databaseLocation
     )
 
+
+    #--------> I AM HERE <--------------#
+    # ----------------------------------------
+    # ✅ TRIGGER FULL PIPELINE (BACKGROUND)
+    # ----------------------------------------
+
+    PreprocessingImages(
+        clientAnswer={"SampleID": lastId},
+        dbFile=dbFile
+    )
+
+    AugmentationImages(
+        clientAnswer={
+            "PreprocessingID": 1,   # ⚠️ placeholder → see note below
+            "Method": "flipping"
+        },
+        dbFile=dbFile
+    )
+
+    generateTensorFlowRecordsBackground(
+        path=Path(dbFile=dbFile),
+        database=Database(dbFile=dbFile),
+        tfRecorder=TFRecorder()
+    )
+
     if not result.get("success"):
         raise HTTPException(
             status_code=500,
             detail=result.get("message", "Unknown error")
         )
-    
-    generateTensorFlowRecordsBackground(path, database, tfRecorder)
+
 
     return result
 

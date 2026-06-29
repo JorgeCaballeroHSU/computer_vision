@@ -12,7 +12,7 @@ class TFRecorder:
     def __floatFeature(self,value):
         return tf.train.Feature(float_list=tf.train.FloatList(value=value))
     
-    def __int64Feature(self,*value):
+    def __int64Feature(self,value):
         return tf.train.Feature(int64_list=tf.train.Int64List(value=value))
     
     def __stringFeature(self,value):
@@ -36,15 +36,25 @@ class TFRecorder:
         imageShape = image.shape
 
         # flatten the image to 1D array
-        image = tf.reshape(image, [-1])
+        image_flat = tf.reshape(image, [-1]).numpy().tolist()
 
-        # returns serialized image and label
-        return tf.train.Example(features=tf.train.Features(feature={
-            'image': self.__floatFeature(image),
-            'shape': self.__int64Feature(imageShape[0], imageShape[1], imageShape[2]),
-            'label': self.__stringFeature(label),
-            'label_init': self.__int64Feature(labelInit)
-        })).SerializeToString() 
+        example = tf.train.Example(
+            features=tf.train.Features(
+                feature={
+                    'image': self.__floatFeature(image_flat),
+                    'shape': self.__int64Feature([
+                        int(imageShape[0]),
+                        int(imageShape[1]),
+                        int(imageShape[2])
+                    ]),
+                    'label': self.__stringFeature(label),
+                    'label_init': self.__int64Feature([int(labelInit)])
+                }
+            )
+        )
+
+        return example.SerializeToString()
+
 
     
     #creates the module for for reading and decoding the images and labels
@@ -149,10 +159,10 @@ class TFRecorder:
     def saveTFRecord(self,fileName:str,filePath:str, TFRecord:bytes)->None:
 
         # creates the file location where the TF record is to be saved
-        storeLocation=r'\\'.join(filePath,fileName)
+        storeLocation='/'.join([filePath,fileName])
 
         # saves file in the indicated location
-        with open(file=storeLocation, mode='a') as file:
+        with tf.io.TFRecordWriter(path=storeLocation) as file:
             
             # creates and writes the file in the indicated location
             file.write(TFRecord)

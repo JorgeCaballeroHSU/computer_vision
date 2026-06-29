@@ -77,7 +77,8 @@ def dataBaseFill(clientAnswer: dict, action: str, file, dbFile: str) -> dict:
             return {
                 "success": True,
                 "label": labelFile,
-                "path": filePath
+                "path": filePath,
+                "SampleID":lastId
             }
 
         except Exception as e:

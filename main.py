@@ -285,7 +285,7 @@ def handleSample(
                 detail=result.get("message", "Unknown error")
             )
 
-    sampleID = result.get("sampleID")
+    sampleID = result.get("SampleID")
     imagePath = result.get("path")
     label = result.get("label")
 

@@ -21,6 +21,11 @@ from app.prediction import prediction
 from app.Database.Database import Schema
 from app.Database.Tables.Tables import *
 
+# imports libraries related to image pre-processing
+from app.Preprocessing.TFRecorder import TFRecorder
+from app.Files.Path import Path
+from app.Tools.Format import addDataType
+
 
 # defines the variable app that will be used to call functions. Backend application object
 app=FastAPI()
@@ -273,39 +278,84 @@ def handleSample(
         dbFile=databaseLocation
     )
 
+    
+    if not result.get("success"):
+            raise HTTPException(
+                status_code=500,
+                detail=result.get("message", "Unknown error")
+            )
 
-    #--------> I AM HERE <--------------#
+    sampleID = result.get("sampleID")
+    imagePath = result.get("path")
+    label = result.get("label")
+
+    
+# ----------------------------------------
+    # ✅ 3. CREATE RAW TFRecord SNAPSHOT (NEW!)
     # ----------------------------------------
-    # ✅ TRIGGER FULL PIPELINE (BACKGROUND)
+
+    try:
+        tfRecorder = TFRecorder(
+            tfrecordDir=Path(dbFile=databaseLocation).loadPath("tfrecord")
+        )
+
+        # ✅ create TFRecord from RAW image
+        record = tfRecorder.createTFRecord(
+            fileName=imagePath,
+            label=label,
+            labelInit=1  # adjust later
+        )
+
+        tfFileName = addDataType(label, "tfrec")
+        tfDir = Path(dbFile=databaseLocation).loadPath("tfrecord")
+
+        tfRecorder.saveTFRecord(
+            fileName=tfFileName,
+            filePath=tfDir,
+            TFRecord=record
+        )
+
+        # ✅ insert RAW TFRecording
+        tfTable = TFRecordingTable(dbFile=databaseLocation)
+        tfTable.openConnection()
+
+        tfTable.insertTFRecordingTable({
+            "Label": label,
+            "FilePath": os.path.join(tfDir, tfFileName),
+            "AugmentationID": None   # ✅ RAW record
+        })
+
+        tfTable.closeConnection()
+
+    except Exception as e:
+        print(f"[RAW TFRecord ERROR] {e}")
+
+    # ----------------------------------------
+    # ✅ 4. TRIGGER PREPROCESSING (BACKGROUND)
     # ----------------------------------------
 
     PreprocessingImages(
-        clientAnswer={"SampleID": lastId},
-        dbFile=dbFile
+        clientAnswer={"SampleID": sampleID},
+        dbFile=databaseLocation
     )
 
-    AugmentationImages(
-        clientAnswer={
-            "PreprocessingID": 1,   # ⚠️ placeholder → see note below
-            "Method": "flipping"
-        },
-        dbFile=dbFile
-    )
+    # ----------------------------------------
+    # ✅ 5. TRIGGER FINAL TF PIPELINE
+    # ----------------------------------------
 
     generateTensorFlowRecordsBackground(
-        path=Path(dbFile=dbFile),
-        database=Database(dbFile=dbFile),
-        tfRecorder=TFRecorder()
+        path=Path(dbFile=databaseLocation),
+        database=Database(dbFile=databaseLocation),
+        tfRecorder=TFRecorder(
+            tfrecordDir=Path(dbFile=databaseLocation).loadPath("tfrecord")
+        )
     )
 
-    if not result.get("success"):
-        raise HTTPException(
-            status_code=500,
-            detail=result.get("message", "Unknown error")
-        )
-
-
+    # ----------------------------------------
+    # ✅ 6. RETURN
+    # ----------------------------------------
     return result
+
 
 
 @app.get("/sample/by-capture-time")

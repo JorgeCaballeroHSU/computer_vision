@@ -333,7 +333,6 @@ def Sample(clientDataset:dict|None, table:SampleTable, action: str='add')->list[
             # as there was an error, returns False
             return [False, actualDatabase,None]
 
-
 # does all necessary changes to JunctionPre table and returns bool indicating whether the changes were successfull and as well the last row 
 def JunctionPre(clientDataset:dict|None, table:JunctionPreTable, action: str='add')->list[bool, dict,int |None]:
 
@@ -416,7 +415,6 @@ def JunctionPre(clientDataset:dict|None, table:JunctionPreTable, action: str='ad
 
             # as there was an error, returns False
             return [False, actualDatabase,None]
-
 
 # does all necessary changes to Preprocessing table and returns bool indicating whether the changes were successfull and as well the last row 
 def Preprocessing(clientDataset:dict|None, table:PreprocessingTable, action: str='add')->list[bool, dict,int |None]:
@@ -747,12 +745,12 @@ def TFRecording(clientData: dict | None, table:TFRecordingTable, action: str = '
         try:
 
             # deletes the indicated row
-            table.deleteAugmentationTable(
+            table.deleteTFRecordingTable(
                 clientAnswer=clientData
             )
 
             # gets the actual composition of the database
-            actualDatabase = table.fetchAugmentation()
+            actualDatabase = table.fetchTFRecording()
 
             # returns results
             return [True, actualDatabase, None]
@@ -763,278 +761,12 @@ def TFRecording(clientData: dict | None, table:TFRecordingTable, action: str = '
             print('An error has occurred. Error {}'.format(e))
 
             # gets the actual compostion of the database
-            actualDatabase = table.fetchAugmentation()
+            actualDatabase = table.fetchTFRecording()
 
             # returns results
             return [False, actualDatabase, None]
         
-# handles all necessary changes to Validation table and returns:
-# [success flag, actual database state, last inserted row id (if any)]
-def Validation(clientData: dict | None, table:ValidationTable, action: str = 'add') -> list[bool, dict, int | None]:
-
-    '''
-    Handles access to the Validation table according to client requirements.
-
-    :param clientData: Dictionary with information required to add/modify/delete entries.
-    :param table: Database table handler.
-    :param action: Type of action ('add', 'modify', 'delete').
-    :return: [bool success, dict database snapshot, int | None lastRowID]
-    '''
-
-    # ADD
-    if action == 'add':
-        try:
-            # adds new project to the database
-            lastIdRow = table.insertValidationTable(clientAnswer=clientData)
-
-            # gets the actual composition of the database
-            actualDatabase = table.fetchValidation()
-
-            # returns results
-            return [True, actualDatabase, lastIdRow]
-
-        # in case of error return false
-        except Exception as e:
-            
-            # prints error
-            print('An error has occurred. Error: {}'.format(e))
-
-            # gets the actual composition of the database
-            actualDatabase = table.fetchValidation()
-
-            # as there was an error, returns False
-            return [False, actualDatabase, None]
-
-    # MODIFY
-    elif action == 'modify':
-        try:
-            # modify the indicated row of the table
-            table.updateValidationTable(
-                clientAnswer=clientData
-            )
-
-            # gets the actual composition of the database
-            actualDatabase = table.fetchValidation()
-
-            # as there was an error, returns False
-            return [True, actualDatabase, None]
-
-        except Exception as e:
-
-            # prints error
-            print('An error has occurred. Error {}'.format(e))
-
-            # gets the actual composition of the database
-            actualDatabase = table.fetchValidation()
-
-            # as there was an error, returns False
-            return [False, actualDatabase, None]
-
-    # DELETE
-    elif action == 'delete':
-
-        try:
-
-            # deletes the indicated row
-            table.deleteValidationTable(
-                clientAnswer=clientData
-            )
-
-            # gets the actual composition of the database
-            actualDatabase = table.fetchValidation()
-
-            # returns results
-            return [True, actualDatabase, None]
-
-        except Exception as e:
-
-            # prints error
-            print('An error has occurred. Error {}'.format(e))
-
-            # gets the actual compostion of the database
-            actualDatabase = table.fetchValidation()
-
-            # returns results
-            return [False, actualDatabase, None]
-        
-# handles all necessary changes to Testing table and returns:
-# [success flag, actual database state, last inserted row id (if any)]
-def Testing(clientData: dict | None, table:TestingTable, action: str = 'add') -> list[bool, dict, int | None]:
-
-    '''
-    Handles access to the Testing table according to client requirements.
-
-    :param clientData: Dictionary with information required to add/modify/delete entries.
-    :param table: Database table handler.
-    :param action: Type of action ('add', 'modify', 'delete').
-    :return: [bool success, dict database snapshot, int | None lastRowID]
-    '''
-
-    # ADD
-    if action == 'add':
-        try:
-            # adds new project to the database
-            lastIdRow = table.insertTestingTable(clientAnswer=clientData)
-
-            # gets the actual composition of the database
-            actualDatabase = table.fetchTesting()
-
-            # returns results
-            return [True, actualDatabase, lastIdRow]
-
-        # in case of error return false
-        except Exception as e:
-            
-            # prints error
-            print('An error has occurred. Error: {}'.format(e))
-
-            # gets the actual composition of the database
-            actualDatabase = table.fetchTesting()
-
-            # as there was an error, returns False
-            return [False, actualDatabase, None]
-
-    # MODIFY
-    elif action == 'modify':
-        try:
-            # modify the indicated row of the table
-            table.updateTestingTable(
-                clientAnswer=clientData
-            )
-
-            # gets the actual composition of the database
-            actualDatabase = table.fetchTesting()
-
-            # as there was an error, returns False
-            return [True, actualDatabase, None]
-
-        except Exception as e:
-
-            # prints error
-            print('An error has occurred. Error {}'.format(e))
-
-            # gets the actual composition of the database
-            actualDatabase = table.fetchTesting()
-
-            # as there was an error, returns False
-            return [False, actualDatabase, None]
-
-    # DELETE
-    elif action == 'delete':
-
-        try:
-
-            # deletes the indicated row
-            table.deleteTestingTable(
-                clientAnswer=clientData
-            )
-
-            # gets the actual composition of the database
-            actualDatabase = table.fetchTesting()
-
-            # returns results
-            return [True, actualDatabase, None]
-
-        except Exception as e:
-
-            # prints error
-            print('An error has occurred. Error {}'.format(e))
-
-            # gets the actual compostion of the database
-            actualDatabase = table.fetchTesting()
-
-            # returns results
-            return [False, actualDatabase, None]
-
-# handles all necessary changes to Training table and returns:
-# [success flag, actual database state, last inserted row id (if any)]
-def Training(clientData: dict | None, table:TrainingTable, action: str = 'add') -> list[bool, dict, int | None]:
-
-    '''
-    Handles access to the Training table according to client requirements.
-
-    :param clientData: Dictionary with information required to add/modify/delete entries.
-    :param table: Database table handler.
-    :param action: Type of action ('add', 'modify', 'delete').
-    :return: [bool success, dict database snapshot, int | None lastRowID]
-    '''
-
-    # ADD
-    if action == 'add':
-        try:
-            # adds new project to the database
-            lastIdRow = table.insertTrainingTable(clientAnswer=clientData)
-
-            # gets the actual composition of the database
-            actualDatabase = table.fetchTraining()
-
-            # returns results
-            return [True, actualDatabase, lastIdRow]
-
-        # in case of error return false
-        except Exception as e:
-            
-            # prints error
-            print('An error has occurred. Error: {}'.format(e))
-
-            # gets the actual composition of the database
-            actualDatabase = table.fetchTraining()
-
-            # as there was an error, returns False
-            return [False, actualDatabase, None]
-
-    # MODIFY
-    elif action == 'modify':
-        try:
-            # modify the indicated row of the table
-            table.updateTrainingTable(
-                clientAnswer=clientData
-            )
-
-            # gets the actual composition of the database
-            actualDatabase = table.fetchTraining()
-
-            # as there was an error, returns False
-            return [True, actualDatabase, None]
-
-        except Exception as e:
-
-            # prints error
-            print('An error has occurred. Error {}'.format(e))
-
-            # gets the actual composition of the database
-            actualDatabase = table.fetchTraining()
-
-            # as there was an error, returns False
-            return [False, actualDatabase, None]
-
-    # DELETE
-    elif action == 'delete':
-
-        try:
-
-            # deletes the indicated row
-            table.deleteTrainingTable(
-                clientAnswer=clientData
-            )
-
-            # gets the actual composition of the database
-            actualDatabase = table.fetchTraining()
-
-            # returns results
-            return [True, actualDatabase, None]
-
-        except Exception as e:
-
-            # prints error
-            print('An error has occurred. Error {}'.format(e))
-
-            # gets the actual compostion of the database
-            actualDatabase = table.fetchTraining()
-
-            # returns results
-            return [False, actualDatabase, None]
-        
+       
 # handles all necessary changes to Model table and returns:
 # [success flag, actual database state, last inserted row id (if any)]
 def Model(clientData: dict | None, table:ModelTable, action: str = 'add') -> list[bool, dict, int | None]:

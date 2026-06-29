@@ -103,7 +103,6 @@ def dataBaseFill(clientAnswer: dict, action: str, file, dbFile: str) -> dict:
         return {"success": False, "message": str(e)}
 
         
-
 def generateTensorFlowRecordsBackground(path: Path, database: Database, tfRecorder: TFRecorder):
     """
     Background worker that ensures every Sample has a TFRecord.
@@ -144,10 +143,16 @@ def generateTensorFlowRecordsBackground(path: Path, database: Database, tfRecord
                         TFRecord=record
                     )
 
-                    database.insertItemsTable(
-                        query="INSERT INTO TFRecording (Label, FilePath, AugmentationID) VALUES (?, ?, NULL)",
+                    tfID,_=database.insertItemsTable(
+                        query="INSERT INTO TFRecording (Label, FilePath) VALUES (?, ?)",
                         values=(label, tfPath)
                     )
+
+                    # updates the Sample table with the TFRecordingID that was just generated
+                    database.updateItem(updateStatement="""UPDATE Sample SET TFRecordingID=? WHERE Label=?""",
+                        Values=(tfID, label)
+                    )
+
 
                 except Exception as e:
                     print(f"[TFRecord ERROR] {label}: {e}")
@@ -215,9 +220,26 @@ def PreprocessingImages(clientAnswer: dict, dbFile: str):
                         action='add'
                     )
 
+                    # fetsch the TFRecordingID of the sample
+                    db = Database(dbFile)
+                    db.openConnection()
+
+                    tfRecord = db.fetchInfo(
+                        "SELECT TFRecordingID FROM Sample WHERE SampleID = ?",
+                        (clientAnswer['SampleID'],)
+                    )
+
+                    db.closeConnection()
+
+                    if not tfRecord or tfRecord[0]['TFRecordingID'] is None:
+                        print("❌ TFRecording not assigned yet")
+                        return
+
+                    tfRecordID = tfRecord[0]['TFRecordingID']
+
                     JunctionPre(
                         clientDataset={
-                            'SampleID': clientAnswer['SampleID'],
+                            'TFRecordingID': tfRecordID,
                             'PreprocessingID': preTable[2]
                         },
                         table=JunctionPreTable(dbFile),
@@ -335,7 +357,6 @@ def AugmentationImages(clientAnswer: dict, dbFile: str):
                 clientData={
                     'Label': tfLabel,
                     'FilePath': tfPath,
-                    'AugmentationID': augID
                 },
                 table=TFRecordingTable(dbFile),
                 action='add'

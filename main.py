@@ -356,8 +356,6 @@ def handleSample(
     # ----------------------------------------
     return result
 
-
-
 @app.get("/sample/by-capture-time")
 def get_sample_by_capture_time(captureTime: str):
     db = SampleTable(databaseLocation)

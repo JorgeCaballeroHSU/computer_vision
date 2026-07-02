@@ -1,23 +1,5 @@
 sudo apt update
 sudo apt install nvidia-cuda-toolkit
-# For GPU users
-pip install tensorflow[and-cuda]
-# For CPU users
-pip install tensorflow
-python3 -c "import tensorflow as tf; print(tf.config.list_physical_devices('GPU'))"
-pip install tensorflow==2.14.1  # TensorFlow >=2.14 has GPU support in WSL
-pip install tensorflow==2.14.1
-python3 -c "import tensorflow as tf; print(tf.config.list_physical_devices('GPU'))"
- source /home/computer_vision/.venv/bin/activate
- source /home/computer_vision/.venv/bin/activate
-python3 -c "import tensorflow as tf; print(tf.config.list_physical_devices('GPU'))"
-nvidia-smi
-pip install --upgrade pip
-pip install tensorflow[and-cuda]
-python3 -c "import tensorflow as tf; print(tf.reduce_sum(tf.random.normal([1000, 1000])))"
-python3 -c "import tensorflow as tf; print(tf.config.list_physical_devices('GPU'))"
-sudo apt update
-sudo apt install nvidia-cuda-toolkit
 pip install tensorflow==2.14.1
 pip install tensorflow
 python3 -c "import tensorflow as tf; print(tf.__version__); print(tf.config.list_physical_devices('GPU'))"
@@ -497,4 +479,22 @@ clear
  cd /home/computer_vision ; /usr/bin/env /home/computer_vision/.venv/bin/python /home/computer_vision/.vscode-server/extensions/ms-python.debugpy-2026.6.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher 42609 -- -m uvicorn main:app --host 0.0.0.0 --port 5000 --reload 
  cd /home/computer_vision ; /usr/bin/env /home/computer_vision/.venv/bin/python /home/computer_vision/.vscode-server/extensions/ms-python.debugpy-2026.6.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher 38571 -- -m uvicorn main:app --host 0.0.0.0 --port 5000 --reload 
  cd /home/computer_vision ; /usr/bin/env /home/computer_vision/.venv/bin/python /home/computer_vision/.vscode-server/extensions/ms-python.debugpy-2026.6.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher 35013 -- -m uvicorn main:app --host 0.0.0.0 --port 5000 --reload 
+ source /home/computer_vision/.venv/bin/activate
+ source /home/computer_vision/.venv/bin/activate
+ source /home/computer_vision/.venv/bin/activate
+ /usr/bin/env /home/computer_vision/.venv/bin/python /home/computer_vision/.vscode-server/extensions/ms-python.debugpy-2026.6.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher 42367 -- -m uvicorn main:app --host 0.0.0.0 --port 5000 --reload 
+ cd /home/computer_vision ; /usr/bin/env /home/computer_vision/.venv/bin/python /home/computer_vision/.vscode-server/extensions/ms-python.debugpy-2026.6.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher 35767 -- -m uvicorn main:app --host 0.0.0.0 --port 5000 --reload 
+ cd /home/computer_vision ; /usr/bin/env /home/computer_vision/.venv/bin/python /home/computer_vision/.vscode-server/extensions/ms-python.debugpy-2026.6.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher 41441 -- -m uvicorn main:app --host 0.0.0.0 --port 5000 --reload 
+clear
+clear
+clear
+ cd /home/computer_vision ; /usr/bin/env /home/computer_vision/.venv/bin/python /home/computer_vision/.vscode-server/extensions/ms-python.debugpy-2026.6.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher 45393 -- -m uvicorn main:app --host 0.0.0.0 --port 5000 --reload 
+clear
+ cd /home/computer_vision ; /usr/bin/env /home/computer_vision/.venv/bin/python /home/computer_vision/.vscode-server/extensions/ms-python.debugpy-2026.6.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher 40419 -- -m uvicorn main:app --host 0.0.0.0 --port 5000 --reload 
+ cd /home/computer_vision ; /usr/bin/env /home/computer_vision/.venv/bin/python /home/computer_vision/.vscode-server/extensions/ms-python.debugpy-2026.6.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher 40393 -- -m uvicorn main:app --host 0.0.0.0 --port 5000 --reload 
+ cd /home/computer_vision ; /usr/bin/env /home/computer_vision/.venv/bin/python /home/computer_vision/.vscode-server/extensions/ms-python.debugpy-2026.6.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher 49081 -- -m uvicorn main:app --host 0.0.0.0 --port 5000 --reload 
+ cd /home/computer_vision ; /usr/bin/env /home/computer_vision/.venv/bin/python /home/computer_vision/.vscode-server/extensions/ms-python.debugpy-2026.6.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher 35351 -- -m uvicorn main:app --host 0.0.0.0 --port 5000 --reload 
+ cd /home/computer_vision ; /usr/bin/env /home/computer_vision/.venv/bin/python /home/computer_vision/.vscode-server/extensions/ms-python.debugpy-2026.6.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher 58157 -- -m uvicorn main:app --host 0.0.0.0 --port 5000 --reload 
+ cd /home/computer_vision ; /usr/bin/env /home/computer_vision/.venv/bin/python /home/computer_vision/.vscode-server/extensions/ms-python.debugpy-2026.6.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher 56499 -- -m uvicorn main:app --host 0.0.0.0 --port 5000 --reload 
+ cd /home/computer_vision ; /usr/bin/env /home/computer_vision/.venv/bin/python /home/computer_vision/.vscode-server/extensions/ms-python.debugpy-2026.6.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher 35287 -- -m uvicorn main:app --host 0.0.0.0 --port 5000 --reload 
  source /home/computer_vision/.venv/bin/activate

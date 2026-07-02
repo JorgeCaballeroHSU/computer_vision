@@ -88,7 +88,7 @@ class TFRecorder:
         '''
 
         # creates a dataset from the TFRecord file
-        Dataset = tf.data.TFRecordDataset(fileName)
+        dataset = tf.data.TFRecordDataset(fileName)
 
         # defines the feature description for parsing the TFRecord
         featureDescription = {

@@ -166,7 +166,7 @@ def generateTensorFlowRecordsBackground(path: Path, database: Database, tfRecord
 
 
 # imports required libraries
-from app.Preprocessing import Tailing
+from app.Preprocessing.Tailing import Tailing
 
 # Preprocesses the images by applying tailing
 def PreprocessingImages(clientAnswer: dict, dbFile: str):
@@ -177,37 +177,46 @@ def PreprocessingImages(clientAnswer: dict, dbFile: str):
 
     def worker():
         try:
-            tailing = Tailing(size=512, stride=512)
+            tailing = Tailing(size=512, stride=206)
             pathManager = Path(dbFile=dbFile)
 
-            fotosPath = pathManager.loadPath("image")
+            fotosPath = pathManager.loadPath("tfrecord")
+
+            #✅ Initialize TFRecorder
+            tfRecorder = TFRecorder(tfrecordDir=fotosPath)
 
             filesAvailable = os.listdir(fotosPath)
-
+            
             for file in filesAvailable:
+
+                if not file.endswith(".tfrec"):
+                    continue
 
                 fullPath = os.path.join(fotosPath, file)
 
-                # ✅ FIX: open image correctly
-                photoLocation = fullPath
+                dataset = tfRecorder.readTFRecord(fullPath)
 
-                tailedImages = tailing.tailing(image=photoLocation)
+                for image, label, labelInit in dataset:
 
-                for i in range(tailedImages.shape[0]):
+                    tailedImages = tailing.tailing(image=image)
 
-                    labelGen = LabelPreprocessing(
-                        sampleLabel=file,
-                        preprocessingType='tailing'
-                    )
+                    for i in range(tailedImages.shape[0]):
 
-                    label = labelGen.generateSampleLabel(number=i)
+                        labelGen = LabelPreprocessing(
+                            sampleLabel=file,
+                            preprocessingType='tailing'
+                        )
 
-                    npyPath = os.path.join(
-                        fotosPath,
-                        addDataType(label, 'npy')
-                    )
+                        labelOut = labelGen.generateSampleLabel(number=i)
 
-                    np.save(file=npyPath, arr=tailedImages[i])
+                        npyPath = os.path.join(
+                            fotosPath,
+                            addDataType(labelOut, 'npy')
+                        )
+
+                        np.save(file=npyPath, arr=tailedImages[i].numpy())
+
+
 
                     # ✅ Insert into DB
                     preTable = Preprocessing(

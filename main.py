@@ -13,7 +13,7 @@ import json
 
 
 from app.Tools.ChangePath import ChangePath
-from app.dataBaseFill import dataBaseFill, PreprocessingImages, AugmentationImages,generateTensorFlowRecordsBackground
+from app.dataBaseFill import dataBaseFill, PreprocessingImages, AugmentationImages
 from app.trainModel import trainModel
 from app.prediction import prediction
 
@@ -322,7 +322,6 @@ def handleSample(
         tfTable.insertTFRecordingTable({
             "Label": label,
             "FilePath": os.path.join(tfDir, tfFileName),
-            "AugmentationID": None   # ✅ RAW record
         })
 
         tfTable.closeConnection()
@@ -340,19 +339,7 @@ def handleSample(
     )
 
     # ----------------------------------------
-    # ✅ 5. TRIGGER FINAL TF PIPELINE
-    # ----------------------------------------
-
-    generateTensorFlowRecordsBackground(
-        path=Path(dbFile=databaseLocation),
-        database=Database(dbFile=databaseLocation),
-        tfRecorder=TFRecorder(
-            tfrecordDir=Path(dbFile=databaseLocation).loadPath("tfrecord")
-        )
-    )
-
-    # ----------------------------------------
-    # ✅ 6. RETURN
+    # ✅ 5. RETURN
     # ----------------------------------------
     return result
 

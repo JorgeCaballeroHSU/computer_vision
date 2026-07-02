@@ -7,6 +7,8 @@ Handles generation of labels for:
 - TFRecord files
 """
 
+import os
+
 from app.Database.Database import DatasetTable
 
 
@@ -151,8 +153,11 @@ class LabelPreprocessing:
         Example:
             HSU-HH_K_001_F_01
         """
+        
+        sampleLabel = os.path.splitext(self._sampleLabel)[0]
+
         return "_".join([
-            self._sampleLabel,
+            sampleLabel,
             self._preprocessingType,
             str(number).zfill(2)
         ])

@@ -1,5 +1,3 @@
-sudo apt update
-sudo apt install nvidia-cuda-toolkit
 pip install tensorflow==2.14.1
 pip install tensorflow
 python3 -c "import tensorflow as tf; print(tf.__version__); print(tf.config.list_physical_devices('GPU'))"
@@ -497,4 +495,6 @@ clear
  cd /home/computer_vision ; /usr/bin/env /home/computer_vision/.venv/bin/python /home/computer_vision/.vscode-server/extensions/ms-python.debugpy-2026.6.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher 58157 -- -m uvicorn main:app --host 0.0.0.0 --port 5000 --reload 
  cd /home/computer_vision ; /usr/bin/env /home/computer_vision/.venv/bin/python /home/computer_vision/.vscode-server/extensions/ms-python.debugpy-2026.6.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher 56499 -- -m uvicorn main:app --host 0.0.0.0 --port 5000 --reload 
  cd /home/computer_vision ; /usr/bin/env /home/computer_vision/.venv/bin/python /home/computer_vision/.vscode-server/extensions/ms-python.debugpy-2026.6.0-linux-x64/bundled/libs/debugpy/adapter/../../debugpy/launcher 35287 -- -m uvicorn main:app --host 0.0.0.0 --port 5000 --reload 
+ source /home/computer_vision/.venv/bin/activate
+ source /home/computer_vision/.venv/bin/activate
  source /home/computer_vision/.venv/bin/activate

@@ -172,3 +172,26 @@ class TFRecorder:
 
         # returns None
         return None
+    
+    def createTFRecordFromTensor(self, image: tf.Tensor, label: str, labelInit: int) -> bytes:
+
+        imageShape = image.shape
+
+        image_flat = tf.reshape(image, [-1]).numpy().tolist()
+
+        example = tf.train.Example(
+            features=tf.train.Features(
+                feature={
+                    'image': self.__floatFeature(image_flat),
+                    'shape': self.__int64Feature([
+                        int(imageShape[0]),
+                        int(imageShape[1]),
+                        int(imageShape[2])
+                    ]),
+                    'label': self.__stringFeature(label),
+                    'label_init': self.__int64Feature([int(labelInit)])
+                }
+            )
+        )
+
+        return example.SerializeToString()

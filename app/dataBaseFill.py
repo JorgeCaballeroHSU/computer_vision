@@ -6,7 +6,6 @@ from app.Files.Label import LabelPreprocessing, LabelSample
 from app.Database.Tables.Tables import *
 from app.Preprocessing.TFRecorder import TFRecorder
 import os
-import numpy as np
 from threading import Thread
 
 
@@ -102,69 +101,6 @@ def dataBaseFill(clientAnswer: dict, action: str, file, dbFile: str) -> dict:
         print(f"[dataBaseFill] Fatal Error: {e}")
         return {"success": False, "message": str(e)}
 
-        
-def generateTensorFlowRecordsBackground(path: Path, database: Database, tfRecorder: TFRecorder):
-    """
-    Background worker that ensures every Sample has a TFRecord.
-    """
-
-    def worker():
-        try:
-            database.openConnection()
-
-            samples = database.fetchInfo("SELECT Label, FilePath FROM Sample")
-
-            for sample in samples:
-
-                label = sample["Label"]
-                imagePath = sample["FilePath"]
-
-                existing = database.fetchInfo(
-                    "SELECT * FROM TFRecording WHERE Label = ?",
-                    (label,)
-                )
-
-                if existing:
-                    continue
-
-                try:
-                    record = tfRecorder.createTFRecord(
-                        fileName=imagePath,
-                        label=label,
-                        labelInit=1
-                    )
-
-                    tfFileName = addDataType(label, "tfrec")
-                    tfPath = os.path.join(path.getPath(), tfFileName)
-
-                    tfRecorder.saveTFRecord(
-                        fileName=tfFileName,
-                        filePath=path.getPath(),
-                        TFRecord=record
-                    )
-
-                    tfID,_=database.insertItemsTable(
-                        query="INSERT INTO TFRecording (Label, FilePath) VALUES (?, ?)",
-                        values=(label, tfPath)
-                    )
-
-                    # updates the Sample table with the TFRecordingID that was just generated
-                    database.updateItem(updateStatement="""UPDATE Sample SET TFRecordingID=? WHERE Label=?""",
-                        Values=(tfID, label)
-                    )
-
-
-                except Exception as e:
-                    print(f"[TFRecord ERROR] {label}: {e}")
-
-            database.closeConnection()
-
-        except Exception as e:
-            print(f"[TF Background ERROR] {e}")
-
-    Thread(target=worker, daemon=True).start()
-
-
 # imports required libraries
 from app.Preprocessing.Tailing import Tailing
 
@@ -176,6 +112,9 @@ def PreprocessingImages(clientAnswer: dict, dbFile: str):
     """
 
     def worker():
+
+        db=None
+
         try:
             tailing = Tailing(size=512, stride=206)
             pathManager = Path(dbFile=dbFile)
@@ -184,81 +123,160 @@ def PreprocessingImages(clientAnswer: dict, dbFile: str):
 
             #✅ Initialize TFRecorder
             tfRecorder = TFRecorder(tfrecordDir=fotosPath)
+           
+            # opens connection to the database
+            db = Database(dbFile)
+            db.openConnection()
 
-            filesAvailable = os.listdir(fotosPath)
             
-            for file in filesAvailable:
+            rawRecords = db.fetchInfo(
+                """
+                SELECT Label,
+                FilePath,
+                TFRecordingID
+            FROM TFRecording
+            WHERE Label NOT LIKE '%tailing%'
+            AND Label NOT LIKE '%flipping%'
+            AND Label NOT LIKE '%color%'
+                """
+            )
 
-                if not file.endswith(".tfrec"):
-                    continue
+            for recordInfo in rawRecords:
 
-                fullPath = os.path.join(fotosPath, file)
+                fullPath = recordInfo["FilePath"]
 
                 dataset = tfRecorder.readTFRecord(fullPath)
-
+                
                 for image, label, labelInit in dataset:
+                    
+                    
+                    print(
+                        f"Preprocessing {recordInfo['Label']} "
+                        f"shape={image.shape}"
+                    )
+
+                    if image.shape[0] < 512 or image.shape[1] < 512:
+                        print(
+                            f"⚠️ Skipping image because shape is {image.shape}"
+                        )
+                        continue
 
                     tailedImages = tailing.tailing(image=image)
 
                     for i in range(tailedImages.shape[0]):
 
                         labelGen = LabelPreprocessing(
-                            sampleLabel=file,
+                            sampleLabel=recordInfo["Label"],
                             preprocessingType='tailing'
                         )
 
-                        labelOut = labelGen.generateSampleLabel(number=i)
+                        labelOut = labelGen.generatePreprocessingLabel(number=i)
 
-                        npyPath = os.path.join(
-                            fotosPath,
-                            addDataType(labelOut, 'npy')
+                        tfFileName = addDataType(labelOut, "tfrec")
+
+                        record = tfRecorder.createTFRecordFromTensor(
+                            image=tailedImages[i],
+                            label=labelOut,
+                            labelInit=1
                         )
 
-                        np.save(file=npyPath, arr=tailedImages[i].numpy())
+                        tfRecorder.saveTFRecord(
+                            fileName=tfFileName,
+                            filePath=fotosPath,
+                            TFRecord=record
+                        )
 
+                        tfPath = os.path.join(fotosPath, tfFileName)
+                        
+                        # Insert preprocessing record
+                        preprocessingID, _ = db.insertItemsTable(
+                            query="""
+                                INSERT INTO Preprocessing
+                                (PreprocessingType, FilePath, Label)
+                                VALUES (?, ?, ?)
+                            """,
+                            values=(
+                                'tailing',
+                                tfPath,
+                                labelOut
+                            )
+                        )
 
+                        # Obtain TFRecordingID from the source TFRecord label
+                        sourceLabel = label.numpy().decode("utf-8")
 
-                    # ✅ Insert into DB
-                    preTable = Preprocessing(
-                        clientDataset={
-                            'PreprocessingType': 'tailing',
-                            'FilePath': npyPath,
-                            'Label': label
-                        },
-                        table=PreprocessingTable(dbFile),
-                        action='add'
-                    )
+                        tfRecord = db.fetchInfo(
+                            """
+                            SELECT TFRecordingID
+                            FROM TFRecording
+                            WHERE Label = ?
+                            """,
+                            (sourceLabel,)
+                        )
 
-                    # fetsch the TFRecordingID of the sample
-                    db = Database(dbFile)
-                    db.openConnection()
+                        if not tfRecord:
+                            print(f"❌ TFRecording not found for {sourceLabel}")
+                            continue
 
-                    tfRecord = db.fetchInfo(
-                        "SELECT TFRecordingID FROM Sample WHERE SampleID = ?",
-                        (clientAnswer['SampleID'],)
-                    )
+                        tfRecordID = tfRecord[0]["TFRecordingID"]
 
-                    db.closeConnection()
+                        # Create junction
+                        db.insertItemsTable(
+                            query="""
+                                INSERT INTO JunctionPre
+                                (TFRecordingID, PreprocessingID)
+                                VALUES (?, ?)
+                            """,
+                            values=(
+                                tfRecordID,
+                                preprocessingID
+                            )
+                        )
 
-                    if not tfRecord or tfRecord[0]['TFRecordingID'] is None:
-                        print("❌ TFRecording not assigned yet")
-                        return
+                        # ----------------------------------------
+                        # Automatic augmentations
+                        # ----------------------------------------
 
-                    tfRecordID = tfRecord[0]['TFRecordingID']
+                        # Horizontal flip
+                        AugmentationImages(
+                            clientAnswer={
+                                "PreprocessingID": preprocessingID,
+                                "Method": "flippinghorizontal"
+                            },
+                            dbFile=dbFile
+                        )
 
-                    JunctionPre(
-                        clientDataset={
-                            'TFRecordingID': tfRecordID,
-                            'PreprocessingID': preTable[2]
-                        },
-                        table=JunctionPreTable(dbFile),
-                        action='add'
-                    )
+                        # Vertical flip
+                        AugmentationImages(
+                            clientAnswer={
+                                "PreprocessingID": preprocessingID,
+                                "Method": "flippingvertical"
+                            },
+                            dbFile=dbFile
+                        )
 
+                        # Color distortion
+                        AugmentationImages(
+                            clientAnswer={
+                                "PreprocessingID": preprocessingID,
+                                "Method": "color distortion"
+                            },
+                            dbFile=dbFile
+                        )
+            
+            
+
+            # indicates that the preprocessing is complete
             print("✅ Preprocessing complete")
 
         except Exception as e:
             print(f"[Preprocessing ERROR] {e}")
+
+        finally:
+            
+            if db:
+                # closes the connection to the database
+                db.closeConnection()
 
     Thread(target=worker, daemon=True).start()
 
@@ -275,6 +293,9 @@ def AugmentationImages(clientAnswer: dict, dbFile: str):
     """
 
     def worker():
+
+        db=None
+        
         try:
             db = Database(dbFile)
             db.openConnection()
@@ -289,35 +310,81 @@ def AugmentationImages(clientAnswer: dict, dbFile: str):
                 print("❌ Preprocessing not found")
                 return
 
-            imagePath = result[0]['FilePath']
+            tfPath = result[0]['FilePath']
             preLabel = result[0]['Label']
+
+            tfRecorder = TFRecorder(tfrecordDir=os.path.dirname(tfPath))
+
+            dataset = tfRecorder.readTFRecord(tfPath)
 
             method = clientAnswer['Method'].lower()
 
             # ✅ Prevent duplicates
             existing = db.fetchInfo(
-                "SELECT * FROM Augmentation WHERE Method = ? AND FilePath LIKE ?",
-                (clientAnswer['Method'], f"%{preLabel}%")
+                """
+                SELECT *
+                FROM Augmentation
+                WHERE Method = ?
+                AND FilePath LIKE ?
+                """,
+                (
+                    clientAnswer['Method'],
+                    f"%{preLabel}%"
+                )
             )
 
             if existing:
                 print("✅ Already augmented")
                 return
+ 
+            
+            dataset = tfRecorder.readTFRecord(tfPath)
+
+            try:
+                image, label, labelInit = next(iter(dataset))
+            except StopIteration:
+                print(f"❌ Empty TFRecord: {tfPath}")
+                return
+
+            print(
+                f"Loaded augmentation image: "
+                f"{preLabel} "
+                f"shape={image.shape}"
+            )
 
             # ✅ Apply augmentation
-            if method == "flipping":
-                augmenter = Flipping(flipType=clientAnswer['Method'])
-                augmented = augmenter.flip(image=imagePath)
-                augType = "flipping"
+            if method == "flippinghorizontal":
+
+                augmenter = Flipping(
+                    flipType="horizontal"
+                )
+
+                augmented = augmenter.flip(image=image)
+                augType = "flippinghorizontal"
+
+            elif method == "flippingvertical":
+
+                augmenter = Flipping(
+                    flipType="vertical"
+                )
+
+                augmented = augmenter.flip(image=image)
+                augType = "flippingvertical"
 
             elif method == "color distortion":
+
                 augmenter = ColorDistortion()
-                augmented = augmenter.distortColors(image=imagePath)
+
+                augmented = augmenter.distortColors(
+                    image=image
+                )
+
                 augType = "color"
 
             else:
                 print("❌ Invalid method")
                 return
+
 
             # ✅ Generate label
             labelGen = LabelTFRecording(
@@ -327,56 +394,72 @@ def AugmentationImages(clientAnswer: dict, dbFile: str):
 
             tfLabel = labelGen.generateTensorFlowRecordLabel()
 
-            basePath = Path(dbFile).loadPath("image")
+            basePath = Path(dbFile).loadPath("tfrecord")
             tfFile = addDataType(tfLabel, "tfrec")
             tfPath = os.path.join(basePath, tfFile)
 
             # ✅ Save TFRecord
-            tfRecorder = TFRecorder()
+            record = tfRecorder.createTFRecordFromTensor(
+                image=augmented,
+                label=tfLabel,
+                labelInit=int(labelInit.numpy())
+            )
+
             tfRecorder.saveTFRecord(
                 fileName=tfFile,
                 filePath=basePath,
-                TFRecord=augmented
+                TFRecord=record
             )
 
             # ✅ Insert Augmentation
-            augResult = Augmentation(
-                clientData={
-                    'Method': clientAnswer['Method'],
-                    'FilePath': tfPath
-                },
-                table=AugmentationTable(dbFile),
-                action='add'
+            augID, _ = db.insertItemsTable(
+                query="""
+                    INSERT INTO Augmentation
+                    (Method, FilePath)
+                    VALUES (?, ?)
+                """,
+                values=(
+                    clientAnswer['Method'],
+                    tfPath
+                )
             )
 
-            augID = augResult[2]
 
             # ✅ Junction table
-            JunctionAugmentation(
-                clientData={
-                    'PreprocessingID': clientAnswer['PreprocessingID'],
-                    'AugmentationID': augID
-                },
-                table=JunctionAugmentationTable(dbFile),
-                action='add'
+            db.insertItemsTable(
+                query="""
+                    INSERT INTO JunctionAugmentation
+                    (PreprocessingID, AugmentationID)
+                    VALUES (?, ?)
+                """,
+                values=(
+                    clientAnswer['PreprocessingID'],
+                    augID
+                )
             )
 
             # ✅ TFRecording table
-            TFRecording(
-                clientData={
-                    'Label': tfLabel,
-                    'FilePath': tfPath,
-                },
-                table=TFRecordingTable(dbFile),
-                action='add'
+            db.insertItemsTable(
+                query="""
+                    INSERT INTO TFRecording
+                    (Label, FilePath)
+                    VALUES (?, ?)
+                """,
+                values=(
+                    tfLabel,
+                    tfPath
+                )
             )
-
-            db.closeConnection()
+    
 
             print(f"✅ Augmentation completed: {tfLabel}")
 
         except Exception as e:
             print(f"[Augmentation ERROR] {e}")
+
+        finally:
+            if db:
+                db.closeConnection()
 
     Thread(target=worker, daemon=True).start()
         

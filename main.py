@@ -316,15 +316,36 @@ def handleSample(
         )
 
         # ✅ insert RAW TFRecording
-        tfTable = TFRecordingTable(dbFile=databaseLocation)
-        tfTable.openConnection()
+        db = Database(databaseLocation)
+        db.openConnection()
 
-        tfTable.insertTFRecordingTable({
-            "Label": label,
-            "FilePath": os.path.join(tfDir, tfFileName),
-        })
+        # Insert raw TFRecord
+        tfRecordingID, _ = db.insertItemsTable(
+            query="""
+                INSERT INTO TFRecording
+                (Label, FilePath)
+                VALUES (?, ?)
+            """,
+            values=(
+                label,
+                os.path.join(tfDir, tfFileName)
+            )
+        )
 
-        tfTable.closeConnection()
+        # Link Sample -> TFRecording
+        db.updateItem(
+            updateStatement="""
+                UPDATE Sample
+                SET TFRecordingID = ?
+                WHERE SampleID = ?
+            """,
+            Values=(
+                tfRecordingID,
+                sampleID
+            )
+        )
+        db.closeConnection()
+
 
     except Exception as e:
         print(f"[RAW TFRecord ERROR] {e}")
@@ -360,47 +381,7 @@ def get_sample_by_capture_time(captureTime: str):
     return {"exists": False}
 
 
+####################################################
+##################### TRAINING #####################
+####################################################
 
-####### PREPROCESSING ########
-# defines the input format table preprocessing and junctionPre
-class PreprocessingRequest(BaseModel):
-    PreprocessingType: str
-    filePath: str
-    label: str
-    SampleID: int
-
-# writes, updates, and deletes an item of the Preprocessing table and the JunctionPre table
-@app.post("/preprocessing")
-def handlePreprocessing(request:PreprocessingRequest):
-
-    # gets the result form the function PreprocessingImages
-    results=PreprocessingImages(clientDataset={
-        'PreprocessingType': request.PreprocessingType, 
-        'filePath': request.filePath, 
-        'label': request.label, 
-        'SampleID': request.SampleID}, 
-                          action='add')
-    
-    # returns results
-    return results
-
-###### AUGMENTATION ########
-# defines the input format for table Augmentation and JuctionAugmentation
-class AugmentationRequest(BaseModel):
-    Method:str
-    FilePath:str
-    PreprocessingID: int
-
-# writes, updates, and deletes an item of the Augmentation and JunctionAugmentation tables
-@app.post("/augmentation")
-def handleAugmentation(request:AugmentationRequest):
-
-    # gests the restults from the function AugmentationImages
-    results=AugmentationImages(clientDataset={
-        'Method':request.Method,
-        'FilePath':request.FilePath,
-        'PreprocessingID':request.PreprocessingID
-    })
-
-    # return results
-    return results

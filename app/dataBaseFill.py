@@ -135,9 +135,6 @@ def PreprocessingImages(clientAnswer: dict, dbFile: str):
                 FilePath,
                 TFRecordingID
             FROM TFRecording
-            WHERE Label NOT LIKE '%tailing%'
-            AND Label NOT LIKE '%flipping%'
-            AND Label NOT LIKE '%color%'
                 """
             )
 
@@ -424,7 +421,6 @@ def AugmentationImages(clientAnswer: dict, dbFile: str):
                 )
             )
 
-
             # ✅ Junction table
             db.insertItemsTable(
                 query="""
@@ -436,21 +432,7 @@ def AugmentationImages(clientAnswer: dict, dbFile: str):
                     clientAnswer['PreprocessingID'],
                     augID
                 )
-            )
-
-            # ✅ TFRecording table
-            db.insertItemsTable(
-                query="""
-                    INSERT INTO TFRecording
-                    (Label, FilePath)
-                    VALUES (?, ?)
-                """,
-                values=(
-                    tfLabel,
-                    tfPath
-                )
-            )
-    
+            )    
 
             print(f"✅ Augmentation completed: {tfLabel}")
 

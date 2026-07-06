@@ -385,3 +385,95 @@ def get_sample_by_capture_time(captureTime: str):
 ##################### TRAINING #####################
 ####################################################
 
+class TrainingRequest(BaseModel):
+    ModelName: str
+    DatasetID: int
+    TrainingPercentage: int
+    ValidationPercentage: int
+    LearningRate: float
+    BatchSize: int
+    Epochs: int
+
+@app.post("/train")
+def handleTraining(request: TrainingRequest):
+
+    try:
+
+        clientAnswer = {
+            "ModelName": request.ModelName,
+            "DatasetID": request.DatasetID,
+            "TrainingPercentage": request.TrainingPercentage,
+            "ValidationPercentage": request.ValidationPercentage,
+            "LearningRate": request.LearningRate,
+            "BatchSize": request.BatchSize,
+            "Epochs": request.Epochs
+        }
+
+        results = trainModel(
+            clientAnswer=clientAnswer,
+            dbFile=databaseLocation
+        )
+
+        return {
+            "success": True,
+            "results": results
+        }
+
+    except Exception as e:
+
+        raise HTTPException(
+            status_code=500,
+            detail=str(e)
+        )
+    
+@app.get("/training/datasets")
+def getTrainingDatasets():
+
+    db = Database(databaseLocation)
+
+    db.openConnection()
+
+    results = db.fetchInfo(
+        """
+        SELECT
+            DatasetID,
+            ProjectName,
+            MaterialType,
+            Created
+        FROM Dataset
+        ORDER BY Created DESC
+        """
+    )
+
+    db.closeConnection()
+
+    return results
+    
+@app.get("/train/models")
+def getTrainedModels():
+
+    db = Database(databaseLocation)
+    db.openConnection()
+
+    results = db.fetchInfo(
+        """
+        SELECT
+            Model.ModelName,
+            ModelVersion.ModelVersion,
+            Model.TrainingStatus,
+            ModelMetric.MSE,
+            ModelMetric.R2,
+            ModelMetric.Loss,
+            Model.CreatedAt
+        FROM Model
+        LEFT JOIN ModelVersion
+            ON Model.ModelVersionID = ModelVersion.ModelVersionID
+        LEFT JOIN ModelMetric
+            ON ModelVersion.ModelMetricID = ModelMetric.ModelMetricID
+        ORDER BY Model.CreatedAt DESC
+        """
+    )
+
+    db.closeConnection()
+
+    return results

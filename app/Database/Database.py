@@ -1,6 +1,7 @@
 # this files contains the classses for the creation, modification and deletion of the database and its tables
 
 # import required libraries
+from enum import UNIQUE
 import sqlite3
 from sqlite3 import Error
 
@@ -269,22 +270,21 @@ class Schema(Database):
         """
         
         # defines the sql-command for the creation of the table DatasetSplit        
-        DatasetSplit= "CREATE TABLE IF NOT EXISTS DatasetSplit(SplitID INTEGER PRIMARY KEY," \
-        "SampleID INTEGER NOT NULL, ModelVersionID INTEGER NOT NULL, SplitType TEXT NOT NULL, UNIQUE(SampleID, ModelVersionID)," \
-        "FOREIGN KEY(SampleID) REFERENCES Sample(SampleID) ON DELETE CASCADE, " \
-        "FOREIGN KEY(ModelVersionID) REFERENCES ModelVersion(ModelVersionID))"
+        DatasetSplit= """CREATE TABLE IF NOT EXISTS DatasetSplit(DatasetSplitID INTEGER PRIMARY KEY, ModelVersionID INTEGER NOT NULL, DatasetID INTEGER NOT NULL,
+        PreprocessingID INTEGER NOT NULL, SplitType TEXT NOT NULL,FOREIGN KEY(ModelVersionID) REFERENCES ModelVersion(ModelVersionID) ON DELETE CASCADE ON UPDATE CASCADE,
+        FOREIGN KEY(DatasetID) REFERENCES Dataset(DatasetID) ON DELETE CASCADE ON UPDATE CASCADE,
+        FOREIGN KEY(PreprocessingID) REFERENCES Preprocessing(PreprocessingID) ON DELETE CASCADE ON UPDATE CASCADE);"""
 
         # defines the sql-command for the creation of the table Model
-        model= "CREATE TABLE IF NOT EXISTS Model (ModelID INTEGER PRIMARY KEY, ModelName TEXT NOT NULL, TrainingStatus TEXT NOT NULL, " \
-        "CreatedAt DATE NOT NULL, ModelVersionID INTEGER, UNIQUE(ModelName, ModelVersionID), " \
-        "FOREIGN KEY (ModelVersionID) REFERENCES ModelVersion(ModelVersionID) ON DELETE CASCADE ON UPDATE CASCADE);"
+        model= """CREATE TABLE IF NOT EXISTS Model(ModelID INTEGER PRIMARY KEY, ModelName TEXT NOT NULL UNIQUE, TrainingStatus TEXT NOT NULL, CreatedAt DATE NOT NULL);"""
 
         # defines the sql-command for the creation of the table ModelVersion
-        modelVersion="CREATE TABLE IF NOT EXISTS ModelVersion (ModelVersionID INTEGER PRIMARY KEY, ModelVersion INTEGER NOT NULL, CreatedAt DATE NOT NULL, " \
-        "ModelMetricID INTEGER, HyperparameterID INTEGER, ModelWeightsID INTEGER, UNIQUE(ModelVersion, CreatedAt), " \
-        "FOREIGN KEY (ModelMetricID) REFERENCES ModelMetric(ModelMetricID) ON DELETE CASCADE ON UPDATE CASCADE," \
-        "FOREIGN KEY (HyperparameterID) REFERENCES Hyperparameter(HyperparameterID) ON DELETE CASCADE ON UPDATE CASCADE," \
-        "FOREIGN KEY (ModelWeightsID) REFERENCES ModelWeights(ModelWeightsID) ON DELETE CASCADE ON UPDATE CASCADE);"
+        modelVersion="""CREATE TABLE IF NOT EXISTS ModelVersion(ModelVersionID INTEGER PRIMARY KEY,
+        ModelID INTEGER NOT NULL, ModelVersion INTEGER NOT NULL, CreatedAt DATE NOT NULL, ModelMetricID INTEGER, HyperparameterID INTEGER,
+        ModelWeightsID INTEGER, UNIQUE(ModelID, ModelVersion), FOREIGN KEY(ModelID) REFERENCES Model(ModelID) ON DELETE CASCADE ON UPDATE CASCADE,
+        FOREIGN KEY(ModelMetricID) REFERENCES ModelMetric(ModelMetricID) ON DELETE CASCADE ON UPDATE CASCADE,
+        FOREIGN KEY(HyperparameterID) REFERENCES Hyperparameter(HyperparameterID) ON DELETE CASCADE ON UPDATE CASCADE,
+        FOREIGN KEY(ModelWeightsID) REFERENCES ModelWeights(ModelWeightsID) ON DELETE CASCADE ON UPDATE CASCADE);"""
 
         # defines the sql-command for the creation of the table ModelMetric
         modelMetric="CREATE TABLE IF NOT EXISTS ModelMetric (ModelMetricID INTEGER PRIMARY KEY, MSE REAL, r2 REAL, " \
@@ -297,7 +297,7 @@ class Schema(Database):
         modelWeights= "CREATE TABLE IF NOT EXISTS ModelWeights(ModelWeightsID INTEGER PRIMARY KEY, ModelWeightsPath TEXT, UNIQUE(ModelWeightsPath));"
 
         # returns the list of tables to be created
-        return [modelMetric, Hyperparameter, modelWeights, modelVersion, model, DatasetSplit]
+        return [modelMetric, Hyperparameter, modelWeights, model, modelVersion, DatasetSplit]
 
 # class to check if the data to be added to the database already exists in the database.
 class DataChecker(Database):

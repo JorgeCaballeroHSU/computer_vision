@@ -240,8 +240,13 @@
 
             <label>
                 Dataset:
-                <input type="text" id="datasetName" placeholder="Dataset name">
+                <select id="datasetName">
+                    <option value="">
+                        Loading datasets...
+                    </option>
+                </select>
             </label>
+
 
             <label>
                 Training Split (%):
@@ -373,8 +378,47 @@
         });
     }
 
+    async function loadDatasets() {
+        try {
+
+            const response =
+                await fetch("/training/datasets");
+
+            const datasets =
+                await response.json();
+
+            console.log("Datasets:", datasets);
+
+            const datasetSelect =
+                document.getElementById("datasetName");
+
+            datasetSelect.innerHTML = "";
+
+            
+            datasets.forEach(dataset => {
+
+                const option =
+                    document.createElement("option");
+
+                option.value = dataset.DatasetID;
+
+                option.textContent = `[${dataset.DatasetID}] ${dataset.ProjectName} (${dataset.MaterialType})`;
+
+                datasetSelect.appendChild(option);
+            });
+
+
+        } catch(error) {
+
+            console.error(
+                "Error loading datasets:",
+                error
+            );
+        }
+    }
     /* CALLS THE MODELS TRAINED*/
     loadTrainedModels();
+    loadDatasets();
 
     /* SELECT MODEL */
     function selectModel(name) {
@@ -398,14 +442,25 @@
 
         console.log("Training config:", config);
 
-        // later connect to backend
-        /*
-        fetch("http://localhost:8000/train", {
+        fetch("/train", {
             method: "POST",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify(config)
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                ModelName: config.model,
+                DatasetID: Number(config.dataset),
+                TrainingPercentage: Number(config.train_split),
+                ValidationPercentage: Number(config.val_split),
+                LearningRate: Number(config.hyperparameters.lr),
+                BatchSize: Number(config.hyperparameters.batch),
+                Epochs: Number(config.hyperparameters.epochs)
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            alert("Training started");
         });
-        */
 
         alert("Training started!");
     }

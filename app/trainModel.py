@@ -6,236 +6,522 @@ from  app.Database.Tables.Tables import *
 from app.CNN.Models import ModelFactory
 import random
 
-# Samples the dataset for training and validation dataset formation according to the percentages given by the user in the frontend
-def datasetSampling(clientAnswer:dict)->list[list,list]:
 
-    # gets the sampleNameIntList from the database
-    sampleNameIntList=TFRecordingTable("your_database.db").fetchInfo(statement="SELECT FilePath FROM TFRecording")
+from app.Preprocessing.TFRecorder import TFRecorder
+import tensorflow as tf
+import os
 
-    # converst the percentages given by the user into numbers of samples for the training and validation datasets
-    validationSamplesNumber=int((clientAnswer.get('ValidationPercentage')/100)*len(sampleNameIntList))
-    trainingSamplesNumber=int((clientAnswer.get('TrainingPercentage')/100)*len(sampleNameIntList))
 
-    # gets the identification of the samples for the training, validation, and testing datasets according to the percentages given by the user
-    validationSamples=random.sample(sampleNameIntList, k=validationSamplesNumber)
-    trainingSamples=random.sample([x for x in sampleNameIntList if x not in validationSamples], k=trainingSamplesNumber)
-    
-    # returns the training and validation samples
-    return [trainingSamples, validationSamples]
+def buildTrainingDataset(
+        records: list,
+        batchSize: int,
+        shuffle: bool = True
+    ) -> tf.data.Dataset:
+
+    """
+    Converts sampled TFRecords into a TensorFlow dataset.
+    """
+
+    filePaths = [
+        record["FilePath"]
+        for record in records
+    ]
+
+    if not filePaths:
+        raise ValueError("No TFRecords available")
+
+    tfRecorder = TFRecorder(
+        tfrecordDir=os.path.dirname(filePaths[0])
+    )
+
+    dataset = tfRecorder.readMultipleTFRecords(
+        fileNames=filePaths
+    )
+
+    # Keep only image and class label
+    dataset = dataset.map(
+        lambda image, label, labelInit:
+        (image, labelInit)
+    )
+
+    if shuffle:
+        dataset = dataset.shuffle(
+            buffer_size=len(filePaths)
+        )
+
+    dataset = dataset.batch(batchSize)
+
+    dataset = dataset.prefetch(
+        tf.data.AUTOTUNE
+    )
+
+    return dataset
+
+def datasetSampling(clientAnswer: dict, dbFile: str) -> list[list, list]:
+    """
+    Splits dataset by preprocessing tile.
+
+    Example:
+
+    Training:
+        tailing_00
+        tailing_00_flippinghorizontal
+        tailing_00_flippingvertical
+        tailing_00_color
+
+    Validation:
+        tailing_01
+        tailing_01_flippinghorizontal
+        tailing_01_flippingvertical
+        tailing_01_color
+
+    This prevents augmentation leakage.
+    """
+    # Connects and opens the database connection
+    db = Database(dbFile)
+    db.openConnection()
+
+    try:
+
+        # gets the dataset ID from the client answer
+        datasetID = clientAnswer["DatasetID"]
+
+        # All preprocessing tiles
+        preprocessingRecords = db.fetchInfo(
+            """
+            SELECT DISTINCT
+                P.PreprocessingID,
+                P.Label,
+                P.FilePath
+
+            FROM Sample S
+
+            INNER JOIN JunctionPre JP
+                ON JP.TFRecordingID = S.TFRecordingID
+
+            INNER JOIN Preprocessing P
+                ON P.PreprocessingID = JP.PreprocessingID
+
+            WHERE S.DatasetID = ?
+            """,
+            (
+                datasetID,
+            )
+        )
+
+        if not preprocessingRecords:
+            raise ValueError(
+                f"No preprocessing records found for DatasetID={datasetID}"
+            )
+
+
+        groups = []
+
+        for pre in preprocessingRecords:
+
+            group = []
+
+            # Base tile
+            group.append({
+                "Label": pre["Label"],
+                "FilePath": pre["FilePath"]
+            })
+
+            # Associated augmentations
+            augmentations = db.fetchInfo(
+                """
+                SELECT
+                    Augmentation.Method,
+                    Augmentation.FilePath
+                FROM Augmentation
+                INNER JOIN JunctionAugmentation
+                    ON JunctionAugmentation.AugmentationID =
+                       Augmentation.AugmentationID
+                WHERE JunctionAugmentation.PreprocessingID = ?
+                """,
+                (pre["PreprocessingID"],)
+            )
+
+            for aug in augmentations:
+
+                group.append({
+                    "Method": aug["Method"],
+                    "FilePath": aug["FilePath"]
+                })
+
+            groups.append({
+                "PreprocessingID": pre["PreprocessingID"],
+                "Label": pre["Label"],
+                "Records": group
+            })
+
+        # Shuffle tile groups
+        random.shuffle(groups)
+
+        trainPercentage = clientAnswer["TrainingPercentage"]
+        validationPercentage = clientAnswer["ValidationPercentage"]
+
+        if trainPercentage + validationPercentage != 100:
+            raise ValueError(
+                "TrainingPercentage + ValidationPercentage must equal 100"
+            )
+
+        trainCount = int(
+            len(groups) * trainPercentage / 100
+        )
+
+        trainingGroups = groups[:trainCount]
+        validationGroups = groups[trainCount:]
+        
+        trainingSamples = [
+            item
+            for group in trainingGroups
+            for item in group["Records"]
+        ]
+        
+        validationSamples = [
+            item
+            for group in validationGroups
+            for item in group["Records"]
+        ]
+
+
+        return {
+            "trainingTiles": trainingGroups,
+            "validationTiles": validationGroups,
+            "trainingRecords": trainingSamples,
+            "validationRecords": validationSamples
+            }
+
+    finally:
+        db.closeConnection()
+
 
 
 # trains the one architecture or version according the requirements of the user.
 # by architecture is meant to be the type of model, for example ResNet, VGG, etc. and by version is meant an specific set of hyperparameters or combination
 # of training-, testing-, and validation datasets.
 # Trains only one architecture or version of an architecture at a time.
-def trainModel(clientAnswer:dict)->None|list[dict]:
+def trainModel(
+        clientAnswer: dict,
+        dbFile: str
+    ) -> dict | None:
 
-    # fetches the model names from the database
-    modelNames=ModelTable("your_database.db")
-    
-    # checks if the model already exists in the database
-    # if the model alreay exists in the database#
-    if clientAnswer.get('ModelName') in modelNames.fetchInfo(statement="SELECT ModelName FROM Model WHERE ModelName={}".format(clientAnswer.get('ModelName'))):
+    db = Database(dbFile)
 
-        # checks if the model version already exists in the database
-        modelVersion=ModelVersionTable("your_database.db") # gets the table of model versions
+    db.openConnection()
 
-        if clientAnswer.get('ModelVersion') in modelVersion.fetchInfo(statement="SELECT ModelVersion FROM ModelVersion WHERE ModelVersion={}".format(clientAnswer.get('ModelVersion'))):
+    try:
 
-            # informs the user that the model version already exists and does not proceed with the training
-            print("The model version already exists in the database. Please choose another name or update the existing model version.")
+        # --------------------------------------------------
+        # Check if model exists
+        # --------------------------------------------------
 
-            # returns None
-            return None
-        
-        # if the model version does not exist, proceeds with the creation of the model and the training
+        existingModel = db.fetchInfo(
+            """
+            SELECT ModelID
+            FROM Model
+            WHERE ModelName = ?
+            """,
+            (
+                clientAnswer["ModelName"],
+            )
+        )
+
+        if existingModel:
+
+            modelID = existingModel[0]["ModelID"]
+
         else:
 
-            # creates an instance of the model to be trained
-            modelToBeTrained=ModelFactory().createModel(modelName=clientAnswer.get('ModelName'), numClasses=clientAnswer.get('NumClasses'))
+            print(
+                "The model was not found in the database. "
+                "A new model will be added."
+            )
 
-            # samples the dataset for training and validation dataset formation according to the percentages given by the user in the frontend
-            sampledDatasets=datasetSampling(clientAnswer=clientAnswer)
-            
-            # gets the last version of the model with the same name from the database
-            newModelVersion=modelVersion.fetchInfo(statement="SELECT MAX(ModelVersion) FROM ModelVersion WHERE ModelID={}".format(modelNames.fetchInfo(statement="SELECT ModelID FROM Model WHERE ModelName={}".format(clientAnswer.get('ModelName')))))
-            newModelVersion=newModelVersion[0]['MAX(ModelVersion)']+1 if newModelVersion[0]['MAX(ModelVersion)'] is not None else 1
-
-            # defines the filepath for saving the best model during training
-            filePath='{}_version_{}'.format(clientAnswer.get('ModelName'), newModelVersion)
-
-            # defines the checkpoint for saving the best model during training
-            checkPoint=keras.callbacks.ModelCheckpoint(
-                filepath=filePath, 
-                monitor='val_loss', 
-                save_best_only=True)
-            
-            # trains the model with the training dataset and validates it with the validation dataset for a 
-            # specified number of epochs and saves the best model using the specified checkpoint
-            # gets the history#
-            history=modelToBeTrained.trainModel(
-                trainDataset=sampledDatasets[0], # contains the train samples
-                validationDataset=sampledDatasets[1], # contains the validation samples
-                epochs=clientAnswer.get('Epochs'),
-                checkpoint=checkPoint
-            ) 
-
-            # updates the table ModelWeights and gets the last ID
-            lastArrowIDModelWeightsTable=ModelWeightsTable(dbFile="your_database.db").insertModelWeightsTable(
-                clientAnswer={'ModelWeightsPath':filePath})
-            
-            # updates the table Hyperparameters and gets the last ID
-            lastArrowIDHyperparametersTable=HyperparameterTable(dbFile="your_database.db").insertHyperparameterTable(
-                clientAnswer={'Hyperparameters':clientAnswer.get('Hyperparameters')})
-            
-            # updates the table Model Metrics and gets the last ID
-            lastArrowModelMetricTable=ModelMetricTable(dbFile="your_database.db").insertModelMetricTable(
-                clientAnswer={'MSE':history.get('mse'), 'r2':history.get('accuracy'), 'loss':history.get('loss')})
-            
-            # updates the table ModelVersion and gets the last ID
-            lastArrowModelVersion=ModelVersionTable(dbFile="your_database.db").insertModelVersionTable(
-                clientAnswer={
-                    'ModelVersion':newModelVersion,
-                    'CreatedAt':datetime.isoformat(),
-                    'ModelMetricID':lastArrowModelMetricTable,
-                    'HyperparameterID':lastArrowIDHyperparametersTable,
-                    'ModelWeights':lastArrowIDModelWeightsTable
-                })
-            
-            # updates the table Model and gets the last ID ´
-            LastArrowModelTable=ModelTable(dbFile="your_database.db").fetchInfo(statement="SELECT ModelID FROM Model WHERE ModelName={}".format(clientAnswer.get('ModelName')))[0]
-            
-            # creates an instace of Validation, Training, and TFRecord table to insert data in the tables
-            validationTable=ValidationTable(dbFile="your_database.db")
-            trainingTable=TrainingTable(dbFile="your_database.db")
-            TFRecordTable=TFRecordingTable(dbFile="your_database.db")
-
-            # updates the table validation
-            for sample in sampledDatasets[0]:
-                validationTable.insertValidationTable(
-                    clientAnswer={
-                        'TFRecordingID':TFRecordTable.fetchInfo(statement='SELECT TFRecordingID FROM TABLE TFRecord WHERE Label={}'.format(sample))[0],
-                        'ModelID':LastArrowModelTable
-                    }
+            modelID, _ = db.insertItemsTable(
+                query="""
+                    INSERT INTO Model
+                    (
+                        ModelName,
+                        TrainingStatus,
+                        CreatedAt
                     )
+                    VALUES (?, ?, ?)
+                """,
+                values=(
+                    clientAnswer["ModelName"],
+                    "Training",
+                    datetime.now().isoformat()
+                )
+            )
 
-            # updates the table training
-            for sample in sampledDatasets[1]:
-                trainingTable.insertValidationTable(
-                    clientAnswer={
-                        'TFRecordingID':TFRecordTable.fetchInfo(statement='SELECT TFRecordingID FROM TABLE TFRecord WHERE Label={}'.format(sample))[0],
-                        'ModelID':LastArrowModelTable
-                    }
-                    )
-            
-            # returns the new stetate of the database to show in the webpage
-            return [
-                validationTable.fetchValidation(),
-                trainingTable.fetchTraining(),
-                ModelVersionTable(dbFile="your_database.db").fetchModelVersion(),
-                ModelMetricTable(dbFile="your_database.db").fetchModelMetric(),
-                ModelWeightsTable(dbFile="your_database.db").fetchModelWeights(),
-                ModelTable(dbFile="your_database.db").fetchModel(),
-                HyperparameterTable(dbFile="your_database.db").fetchHyperparameter()
-            ]
+        # --------------------------------------------------
+        # Determine next version for this model
+        # --------------------------------------------------
 
-    # if the model does not exist in the database
-    else:
+        versionInfo = db.fetchInfo(
+            """
+            SELECT
+                MAX(ModelVersion) AS MaximumVersion
+            FROM ModelVersion
+            WHERE ModelID = ?
+            """,
+            (
+                modelID,
+            )
+        )
 
-        # informs the user tha the model does not exist in the database and a new one will be created.
-        print("The model was not found in the database. A new model will be added to the database.")
+        newModelVersion = (
+            versionInfo[0]["MaximumVersion"] + 1
+            if versionInfo
+            and versionInfo[0]["MaximumVersion"] is not None
+            else 1
+        )
 
-        # creates an instance of the model to be trained
-        modelToBeTrained=ModelFactory().createModel(modelName=clientAnswer.get('ModelName'), numClasses=clientAnswer.get('NumClasses'))
+        # --------------------------------------------------
+        # Create model
+        # --------------------------------------------------
 
-        # samples the dataset for training and validation dataset formation according to the percentages given by the user in the frontend
-        sampledDatasets=datasetSampling(clientAnswer=clientAnswer)
-        
-        # gets the last version of the model with the same name from the database
-        newModelVersion=modelVersion.fetchInfo(statement="SELECT MAX(ModelVersion) FROM ModelVersion WHERE ModelID={}".format(modelNames.fetchInfo(statement="SELECT ModelID FROM Model WHERE ModelName={}".format(clientAnswer.get('ModelName')))))
-        newModelVersion=newModelVersion[0]['MAX(ModelVersion)']+1 if newModelVersion[0]['MAX(ModelVersion)'] is not None else 1
+        modelToBeTrained = ModelFactory().createModel(
+            modelName=clientAnswer["ModelName"],
+            numClasses=clientAnswer["NumClasses"]
+        )
 
-        # defines the filepath for saving the best model during training
-        filePath='{}_version_{}'.format(clientAnswer.get('ModelName'), newModelVersion)
+        # --------------------------------------------------
+        # Sample dataset
+        # --------------------------------------------------
 
-        # defines the checkpoint for saving the best model during training
-        checkPoint=keras.callbacks.ModelCheckpoint(
-            filepath=filePath, 
-            monitor='val_loss', 
-            save_best_only=True)
-        
-        # trains the model with the training dataset and validates it with the validation dataset for a 
-        # specified number of epochs and saves the best model using the specified checkpoint
-        # gets the history#
-        history=modelToBeTrained.trainModel(
-            trainDataset=sampledDatasets[0], # contains the train samples
-            validationDataset=sampledDatasets[1], # contains the validation samples
-            epochs=clientAnswer.get('Epochs'),
+        sampledDatasets = datasetSampling(
+            clientAnswer=clientAnswer,
+            dbFile=dbFile
+        )
+
+        # --------------------------------------------------
+        # Build TensorFlow datasets
+        # --------------------------------------------------
+
+        trainDataset = buildTrainingDataset(
+            records=sampledDatasets["trainingRecords"],
+            batchSize=clientAnswer["BatchSize"]
+        )
+
+        validationDataset = buildTrainingDataset(
+            records=sampledDatasets["validationRecords"],
+            batchSize=clientAnswer["BatchSize"],
+            shuffle=False
+        )
+
+        # --------------------------------------------------
+        # Model checkpoint
+        # --------------------------------------------------
+
+        filePath = (
+            f"{clientAnswer['ModelName']}"
+            f"_version_{newModelVersion}.keras"
+        )
+
+        checkPoint = keras.callbacks.ModelCheckpoint(
+            filepath=filePath,
+            monitor="val_loss",
+            save_best_only=True
+        )
+
+        # --------------------------------------------------
+        # Train model
+        # --------------------------------------------------
+
+        history = modelToBeTrained.trainModel(
+            trainDataset=trainDataset,
+            valDataset=validationDataset,
+            epochs=clientAnswer["Epochs"],
             checkpoint=checkPoint
-        ) 
+        )
 
-        # updates the table ModelWeights and gets the last ID
-        lastArrowIDModelWeightsTable=ModelWeightsTable(dbFile="your_database.db").insertModelWeightsTable(
-            clientAnswer={'ModelWeightsPath':filePath})
-        
-        # updates the table Hyperparameters and gets the last ID
-        lastArrowIDHyperparametersTable=HyperparameterTable(dbFile="your_database.db").insertHyperparameterTable(
-            clientAnswer={'Hyperparameters':clientAnswer.get('Hyperparameters')})
-        
-        # updates the table Model Metrics and gets the last ID
-        lastArrowModelMetricTable=ModelMetricTable(dbFile="your_database.db").insertModelMetricTable(
-            clientAnswer={'MSE':history.get('mse'), 'r2':history.get('accuracy'), 'loss':history.get('loss')})
-        
-        # updates the table ModelVersion and gets the last ID
-        lastArrowModelVersion=ModelVersionTable(dbFile="your_database.db").insertModelVersionTable(
-            clientAnswer={
-                'ModelVersion':newModelVersion,
-                'CreatedAt':datetime.isoformat(),
-                'ModelMetricID':lastArrowModelMetricTable,
-                'HyperparameterID':lastArrowIDHyperparametersTable,
-                'ModelWeights':lastArrowIDModelWeightsTable
-            })
-        
-        # updates the table Model and gets the last ID ´
-        LastArrowModelTable=ModelTable(dbFile="your_database.db").insertItemsTable(
-            clientAnswer={'ModelName':clientAnswer.get('ModelName'),
-                            'TrainingStatus':'Finalized',
-                            'CreatedAt':datetime.isoformat(),
-                            'ModelVersionID':lastArrowModelVersion})
-        
-        # creates an instace of Validation, Training, and TFRecord table to insert data in the tables
-        validationTable=ValidationTable(dbFile="your_database.db")
-        trainingTable=TrainingTable(dbFile="your_database.db")
-        TFRecordTable=TFRecordingTable(dbFile="your_database.db")
+        # --------------------------------------------------
+        # Store ModelWeights
+        # --------------------------------------------------
 
-        # updates the table validation
-        for sample in sampledDatasets[0]:
-            validationTable.insertValidationTable(
-                clientAnswer={
-                    'TFRecordingID':TFRecordTable.fetchInfo(statement='SELECT TFRecordingID FROM TABLE TFRecord WHERE Label={}'.format(sample))[0],
-                    'ModelID':LastArrowModelTable
-                }
+        modelWeightsID, _ = db.insertItemsTable(
+            query="""
+                INSERT INTO ModelWeights
+                (
+                    ModelWeightsPath
                 )
+                VALUES (?)
+            """,
+            values=(
+                filePath,
+            )
+        )
 
-        # updates the table training
-        for sample in sampledDatasets[1]:
-            trainingTable.insertValidationTable(
-                clientAnswer={
-                    'TFRecordingID':TFRecordTable.fetchInfo(statement='SELECT TFRecordingID FROM TABLE TFRecord WHERE Label={}'.format(sample))[0],
-                    'ModelID':LastArrowModelTable
-                }
+        # --------------------------------------------------
+        # Store Hyperparameters
+        # --------------------------------------------------
+
+        hyperparameterID, _ = db.insertItemsTable(
+            query="""
+                INSERT INTO Hyperparameter
+                (
+                    Hyperparameters
                 )
-        
-        # returns the new stetate of the database to show in the webpage
-        return [
-            validationTable.fetchValidation(),
-            trainingTable.fetchTraining(),
-            ModelVersionTable(dbFile="your_database.db").fetchModelVersion(),
-            ModelMetricTable(dbFile="your_database.db").fetchModelMetric(),
-            ModelWeightsTable(dbFile="your_database.db").fetchModelWeights(),
-            ModelTable(dbFile="your_database.db").fetchModel(),
-            HyperparameterTable(dbFile="your_database.db").fetchHyperparameter()
-        ]
+                VALUES (?)
+            """,
+            values=(
+                str({
+                    "LearningRate":
+                        clientAnswer["LearningRate"],
+
+                    "BatchSize":
+                        clientAnswer["BatchSize"],
+
+                    "Epochs":
+                        clientAnswer["Epochs"]
+                }),
+            )
+        )
+
+        # --------------------------------------------------
+        # Store Metrics
+        # --------------------------------------------------
+
+        metricID, _ = db.insertItemsTable(
+            query="""
+                INSERT INTO ModelMetric
+                (
+                    MSE,
+                    r2,
+                    loss
+                )
+                VALUES (?, ?, ?)
+            """,
+            values=(
+                history.history["mse"][-1],
+                history.history.get(
+                    "accuracy",
+                    [None]
+                )[-1],
+                history.history["loss"][-1]
+            )
+        )
+
+        # --------------------------------------------------
+        # Store ModelVersion
+        # --------------------------------------------------
+
+        modelVersionID, _ = db.insertItemsTable(
+            query="""
+                INSERT INTO ModelVersion
+                (
+                    ModelID,
+                    ModelVersion,
+                    CreatedAt,
+                    ModelMetricID,
+                    HyperparameterID,
+                    ModelWeightsID
+                )
+                VALUES (?, ?, ?, ?, ?, ?)
+            """,
+            values=(
+                modelID,
+                newModelVersion,
+                datetime.now().isoformat(),
+                metricID,
+                hyperparameterID,
+                modelWeightsID
+            )
+        )
+
+        # --------------------------------------------------
+        # Update model status
+        # --------------------------------------------------
+
+        db.updateItem(
+            updateStatement="""
+                UPDATE Model
+                SET
+                    TrainingStatus = ?,
+                    CreatedAt = ?
+                WHERE ModelID = ?
+            """,
+            Values=(
+                "Finalized",
+                datetime.now().isoformat(),
+                modelID
+            )
+        )
+
+        # --------------------------------------------------
+        # Store DatasetSplit TRAIN
+        # --------------------------------------------------
+
+        for tile in sampledDatasets["trainingTiles"]:
+
+            db.insertItemsTable(
+                query="""
+                    INSERT INTO DatasetSplit
+                    (
+                        ModelVersionID,
+                        DatasetID,
+                        PreprocessingID,
+                        SplitType
+                    )
+                    VALUES (?, ?, ?, ?)
+                """,
+                values=(
+                    modelVersionID,
+                    clientAnswer["DatasetID"],
+                    tile["PreprocessingID"],
+                    "TRAIN"
+                )
+            )
+
+        # --------------------------------------------------
+        # Store DatasetSplit VALIDATION
+        # --------------------------------------------------
+
+        for tile in sampledDatasets["validationTiles"]:
+
+            db.insertItemsTable(
+                query="""
+                    INSERT INTO DatasetSplit
+                    (
+                        ModelVersionID,
+                        DatasetID,
+                        PreprocessingID,
+                        SplitType
+                    )
+                    VALUES (?, ?, ?, ?)
+                """,
+                values=(
+                    modelVersionID,
+                    clientAnswer["DatasetID"],
+                    tile["PreprocessingID"],
+                    "VALIDATION"
+                )
+            )
+
+        # --------------------------------------------------
+        # Result
+        # --------------------------------------------------
+
+        return {
+            "ModelID": modelID,
+            "ModelVersionID": modelVersionID,
+            "ModelVersion": newModelVersion,
+            "DatasetID": clientAnswer["DatasetID"],
+            "Status": "Completed",
+            "TrainingTiles": len(
+                sampledDatasets["trainingTiles"]
+            ),
+            "ValidationTiles": len(
+                sampledDatasets["validationTiles"]
+            )
+        }
+
+    finally:
+
+        db.closeConnection()
 
   
 # defines the fuction to train several models
@@ -251,16 +537,16 @@ def trainSeveralModels(clientAnswer:list[dict])->list[dict]:
     return results
 
 # defines the fuction to train all the models
-def trainAllModels(clientAnswer:dict)->None:
+def trainAllModels(clientAnswer:dict, dbFile:str)->None:
 
     # gets the name of all the available models
-    modelNames=ModelTable(dbFile="your_database.db").fetchInfo(statement="FROM Model SELECT ModelName")
+    modelNames=ModelTable(dbFile=dbFile).fetchInfo(statement="FROM Model SELECT ModelName")
 
     # loops through all the models available and execute the function train model
     for name in modelNames[0]:
 
         # adds the ModelName key to dictionary
-        clientAnswer['ModelName']=name.get['ModelName']
+        clientAnswer['ModelName']=name.get('ModelName') 
 
         # executes the function train model and get the results
         results=trainModel(clientAnswer=clientAnswer)
